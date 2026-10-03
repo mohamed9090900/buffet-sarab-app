@@ -13,7 +13,7 @@ main{padding:0 22px 40px;max-width:900px;margin:auto}section{display:none}.activ
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 input,select{width:100%;background:#171717;color:#fff;border:1px solid #444;border-radius:13px;padding:13px;font-size:16px;margin:5px 0}
 button.primary{background:#07111f;color:white;border:1px solid #17355c;border-radius:14px;padding:13px 18px;font-size:17px;margin-top:8px}
-button.danger{background:#381010;border-color:#5d2222}button.product-delete-btn,button.product-edit-btn{touch-action:manipulation;cursor:pointer;position:relative;z-index:5}
+button.danger{background:#381010;border-color:#5d2222}button.product-delete-btn,button.product-edit-btn{touch-action:manipulation;cursor:pointer;position:relative;z-index:5}.share-btn{border-color:#245b3b!important;background:#0d2417!important}.public-view nav{display:none!important}.public-view main{max-width:720px}.public-view header{max-width:720px;margin:auto}.public-view .public-readonly{border-color:#245b3b;background:#102218}.public-view .public-readonly .pill{background:#173b26;color:#bfe8cb}.public-actions{display:flex;gap:10px;flex-wrap:wrap}.public-actions button{flex:1}
 table{width:100%;border-collapse:collapse;background:#151515;border-radius:16px;overflow:hidden;margin-top:14px}th,td{padding:11px;border-bottom:1px solid #292929;text-align:right}th{color:#aaa}
 h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:space-between;align-items:center;margin:18px 0 8px}
 .statgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.stat{background:#1e1e1e;border:1px solid #333;border-radius:20px;padding:18px}.stat b{font-size:23px}.hint{color:#999;margin:6px 0 12px}
@@ -24,7 +24,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 .product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="بوفيه السرب"><link rel="apple-touch-icon" href="icon.svg">
 </head>
-<body data-app-version="v6">
+<body data-app-version="v8">
 <header><div class="title">بوفيه السرب</div><div class="sub">إدارة المبيعات والمخزون والريسبي</div><div class="month" id="currentMonthLabel"></div></header>
 <nav id="nav">
 <button type="button" class="active" data-page="officers">الضباط</button><button type="button" data-page="products">المنتجات</button><button type="button" data-page="categories">الفئات</button><button type="button" data-page="recipes">الريسبي</button><button type="button" data-page="purchases">المشتريات</button><button type="button" data-page="expenses">المصروفات</button><button type="button" data-page="stock">المخزون</button><button type="button" data-page="paymentsPage">التحصيلات</button><button type="button" data-page="cashPage">الخزنة</button><button type="button" data-page="salesPage">المبيعات</button>
@@ -43,7 +43,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 <section id="officerDetail"><div class="rowtitle"><h2 id="detailName">كشف حساب</h2><button type="button" class="tab" onclick="show('officers')">رجوع</button></div><div class="statgrid" id="detailStats"></div><div class="card" style="margin-top:14px"><div id="detailRows"></div></div></section>
 <section id="officers" class="active">
 </div>
-<div id="quickStats" class="statgrid" style="margin-bottom:14px"></div>
+<div id="quickStats" style="display:none"></div>
 <div id="lowStockBox" class="card" style="margin-bottom:14px"></div><div class="card" style="margin-bottom:14px"><input id="officerSearch" placeholder="بحث باسم الضابط" oninput="renderOfficers()"></div><div id="people"></div>
 <div class="card" style="margin-top:12px">
 <div class="grid"><input id="newOfficerName" placeholder="اسم الضابط"><button class="primary" type="button" onclick="addOfficer()">إضافة الضابط</button></div>
@@ -60,7 +60,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 <section id="categories"><h2>الفئات</h2><div class="hint">مفيش فئات ثابتة. اكتب الفئات اللي تناسب البوفيه بتاعك وأضفها بنفسك.</div><div class="grid"><input id="cn" placeholder="اسم الفئة"><button type="button" class="primary" onclick="addCategory()">إضافة فئة</button></div><div id="catList" class="cards" style="margin-top:12px"></div></section>
 
 <section id="recipes"><h2>الريسبي</h2>
-<div class="hint">أضف أي عدد من المكونات. كل مكوّن تختاره من المنتجات الموجودة عندك، والكمية تتحسب حسب وحدة المخزون وتكلفة الشراء الحالية.</div><div id="recipeSaleCards" class="cards" style="margin-bottom:14px"></div><div class="grid"><input id="rn" placeholder="اسم الريسبي"><input id="rs" type="number" placeholder="سعر البيع"></div><div id="ings"></div><button type="button" class="tab" onclick="addIng()">إضافة مكوّن +</button><button type="button" class="primary" onclick="saveRecipe()">حفظ الريسبي</button>
+<div class="hint">أضف أي عدد من المكونات. كل مكوّن تختاره من المنتجات الموجودة عندك، والكمية تتحسب حسب وحدة المخزون وتكلفة الشراء الحالية. بعد الحفظ يظهر الريسبي تلقائيًا في شاشة بيع الضباط.</div><div class="grid"><input id="rn" placeholder="اسم الريسبي"><input id="rs" type="number" placeholder="سعر البيع"></div><div id="ings"></div><button type="button" class="tab" onclick="addIng()">إضافة مكوّن +</button><button type="button" class="primary" onclick="saveRecipe()">حفظ الريسبي</button>
 <table><thead><tr><th>الريسبي</th><th>البيع</th><th>التكلفة</th><th>الربح</th><th></th></tr></thead><tbody id="recipeRows"></tbody></table></section>
 
 <section id="purchases"><h2>المشتريات</h2><div class="hint">المنتج = تعريف الصنف. المشتريات = إضافة بضاعة فعلية للمخزون وتسجيل المورد وسعر الشراء.</div>
@@ -120,8 +120,27 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
   <div id="closingSummary"></div>
   <div id="archiveList" style="margin-top:12px"></div>
 </div>
+<div class="card" style="margin-top:14px">
+  <div class="rowtitle"><h3 style="margin:0">النسخة الاحتياطية</h3><span class="pill">أمان البيانات</span></div>
+  <div class="hint">صدّر نسخة احتياطية من بيانات البوفيه واحفظها خارج المتصفح. الاسترجاع يستبدل البيانات الحالية بالنسخة المختارة.</div>
+  <div class="grid">
+    <button type="button" class="primary" onclick="backup()">تصدير نسخة احتياطية</button>
+    <button type="button" class="tab" onclick="document.getElementById('restoreFile').click()">استرجاع نسخة</button>
+  </div>
+  <input id="restoreFile" type="file" accept="application/json,.json" style="display:none" onchange="restore(event)">
+</div>
 </section>
 <section id="cashPage"><div class="rowtitle"><h2>الخزنة</h2><span class="pill" id="cashMonth"></span></div><div class="statgrid" id="cashStats"></div><div class="card" style="margin-bottom:14px"><h3>رصيد بداية الشهر</h3><div class="formgrid"><input id="cashOpening" type="number" step="0.01" placeholder="رصيد بداية الشهر"><button type="button" class="primary" onclick="setCashOpening()">حفظ الرصيد</button></div></div><div class="card" style="margin-bottom:14px"><h3>إيداع / سحب</h3><div class="formgrid"><select id="cashMoveType"><option value="in">إيداع</option><option value="out">سحب</option></select><input id="cashMoveAmount" type="number" step="0.01" placeholder="المبلغ"><input id="cashMoveNote" placeholder="البيان"><button type="button" class="primary" onclick="addCashMove()">تسجيل</button></div></div><div class="card" style="margin-bottom:14px"><h3>الدين</h3><div class="formgrid"><input id="cashDebtAmount" type="number" step="0.01" placeholder="قيمة الدين"><input id="cashDebtNote" placeholder="بيان الدين"><button type="button" class="danger" onclick="addDebt()">تسجيل الدين</button></div><div class="hint">الدين يُسجل كمبلغ خارج من الخزنة ويظهر منفصلًا في الحسابات.</div></div><div class="card" style="margin-bottom:14px"><h3>سداد دين</h3><div class="formgrid"><input id="cashDebtPayAmount" type="number" step="0.01" placeholder="مبلغ السداد"><input id="cashDebtPayNote" placeholder="بيان السداد"><button type="button" class="primary" onclick="payDebt()">تسجيل السداد</button></div><div class="hint" id="cashDebtOutstanding"></div></div><div class="card"><h3>حركات الخزنة</h3><div id="cashRows"></div></div></section>
+
+<section id="publicAccount">
+  <div class="card public-readonly">
+    <div class="rowtitle"><div><h2 id="publicAccountName" style="margin:0">كشف حساب</h2><div class="hint" id="publicAccountMonth"></div></div><span class="pill">قراءة فقط</span></div>
+    <div class="statgrid" id="publicAccountStats"></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>الاستهلاك</h3><div id="publicAccountSales"></div></div>
+  <div class="card" style="margin-top:14px"><h3>التحصيلات</h3><div id="publicAccountPayments"></div></div>
+  <div class="hint" id="publicAccountGenerated" style="margin-top:14px;text-align:center"></div>
+</section>
 </main>
 <div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3><input id="editProductName" placeholder="اسم المنتج"><input id="editProductBuy" type="number" step="0.01" placeholder="سعر الشراء"><input id="editProductSell" type="number" step="0.01" placeholder="سعر البيع"><input id="editProductQty" type="number" step="0.01" placeholder="الكمية"><input id="editProductMin" type="number" step="0.01" placeholder="حد التنبيه"><select id="editProductUnit"><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select><select id="editProductCat"></select><div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div><div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
@@ -284,7 +303,63 @@ async function exportCSV(){
 async function backup(){await shareOrDownload(JSON.stringify(S,null,2),"buffet-backup.json","application/json");}
 function restore(e){
  const f=e.target.files[0];if(!f)return;
- const r=new FileReader();r.onload=()=>{try{Object.assign(S,JSON.parse(r.result));save();render();alert("تم استرجاع النسخة")}catch(x){alert("الملف غير صالح")}};r.readAsText(f);
+ const input=e.target;
+ const r=new FileReader();
+ r.onload=()=>{
+   try{
+     const data=JSON.parse(r.result);
+     if(!data||typeof data!=="object"||!Array.isArray(data.people))throw new Error("invalid");
+     if(!confirm("استرجاع النسخة سيستبدل بيانات البوفيه الحالية. هل تريد المتابعة؟")){input.value="";return;}
+     Object.assign(S,{cash:{opening:0,movements:[]},cats:[],people:[],suppliers:[""],expenseTypes:[],products:[],sales:[],payments:[],purchases:[],expenses:[],recipes:[],audit:[]},data);
+     save();render();alert("تم استرجاع النسخة بنجاح");
+   }catch(x){alert("الملف غير صالح أو تالف");}
+   input.value="";
+ };
+ r.readAsText(f);
+}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+function toBase64Url(text){
+ const bytes=new TextEncoder().encode(text);let bin="";const size=0x8000;
+ for(let i=0;i<bytes.length;i+=size)bin+=String.fromCharCode(...bytes.subarray(i,i+size));
+ return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
+}
+function fromBase64Url(text){
+ let s=String(text||"").replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";
+ const bin=atob(s),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes);
+}
+function officerSharePayload(name){
+ const sales=(S.sales||[]).filter(x=>x.who===name&&!x.returned).map(x=>({d:x.date||"",p:x.product||"",q:Number(x.qty||1),t:Number(x.total||0)}));
+ const payments=(S.payments||[]).filter(x=>x.who===name).map(x=>({d:x.date||"",a:Number(x.amount||0)}));
+ const total=sales.reduce((a,x)=>a+x.t,0),paid=payments.reduce((a,x)=>a+x.a,0);
+ return {v:1,n:name,m:new Date().toLocaleDateString("ar-EG",{month:"long",year:"numeric"}),g:new Date().toLocaleString("ar-EG"),s:sales,p:payments,t:total,a:paid,d:Math.max(0,total-paid)};
+}
+async function shareOfficerAccountByIndex(i){
+ const name=S.people?.[Number(i)];if(!name)return;
+ const payload=officerSharePayload(name);
+ const token=toBase64Url(JSON.stringify(payload));
+ const url=location.href.split("#")[0]+"#account="+token;
+ const title="كشف حساب "+name+" — بوفيه السرب";
+ try{if(navigator.share){await navigator.share({title,text:"كشف حساب للعرض فقط",url});return;}}catch(e){if(e?.name==="AbortError")return;}
+ try{if(navigator.clipboard){await navigator.clipboard.writeText(url);alert("تم نسخ رابط حساب "+name);return;}}catch(e){}
+ prompt("انسخ رابط حساب "+name,url);
+}
+function readPublicAccountHash(){
+ try{const h=location.hash||"";if(!h.startsWith("#account="))return null;const data=JSON.parse(fromBase64Url(h.slice(9)));return data&&data.v===1?data:null;}catch(e){return null;}
+}
+function renderPublicAccount(data){
+ document.body.classList.add("public-view");
+ const navEl=document.getElementById("nav");if(navEl)navEl.style.display="none";
+ document.querySelectorAll("main section").forEach(x=>x.classList.remove("active"));
+ const sec=document.getElementById("publicAccount");if(sec)sec.classList.add("active");
+ const sub=document.querySelector("header .sub");if(sub)sub.textContent="كشف حساب للعرض فقط";
+ const month=document.getElementById("currentMonthLabel");if(month)month.textContent=data.m||"";
+ const name=document.getElementById("publicAccountName");if(name)name.textContent="كشف حساب — "+String(data.n||"");
+ const pm=document.getElementById("publicAccountMonth");if(pm)pm.textContent=data.m||"";
+ const stats=document.getElementById("publicAccountStats");if(stats)stats.innerHTML=`<div class="stat">إجمالي الاستهلاك<br><b>${money(data.t)}</b></div><div class="stat">المدفوع<br><b>${money(data.a)}</b></div><div class="stat">المتبقي<br><b>${money(data.d)}</b></div>`;
+ const sales=document.getElementById("publicAccountSales");if(sales)sales.innerHTML=(data.s||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${esc(x.p)} × ${Number(x.q||1)}<div class="muted">${esc(x.d||"")}</div></span><b>${money(x.t)}</b></div>`).join("")||`<div class="hint">لا توجد حركات استهلاك.</div>`;
+ const pays=document.getElementById("publicAccountPayments");if(pays)pays.innerHTML=(data.p||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>تحصيل<div class="muted">${esc(x.d||"")}</div></span><b>${money(x.a)}</b></div>`).join("")||`<div class="hint">لا توجد تحصيلات.</div>`;
+ const gen=document.getElementById("publicAccountGenerated");if(gen)gen.textContent="نسخة للعرض فقط — تم إنشاء الرابط: "+String(data.g||"");
+ document.title="كشف حساب "+String(data.n||"")+" — بوفيه السرب";
 }
 function editOfficer(oldName){
  const newName=prompt("تعديل اسم الضابط",oldName);
@@ -651,9 +726,6 @@ function setCashOpening(){let v=Number(document.getElementById('cashOpening').va
 function addCashMove(){let type=document.getElementById('cashMoveType').value,a=Number(document.getElementById('cashMoveAmount').value),n=document.getElementById('cashMoveNote').value.trim();if(!a||a<0)return alert('اكتب مبلغ صحيح');S.cash=S.cash||{opening:0,movements:[]};S.cash.movements.push({type,amount:a,note:n,date:new Date().toLocaleString('ar-EG')});logAction(type==='in'?'إيداع خزنة':'سحب خزنة',money(a)+(n?' — '+n:''));document.getElementById('cashMoveAmount').value='';document.getElementById('cashMoveNote').value='';save();render()}
 function addDebt(){let a=Number(document.getElementById('cashDebtAmount').value),n=document.getElementById('cashDebtNote').value.trim();if(!a||a<0)return alert('اكتب قيمة الدين');S.cash=S.cash||{opening:0,movements:[]};S.cash.movements.push({type:'debt',amount:a,note:n,date:new Date().toLocaleString('ar-EG')});logAction('دين من الخزنة',money(a)+(n?' — '+n:''));document.getElementById('cashDebtAmount').value='';document.getElementById('cashDebtNote').value='';save();render()}
 function render(){
-if(document.getElementById("recipeSaleCards")){
- recipeSaleCards.innerHTML=S.recipes.map((r,i)=>`<div class="card"><div class="rowtitle"><div><div class="name">${r.name}</div><div class="muted">تكلفة ${money(recipeCost(r))} • ربح ${money(r.price-recipeCost(r))}</div></div><div class="amount">${money(r.price)}</div></div><button type="button" class="primary" onclick="sellRecipe(${i})">بيع الريسبي</button></div>`).join("") || `<div class="hint">لسه مفيش ريسبي.</div>`;
-}
 if(document.getElementById("salesMainStats")){
  const sales=S.sales.filter(x=>!x.returned).reduce((a,x)=>a+x.total,0);
  const cost=S.sales.filter(x=>!x.returned).reduce((a,x)=>a+x.cost,0);
@@ -722,7 +794,7 @@ if(document.getElementById("lowStockBox")){
  lowStockBox.innerHTML=low.length?`<b>تنبيه مخزون</b><div class="hint">${low.map(p=>`${p.name}: ${p.qty} متبقي`).join(" • ")}</div>`:`<b>المخزون</b><div class="hint">لا توجد أصناف تحت حد التنبيه.</div>`;
 }
 if(document.getElementById("auditRows")){auditRows.innerHTML=(S.audit||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${x.action}<div class="muted">${x.detail||""}</div></span><span class="muted">${x.date}</span></div>`).join("")||"لا توجد حركات مسجلة";}
-quickStats.innerHTML=`<div class="stat">مبيعات الشهر<br><b>${money(S.sales.reduce((a,x)=>a+x.total,0))}</b></div><div class="stat">إجمالي المستحقات<br><b>${money(totalDue())}</b></div><div class="stat">المحصّل<br><b>${money((S.payments||[]).reduce((a,x)=>a+x.amount,0))}</b></div><div class="stat">عدد حركات البيع<br><b>${S.sales.length}</b></div>`;
+if(quickStats){quickStats.innerHTML="";quickStats.style.display="none";}
 renderOfficers();
 const pcEl=document.getElementById("pc"); if(pcEl)pcEl.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${x}">${x}</option>`).join(""); if(document.getElementById("purchaseProductList")){purchaseProductList.innerHTML=S.products.map(x=>`<option value="${x.name}">${x.name} — ${x.unit||"قطعة"}</option>`).join("");}
 renderProducts();
@@ -816,7 +888,8 @@ function renderOfficers(){
  people.innerHTML=list.map(n=>{
    const total=officerTotal(n), paid=officerPaid(n), due=officerDue(n), done=total>0 && due<=0;
    const safe=n.replace(/'/g,"\'");
-   return `<div class="person" style="${done?"background:#5a4a00;border-color:#a88b00":""}" onclick="personSale('${safe}')"><div><div class="name">${n}</div><div class="muted">إجمالي: ${money(total)} • مدفوع: ${money(paid)}</div></div><div style="text-align:left"><div class="amount">${money(due)}</div><div class="muted">${done?"✓ مدفوع بالكامل":"المستحق"}</div><button type="button" class="tab" onclick="event.stopPropagation();openPayModal('${safe}')">${done?"مدفوع":"تحصيل"}</button> <button type="button" class="tab" onclick="event.stopPropagation();editOfficer('${safe}')">تعديل الاسم</button></div></div>`;
+   const personIndex=S.people.indexOf(n);
+   return `<div class="person" style="${done?"background:#5a4a00;border-color:#a88b00":""}" onclick="personSale('${safe}')"><div><div class="name">${n}</div><div class="muted">إجمالي: ${money(total)} • مدفوع: ${money(paid)}</div></div><div style="text-align:left"><div class="amount">${money(due)}</div><div class="muted">${done?"✓ مدفوع بالكامل":"المستحق"}</div><button type="button" class="tab" onclick="event.stopPropagation();openPayModal('${safe}')">${done?"مدفوع":"تحصيل"}</button> <button type="button" class="tab share-btn" onclick="event.stopPropagation();shareOfficerAccountByIndex(${personIndex})">مشاركة الحساب</button> <button type="button" class="tab" onclick="event.stopPropagation();editOfficer('${safe}')">تعديل الاسم</button></div></div>`;
  }).join("") || `<div class="hint">لا يوجد ضابط بهذا الاسم.</div>`;
 }
 function openPayModal(name){
@@ -889,13 +962,18 @@ document.addEventListener("click",function(e){
   show(b.dataset.page,b);
 },true);
 
-try{
-  load();
-  S.products.forEach(p=>{if(!p.unit)p.unit="قطعة";});
-  const ml=document.getElementById("currentMonthLabel");
-  if(ml)ml.textContent=new Date().toLocaleDateString("ar-EG",{month:"long",year:"numeric"});
-  try{render();}catch(err){console.error("Render error",err);}
-}catch(err){console.error("App init error",err);}
+const __publicPayload=readPublicAccountHash();
+if(__publicPayload){
+  try{renderPublicAccount(__publicPayload);}catch(err){console.error("Public view error",err);}
+}else{
+  try{
+    load();
+    S.products.forEach(p=>{if(!p.unit)p.unit="قطعة";});
+    const ml=document.getElementById("currentMonthLabel");
+    if(ml)ml.textContent=new Date().toLocaleDateString("ar-EG",{month:"long",year:"numeric"});
+    try{render();}catch(err){console.error("Render error",err);}
+  }catch(err){console.error("App init error",err);}
+}
 
 // حذف الريسبي عبر زر مباشر ثابت حتى يعمل على iPhone وAndroid بدون اعتماد على inline onclick
 document.addEventListener("click",function(e){
