@@ -118,7 +118,9 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
   <div class="rowtitle"><h3 style="margin:0">الأرشيف وإغلاق الشهر</h3><button type="button" class="tab" onclick="closeMonth()">إغلاق الشهر</button></div>
   <div class="hint">إغلاق الشهر يحفظ المبيعات والتحصيلات والمشتريات والمصروفات في الأرشيف، ثم يبدأ شهرًا جديدًا.</div>
   <div id="closingSummary"></div>
-  <div id="archiveList" style="margin-top:12px"></div>
+  <button type="button" class="primary" style="margin-top:12px" onclick="toggleArchiveMonths()">أرشيف الشهور</button>
+  <div id="archiveList" style="margin-top:12px;display:none"></div>
+  <div id="archiveDetail" class="card" style="margin-top:12px;display:none"></div>
 </div>
 <div class="card" style="margin-top:14px">
   <div class="rowtitle"><h3 style="margin:0">النسخة الاحتياطية</h3><span class="pill">أمان البيانات</span></div>
@@ -670,6 +672,34 @@ function adjust(i){
  let a=+document.getElementById("actual"+i).value||0;
  S.products[i].qty=a;logAction("جرد",S.products[i].name+" = "+a);save();render();
 }
+
+function toggleArchiveMonths(){
+ const list=document.getElementById("archiveList");
+ const detail=document.getElementById("archiveDetail");
+ if(!list)return;
+ const opening=list.style.display==="none";
+ list.style.display=opening?"block":"none";
+ if(!opening && detail)detail.style.display="none";
+}
+function showArchivedMonth(i){
+ const ar=JSON.parse(localStorage.getItem("buffet_archive")||"[]");
+ const m=ar[i]; if(!m)return;
+ const sales=(m.sales||[]).filter(x=>!x.returned);
+ const payments=m.payments||[], purchases=m.purchases||[], expenses=m.expenses||[];
+ const totalSales=Number(m.summary?.sales ?? sales.reduce((a,x)=>a+Number(x.total||0),0));
+ const cost=Number(m.summary?.cost ?? sales.reduce((a,x)=>a+Number(x.cost||0),0));
+ const exp=Number(m.summary?.exp ?? expenses.reduce((a,x)=>a+Number(x.a||0),0));
+ const paid=Number(m.summary?.paid ?? payments.reduce((a,x)=>a+Number(x.amount||0),0));
+ const profit=Number(m.summary?.profit ?? (totalSales-cost-exp));
+ const pur=Number(m.summary?.pur ?? purchases.reduce((a,x)=>a+Number(x.total||0),0));
+ const d=document.getElementById("archiveDetail"); if(!d)return;
+ d.style.display="block";
+ d.innerHTML=`<div class="rowtitle"><h3 style="margin:0">${m.month||"شهر محفوظ"}</h3><button type="button" class="tab" onclick="this.closest('#archiveDetail').style.display='none'">إغلاق</button></div>
+ <div class="statgrid" style="margin-top:12px"><div class="stat">المبيعات<br><b>${money(totalSales)}</b></div><div class="stat">تكلفة البضاعة<br><b>${money(cost)}</b></div><div class="stat">المصروفات<br><b>${money(exp)}</b></div><div class="stat">صافي الربح<br><b>${money(profit)}</b></div><div class="stat">المحصّل<br><b>${money(paid)}</b></div><div class="stat">المشتريات<br><b>${money(pur)}</b></div></div>
+ <h3>المبيعات</h3><div style="overflow:auto">${sales.length?`<table><thead><tr><th>التاريخ</th><th>الضابط</th><th>الصنف</th><th>الكمية</th><th>الإجمالي</th></tr></thead><tbody>${sales.map(x=>`<tr><td>${x.date||""}</td><td>${x.who||""}</td><td>${x.product||""}</td><td>${x.qty||1}</td><td>${money(x.total||0)}</td></tr>`).join("")}</tbody></table>`:"لا توجد مبيعات"}</div>
+ <h3>التحصيلات</h3><div style="overflow:auto">${payments.length?`<table><thead><tr><th>التاريخ</th><th>الضابط</th><th>المبلغ</th></tr></thead><tbody>${payments.map(x=>`<tr><td>${x.date||""}</td><td>${x.who||x.name||""}</td><td>${money(x.amount||0)}</td></tr>`).join("")}</tbody></table>`:"لا توجد تحصيلات"}</div>`;
+ d.scrollIntoView({behavior:"smooth",block:"start"});
+}
 function archiveCurrentMonth(){
  const month=new Date().toLocaleDateString("ar-EG",{month:"long",year:"numeric"});
  const sales=S.sales.reduce((a,x)=>a+x.total,0), cost=S.sales.reduce((a,x)=>a+x.cost,0), exp=S.expenses.reduce((a,x)=>a+x.a,0), pur=S.purchases.reduce((a,x)=>a+x.total,0);
@@ -756,7 +786,7 @@ if(document.getElementById("closingSummary")){
 }
 if(document.getElementById("archiveList")){
  const ar=JSON.parse(localStorage.getItem("buffet_archive")||"[]");
- archiveList.innerHTML=ar.length?ar.slice().reverse().map((m,i)=>`<div class="rowtitle"><span>${m.month||("شهر محفوظ "+(ar.length-i))}</span><span>${m.sales.length} مبيعات • ${m.purchases.length} مشتريات • ${m.expenses.length} مصروفات • ${money(m.summary?.profit||0)} صافي</span></div>`).join(""):"لا توجد أشهر محفوظة";
+ archiveList.innerHTML=ar.length?ar.map((m,i)=>({m,i})).reverse().map(({m,i})=>`<button type="button" class="tab" style="width:100%;margin:5px 0;text-align:right" onclick="showArchivedMonth(${i})">${m.month||("شهر محفوظ "+(i+1))} — ${money(m.summary?.sales||0)} مبيعات — ${money(m.summary?.profit||0)} صافي</button>`).join(""):"لا توجد أشهر محفوظة";
 }
 if(document.getElementById("salesSummary")){
  const sales=S.sales.filter(x=>!x.returned).reduce((a,x)=>a+x.total,0), cost=S.sales.filter(x=>!x.returned).reduce((a,x)=>a+x.cost,0);
