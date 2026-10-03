@@ -24,10 +24,10 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 .product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="بوفيه السرب"><link rel="apple-touch-icon" href="icon.svg">
 </head>
-<body data-app-version="v8.6.1-officer-top">
+<body data-app-version="v8.6-hospitality">
 <header><div class="title">بوفيه السرب</div><div class="sub">إدارة المبيعات والمخزون والريسبي</div><div class="month" id="currentMonthLabel"></div></header>
 <nav id="nav">
-<button type="button" class="active" data-page="officers">الضباط</button><button type="button" data-page="hospitality">الضيافة</button><button type="button" data-page="products">المنتجات</button><button type="button" data-page="categories">الفئات</button><button type="button" data-page="recipes">الريسبي</button><button type="button" data-page="purchases">المشتريات</button><button type="button" data-page="expenses">المصروفات</button><button type="button" data-page="stock">المخزون</button><button type="button" data-page="paymentsPage">التحصيلات</button><button type="button" data-page="cashPage">الخزنة</button><button type="button" data-page="salesPage">المبيعات</button>
+<button type="button" class="active" data-page="officers">الضباط</button><button type="button" data-page="products">المنتجات</button><button type="button" data-page="categories">الفئات</button><button type="button" data-page="recipes">الريسبي</button><button type="button" data-page="purchases">المشتريات</button><button type="button" data-page="expenses">المصروفات</button><button type="button" data-page="stock">المخزون</button><button type="button" data-page="paymentsPage">التحصيلات</button><button type="button" data-page="cashPage">الخزنة</button><button type="button" data-page="salesPage">المبيعات</button>
 </nav>
 <main>
 <section id="audit"><div class="rowtitle"><h2>سجل الحركات</h2><button type="button" class="tab" onclick="show('officers')">رجوع</button></div><div class="card"><div class="hint">يسجل الإضافات والتعديلات والحذف والمبيعات والجرد وإغلاق الشهر.</div><div id="auditRows" style="margin-top:12px"></div></div></section>
@@ -35,7 +35,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 <section id="sale">
 <div class="rowtitle"><h2 id="saleTitle">تسجيل استهلاك</h2><button type="button" class="tab" onclick="show('officers')">رجوع</button></div>
 <input id="saleSearch" placeholder="ابحث عن صنف..." oninput="renderSaleProducts()"><div id="saleProducts" class="cards"></div>
-<div class="card" style="margin-top:14px"><div class="rowtitle"><b>الفاتورة الحالية</b><span id="cartTotal">0.00 ج</span></div><div id="cartRows" class="hint">لم يتم اختيار أصناف</div><div class="grid" id="saleActionButtons"><button id="confirmSaleBtn" type="button" class="primary" onclick="confirmCart(false)">تسجيل على الحساب</button><button id="confirmCashBtn" type="button" class="tab" onclick="confirmCart(true)">تسجيل كاش</button><button id="confirmHospitalityBtn" type="button" class="primary" onclick="confirmHospitalityCart()">تسجيل الضيافة</button></div></div>
+<div class="card" style="margin-top:14px"><div class="rowtitle"><b>الفاتورة الحالية</b><span id="cartTotal">0.00 ج</span></div><div id="cartRows" class="hint">لم يتم اختيار أصناف</div><div class="grid" id="saleActionButtons"><button id="confirmSaleBtn" type="button" class="primary" onclick="confirmCart(false)">تسجيل على الحساب</button><button id="confirmCashBtn" type="button" class="tab" onclick="confirmCart(true)">تسجيل كاش</button></div></div>
 </section>
 
 
@@ -44,15 +44,10 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 <section id="officers" class="active">
 </div>
 <div id="quickStats" style="display:none"></div>
-<div id="lowStockBox" class="card" style="margin-bottom:14px"></div><div class="card" style="margin-bottom:14px"><div class="grid"><button type="button" class="primary" style="width:100%" onclick="openCashSale()">بيع كاش</button><button type="button" class="primary" style="width:100%" onclick="openHospitalitySale()">ضيافة</button></div></div><div class="card" style="margin-bottom:14px"><input id="officerSearch" placeholder="بحث باسم الضابط" oninput="renderOfficers()"><div class="grid" style="margin-top:10px"><input id="newOfficerName" placeholder="اسم الضابط"><button class="primary" type="button" onclick="addOfficer()">إضافة الضابط</button></div></div><div id="people"></div>
-<button type="button" class="tab" onclick="newMonth()">بدء شهر جديد</button>
-</section>
-
-<section id="hospitality">
-<div class="rowtitle"><h2>الضيافة</h2><button type="button" class="primary" onclick="openHospitalitySale()">تسجيل ضيافة جديدة</button></div>
-<div class="hint">سجّل الضيافة وقت خروجها من المخزون. تظل معلّقة لحد ما تعرف هل هي على البوفيه أو على اللواء. كل الضيافة تتسجل بسعر البيع العادي.</div>
-<div class="statgrid" id="hospitalityStats"></div>
-<div class="card" style="margin-top:14px"><div class="rowtitle"><h3 style="margin:0">حركات الضيافة</h3><span class="pill" id="hospitalityCount"></span></div><div id="hospitalityRows"></div></div>
+<div id="lowStockBox" class="card" style="margin-bottom:14px"></div><div class="card" style="margin-bottom:14px"><div class="grid"><button type="button" class="primary" onclick="openCashSale()">بيع كاش</button><button type="button" class="primary" onclick="openHospitality()">ضيافة</button></div></div><div class="card" style="margin-bottom:14px"><input id="officerSearch" placeholder="بحث باسم الضابط" oninput="renderOfficers()"></div><div id="people"></div>
+<div class="card" style="margin-top:12px">
+<div class="grid"><input id="newOfficerName" placeholder="اسم الضابط"><button class="primary" type="button" onclick="addOfficer()">إضافة الضابط</button></div>
+</div> <button type="button" class="tab" onclick="newMonth()">بدء شهر جديد</button>
 </section>
 
 <section id="products">
@@ -104,9 +99,10 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 </div>
 
 <div class="card" style="margin-top:14px">
-  <div class="rowtitle"><h3 style="margin:0">الضيافة</h3><button type="button" class="tab" onclick="show('hospitality')">فتح الضيافة</button></div>
-  <div class="hint">قيمة الضيافة محسوبة دائمًا بسعر البيع. الخزنة تتحرك فقط لو تم التحصيل من اللواء.</div>
-  <div id="salesHospitalitySummary"></div>
+  <div class="rowtitle"><h3 style="margin:0">الضيافة</h3><span class="pill">بسعر البيع</span></div>
+  <div class="hint">الضيافة تتسجل أولًا كمعلّقة. بعد ما تعرف الجهة، حددها «على البوفيه» أو «على اللواء». الخزنة لا تزيد إلا عند تحصيل ضيافة على اللواء فعليًا.</div>
+  <div class="statgrid" id="hospitalityStats"></div>
+  <div id="hospitalityRows" style="margin-top:12px"></div>
 </div>
 
 <div class="card" style="margin-top:14px">
@@ -126,7 +122,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 </div>
 
 <div class="card" style="margin-top:14px">
-  <div class="rowtitle"><h3 style="margin:0">الأرشيف وإغلاق الشهر</h3><button type="button" class="tab" onclick="closeMonth()">إغلاق الشهر</button></div>
+  <div class="rowtitle"><h3 style="margin:0">الأرشيف وإغلاق الشهر</h3><button type="button" class="tab close-month-btn">إغلاق الشهر</button></div>
   <div class="hint">إغلاق الشهر يحفظ المبيعات والتحصيلات والمشتريات والمصروفات في الأرشيف، ثم يبدأ شهرًا جديدًا.</div>
   <div id="closingSummary"></div>
   <button type="button" class="primary" style="margin-top:12px" onclick="toggleArchiveMonths()">أرشيف الشهور</button>
@@ -264,13 +260,20 @@ const S={cash:{opening:0,movements:[]},openingDue:{},cats:[],people:[],suppliers
 const money=x=>Number(x||0).toFixed(2)+" ج";
 function save(){localStorage.setItem("buffet_sarab_v3",JSON.stringify(S))}
 function logAction(action,detail=""){S.audit=S.audit||[];S.audit.push({date:new Date().toLocaleString("ar-EG"),action,detail});if(S.audit.length>500)S.audit.shift();}
+function normalizeState(){
+ const arrayKeys=["cats","people","suppliers","expenseTypes","products","sales","payments","purchases","expenses","recipes","hospitality","audit"];
+ arrayKeys.forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];});
+ if(!S.openingDue||typeof S.openingDue!=="object"||Array.isArray(S.openingDue))S.openingDue={};
+ if(!S.cash||typeof S.cash!=="object"||Array.isArray(S.cash))S.cash={opening:0,movements:[]};
+ if(!Array.isArray(S.cash.movements))S.cash.movements=[];
+ if(!Number.isFinite(Number(S.cash.opening)))S.cash.opening=0;
+}
 function load(){
  try{
    let x=JSON.parse(localStorage.getItem("buffet_sarab_v3"));
    if(x)Object.assign(S,x);
  }catch(e){}
- S.payments=S.payments||[];
- S.openingDue=S.openingDue||{};
+ normalizeState();
  S.cats=S.cats||[];
  // إزالة الفئات التجريبية القديمة مرة واحدة، مع الإبقاء على أي فئات أضافها المستخدم.
  const demoCats=["سناكس","مشروبات","مشروبات ساخنة","مواد خام"];
@@ -317,7 +320,7 @@ async function exportCSV(){
 }
 async function backup(){
  let archive=[];try{const a=JSON.parse(localStorage.getItem("buffet_archive")||"[]");if(Array.isArray(a))archive=a;}catch(e){}
- const payload={backupVersion:3,createdAt:new Date().toISOString(),state:JSON.parse(JSON.stringify(S)),archive};
+ const payload={backupVersion:2,createdAt:new Date().toISOString(),state:JSON.parse(JSON.stringify(S)),archive};
  const day=new Date().toISOString().slice(0,10);
  await shareOrDownload(JSON.stringify(payload,null,2),"buffet-backup-"+day+".json","application/json");
 }
@@ -410,18 +413,6 @@ function addOfficer(){
  if(S.people.includes(n))return alert("الاسم موجود بالفعل");
  S.people.push(n);logAction("إضافة ضابط",n);el.value="";save();render();
 }
-function currentMonthKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;}
-function hospitalityStatusLabel(status){return ({pending:"معلّقة",buffet:"على البوفيه",general:"على اللواء",collected:"تم تحصيلها من اللواء",cancelled:"ملغاة"})[status]||"معلّقة";}
-function activeHospitality(){return (S.hospitality||[]).filter(x=>!x.returned);}
-function hospitalityCurrentMonth(){const mk=currentMonthKey();return activeHospitality().filter(x=>(x.originMonthKey||mk)===mk&&!x.carried);}
-function hospitalityDue(){return activeHospitality().filter(x=>x.status==="general").reduce((a,x)=>a+Number(x.total||0),0);}
-function hospitalityPending(){return activeHospitality().filter(x=>x.status==="pending").reduce((a,x)=>a+Number(x.total||0),0);}
-function hospitalityMonthValue(){return hospitalityCurrentMonth().reduce((a,x)=>a+Number(x.total||0),0);}
-function hospitalityMonthCost(){return hospitalityCurrentMonth().reduce((a,x)=>a+Number(x.cost||0),0);}
-function hospitalityMonthBuffet(){return hospitalityCurrentMonth().filter(x=>x.status==="buffet").reduce((a,x)=>a+Number(x.total||0),0);}
-function cashHospitalityCollections(){return ((S.cash&&S.cash.movements)||[]).filter(x=>x.type==="hospitalityCollect").reduce((a,x)=>a+Number(x.amount||0),0);}
-function hospitalityRecordId(){return (globalThis.crypto&&crypto.randomUUID)?crypto.randomUUID():("h-"+Date.now()+"-"+Math.random().toString(36).slice(2));}
-
 let currentOfficer=null,cart=[];
 function openDetail(name){
  document.getElementById("detailName").textContent="كشف حساب — "+name;
@@ -446,7 +437,8 @@ function deleteProduct(i){
 }
 function openOfficer(name){currentOfficer=name;cart=[];show("sale");document.getElementById("saleTitle").textContent="استهلاك "+name;render()}
 function openCashSale(){currentOfficer="__CASH__";cart=[];show("sale");document.getElementById("saleTitle").textContent="بيع كاش";render()}
-function openHospitalitySale(){currentOfficer="__HOSPITALITY__";cart=[];show("sale");document.getElementById("saleTitle").textContent="تسجيل ضيافة";render()}
+function openHospitality(){currentOfficer="__HOSPITALITY__";cart=[];show("sale");document.getElementById("saleTitle").textContent="تسجيل ضيافة";render()}
+function currentPeriodKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`}
 
 function recipeAvailableQty(r){
  if(!r || !Array.isArray(r.ins) || !r.ins.length)return 0;
@@ -501,8 +493,8 @@ function changeCart(j,d){
 }
 function confirmCart(forceCash){
  if(!currentOfficer||!cart.length)return;
- if(currentOfficer==="__HOSPITALITY__")return alert("استخدم زر تسجيل الضيافة");
  if(forceCash===true && currentOfficer!=="__CASH__")return alert("البيع الكاش يتم من زر بيع كاش الرئيسي");
+ const isHospitality=currentOfficer==="__HOSPITALITY__";
  const isCash=currentOfficer==="__CASH__";
  const saleWho=isCash?"بيع كاش":currentOfficer;
  // تحقق من إجمالي احتياج كل خامة/منتج قبل الخصم
@@ -517,6 +509,29 @@ function confirmCart(forceCash){
    }
  }
  for(const [name,need] of productNeed){const p=S.products.find(z=>z.name===name);if(!p||Number(p.qty||0)<need)return alert("الكمية غير متاحة: "+name);}
+
+ if(isHospitality){
+   const items=[];let total=0,cost=0;
+   for(const x of cart){
+     if(x.type==="recipe"){
+       const r=S.recipes[x.i];const unitCost=recipeCost(r);
+       for(const ing of r.ins||[]){const p=S.products.find(z=>z.name===ing.n);p.qty-=Number(ing.q||0)*x.q;}
+       const lineTotal=Number(r.price||0)*x.q,lineCost=unitCost*x.q;
+       total+=lineTotal;cost+=lineCost;
+       items.push({type:"ريسبي",name:r.name,qty:x.q,unitPrice:Number(r.price||0),total:lineTotal,cost:lineCost,recipeIns:JSON.parse(JSON.stringify(r.ins||[]))});
+     }else{
+       const p=S.products[x.i];p.qty-=x.q;
+       const lineTotal=Number(p.sell||0)*x.q,lineCost=Number(p.buy||0)*x.q;
+       total+=lineTotal;cost+=lineCost;
+       items.push({type:"منتج",name:p.name,qty:x.q,unitPrice:Number(p.sell||0),total:lineTotal,cost:lineCost});
+     }
+   }
+   S.hospitality=S.hospitality||[];
+   S.hospitality.push({id:"H"+Date.now(),date:new Date().toLocaleDateString("ar-EG"),createdAt:new Date().toISOString(),period:currentPeriodKey(),items,total,cost,status:"pending",statusDate:new Date().toISOString()});
+   logAction("ضيافة معلّقة",money(total)+" — "+items.map(x=>x.name+" × "+x.qty).join("، "));
+   cart=[];save();render();alert("تم تسجيل الضيافة كمعلّقة");currentOfficer=null;show("officers");return;
+ }
+
  for(const x of cart){
    if(x.type==="recipe"){
      const r=S.recipes[x.i];
@@ -532,74 +547,10 @@ function confirmCart(forceCash){
  }
  cart=[];save();render();alert(isCash?"تم تسجيل البيع الكاش":"تم تسجيل الاستهلاك");currentOfficer=null;show("officers");
 }
-function confirmHospitalityCart(){
- if(currentOfficer!=="__HOSPITALITY__"||!cart.length)return alert("اختار أصناف الضيافة أولًا");
- const productNeed=new Map();
- for(const x of cart){
-   if(x.type==="recipe"){
-     const r=S.recipes[x.i];if(!r)return alert("ريسبي غير موجود");
-     for(const ing of r.ins||[]) productNeed.set(ing.n,(productNeed.get(ing.n)||0)+Number(ing.q||0)*x.q);
-   }else{
-     const p=S.products[x.i];if(!p)return alert("منتج غير موجود");
-     productNeed.set(p.name,(productNeed.get(p.name)||0)+x.q);
-   }
- }
- for(const [name,need] of productNeed){const p=S.products.find(z=>z.name===name);if(!p||Number(p.qty||0)<need)return alert("الكمية غير متاحة: "+name);}
- const items=[];let total=0,cost=0;
- for(const x of cart){
-   if(x.type==="recipe"){
-     const r=S.recipes[x.i],unitCost=recipeCost(r),unitPrice=Number(r.price||0);
-     for(const ing of r.ins||[]){const p=S.products.find(z=>z.name===ing.n);p.qty-=Number(ing.q||0)*x.q;}
-     items.push({type:"recipe",name:r.name,qty:x.q,unitPrice,total:unitPrice*x.q,unitCost,cost:unitCost*x.q,recipeIns:JSON.parse(JSON.stringify(r.ins||[]))});
-     total+=unitPrice*x.q;cost+=unitCost*x.q;
-   }else{
-     const p=S.products[x.i],unitPrice=Number(p.sell||0),unitCost=Number(p.buy||0);p.qty-=x.q;
-     items.push({type:"product",name:p.name,qty:x.q,unitPrice,total:unitPrice*x.q,unitCost,cost:unitCost*x.q});
-     total+=unitPrice*x.q;cost+=unitCost*x.q;
-   }
- }
- S.hospitality=S.hospitality||[];
- const rec={id:hospitalityRecordId(),date:new Date().toLocaleDateString("ar-EG"),createdAt:new Date().toISOString(),originMonthKey:currentMonthKey(),carried:false,items,total,cost,status:"pending",returned:false};
- S.hospitality.push(rec);
- logAction("تسجيل ضيافة",money(total)+" — معلّقة");
- cart=[];currentOfficer=null;save();render();show("hospitality");alert("تم تسجيل الضيافة كمعلّقة");
-}
-function setHospitalityStatus(i,status){
- const x=(S.hospitality||[])[i];if(!x||x.returned)return;
- if(x.status==="collected")return alert("تم تحصيل هذه الضيافة بالفعل");
- if(!["pending","buffet","general"].includes(status))return;
- const old=hospitalityStatusLabel(x.status);x.status=status;x.decisionDate=new Date().toLocaleString("ar-EG");
- logAction("تحديد جهة الضيافة",old+" → "+hospitalityStatusLabel(status)+" — "+money(x.total));save();render();
-}
-function collectHospitality(i){
- const x=(S.hospitality||[])[i];if(!x||x.returned)return;
- if(x.status!=="general")return alert("الضيافة لازم تكون على اللواء قبل التحصيل");
- if(!confirm("تأكيد تحصيل "+money(x.total)+" من اللواء؟"))return;
- S.cash=S.cash||{opening:0,movements:[]};
- S.cash.movements.push({type:"hospitalityCollect",amount:Number(x.total||0),note:"تحصيل ضيافة من اللواء",hospitalityId:x.id,date:new Date().toLocaleString("ar-EG")});
- x.status="collected";x.collectedAt=new Date().toLocaleString("ar-EG");
- logAction("تحصيل ضيافة من اللواء",money(x.total));save();render();
-}
-function cancelHospitality(i){
- const x=(S.hospitality||[])[i];if(!x||x.returned)return;
- if(x.status==="collected")return alert("لا يمكن إلغاء ضيافة تم تحصيلها من اللواء");
- if(!confirm("تأكيد إلغاء الضيافة وإرجاع الأصناف للمخزون؟"))return;
- for(const item of x.items||[]){
-   if(Array.isArray(item.recipeIns)){
-     for(const ing of item.recipeIns){const p=S.products.find(z=>z.name===ing.n);if(p)p.qty+=Number(ing.q||0)*Number(item.qty||1);}
-   }else{
-     const p=S.products.find(z=>z.name===item.name);if(p)p.qty+=Number(item.qty||1);
-   }
- }
- x.returned=true;x.status="cancelled";x.returnDate=new Date().toLocaleString("ar-EG");
- logAction("إلغاء ضيافة",money(x.total));save();render();
-}
-function hospitalityItemsText(x){return (x.items||[]).map(it=>`${esc(it.name)} × ${Number(it.qty||1)}`).join(" • ")||"بدون أصناف";}
-
 function sell(i){addToCart(i)}
 function editProduct(i){const p=S.products[i];if(!p)return;window._editingProductIndex=i;document.getElementById("editProductName").value=p.name||"";document.getElementById("editProductBuy").value=p.buy??0;document.getElementById("editProductSell").value=p.sell??0;document.getElementById("editProductQty").value=p.qty??0;document.getElementById("editProductMin").value=p.min??0;document.getElementById("editProductUnit").value=p.unit||"قطعة";const c=document.getElementById("editProductCat");c.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${x}">${x}</option>`).join("");c.value=p.cat||"";document.getElementById("productModal").classList.add("show");document.getElementById("productModal").setAttribute("aria-hidden","false");}
 function closeProductModal(){window._editingProductIndex=null;document.getElementById("productModal").classList.remove("show");document.getElementById("productModal").setAttribute("aria-hidden","true");}
-function saveProductEdit(){const i=window._editingProductIndex,p=S.products[i];if(!p)return;const n=document.getElementById("editProductName").value.trim();if(!n)return alert("اكتب اسم المنتج");if(S.products.some((x,j)=>j!==i&&String(x.name||"").trim()===n))return alert("اسم المنتج موجود بالفعل");const oldName=p.name;if(n!==oldName){p.name=n;(S.purchases||[]).forEach(x=>{if(x.p===oldName)x.p=n});(S.recipes||[]).forEach(r=>(r.ins||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n}));(S.sales||[]).forEach(x=>{if(x.product===oldName)x.product=n;(x.recipeIns||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n});});(S.hospitality||[]).forEach(h=>(h.items||[]).forEach(it=>{if(it.name===oldName&&it.type==="product")it.name=n;(it.recipeIns||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n});}));}p.sell=Number(document.getElementById("editProductSell").value)||0;p.min=Number(document.getElementById("editProductMin").value)||0;p.cat=document.getElementById("editProductCat").value||"";logAction("تعديل منتج",oldName+" ← "+p.name);save();closeProductModal();render();}
+function saveProductEdit(){const i=window._editingProductIndex,p=S.products[i];if(!p)return;const n=document.getElementById("editProductName").value.trim();if(!n)return alert("اكتب اسم المنتج");if(S.products.some((x,j)=>j!==i&&String(x.name||"").trim()===n))return alert("اسم المنتج موجود بالفعل");const oldName=p.name;if(n!==oldName){p.name=n;(S.purchases||[]).forEach(x=>{if(x.p===oldName)x.p=n});(S.recipes||[]).forEach(r=>(r.ins||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n}));(S.sales||[]).forEach(x=>{if(x.product===oldName)x.product=n;(x.recipeIns||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n});});}p.sell=Number(document.getElementById("editProductSell").value)||0;p.min=Number(document.getElementById("editProductMin").value)||0;p.cat=document.getElementById("editProductCat").value||"";logAction("تعديل منتج",oldName+" ← "+p.name);save();closeProductModal();render();}
 
 function purchasedProductNames(){return (S.products||[]).map(x=>x.name).filter(Boolean)}
 function renderProductPurchasePicker(){
@@ -809,39 +760,45 @@ function showArchivedMonth(i){
  const profit=Number(m.summary?.profit ?? (totalSales-cost-exp));
  const pur=Number(m.summary?.pur ?? purchases.reduce((a,x)=>a+Number(x.total||0),0));
  const due=Number(m.summary?.due ?? 0);
- const hospValue=Number(m.summary?.hospitalityValue ?? hospitality.filter(x=>!x.returned&&!x.carried).reduce((a,x)=>a+Number(x.total||0),0));
- const hospCost=Number(m.summary?.hospitalityCost ?? hospitality.filter(x=>!x.returned&&!x.carried).reduce((a,x)=>a+Number(x.cost||0),0));
- const hospPending=Number(m.summary?.hospitalityPending ?? hospitality.filter(x=>!x.returned&&x.status==="pending").reduce((a,x)=>a+Number(x.total||0),0));
- const hospDue=Number(m.summary?.hospitalityDue ?? hospitality.filter(x=>!x.returned&&x.status==="general").reduce((a,x)=>a+Number(x.total||0),0));
- const hospCollected=Number(m.summary?.hospitalityCollected ?? ((m.cash?.movements)||[]).filter(x=>x.type==="hospitalityCollect").reduce((a,x)=>a+Number(x.amount||0),0));
+ const hospitalityValue=Number(m.summary?.hospitalityValue ?? hospitality.reduce((a,h)=>a+Number(h.total||0),0));
+ const hospitalityDue=Number(m.summary?.hospitalityDue ?? hospitality.filter(h=>h.status==="general").reduce((a,h)=>a+Number(h.total||0),0));
  const d=document.getElementById("archiveDetail"); if(!d)return;
  d.style.display="block";
  d.innerHTML=`<div class="rowtitle"><h3 style="margin:0">${m.month||"شهر محفوظ"}</h3><button type="button" class="tab" onclick="this.closest('#archiveDetail').style.display='none'">إغلاق</button></div>
- <div class="statgrid" style="margin-top:12px"><div class="stat">إجمالي المبيعات<br><b>${money(totalSales)}</b></div><div class="stat">مبيعات الكاش<br><b>${money(cashOnly)}</b></div><div class="stat">مبيعات على الحساب<br><b>${money(accountOnly)}</b></div><div class="stat">المستحقات عند الإغلاق<br><b>${money(due)}</b></div><div class="stat">تكلفة البضاعة<br><b>${money(cost)}</b></div><div class="stat">المصروفات<br><b>${money(exp)}</b></div><div class="stat">صافي الربح<br><b>${money(profit)}</b></div><div class="stat">المشتريات<br><b>${money(pur)}</b></div><div class="stat">قيمة الضيافة<br><b>${money(hospValue)}</b></div><div class="stat">تكلفة الضيافة<br><b>${money(hospCost)}</b></div><div class="stat">ضيافة معلّقة عند الإغلاق<br><b>${money(hospPending)}</b></div><div class="stat">مستحق على اللواء<br><b>${money(hospDue)}</b></div><div class="stat">محصل من اللواء<br><b>${money(hospCollected)}</b></div></div>
+ <div class="statgrid" style="margin-top:12px"><div class="stat">إجمالي المبيعات<br><b>${money(totalSales)}</b></div><div class="stat">مبيعات الكاش<br><b>${money(cashOnly)}</b></div><div class="stat">مبيعات على الحساب<br><b>${money(accountOnly)}</b></div><div class="stat">المستحقات عند الإغلاق<br><b>${money(due)}</b></div><div class="stat">تكلفة البضاعة<br><b>${money(cost)}</b></div><div class="stat">المصروفات<br><b>${money(exp)}</b></div><div class="stat">صافي الربح<br><b>${money(profit)}</b></div><div class="stat">المشتريات<br><b>${money(pur)}</b></div><div class="stat">ضيافة الشهر<br><b>${money(hospitalityValue)}</b></div><div class="stat">مستحق على اللواء عند الإغلاق<br><b>${money(hospitalityDue)}</b></div></div>
  <h3>المبيعات</h3><div style="overflow:auto">${sales.length?`<table><thead><tr><th>التاريخ</th><th>الضابط/النوع</th><th>الصنف</th><th>الكمية</th><th>الإجمالي</th></tr></thead><tbody>${sales.map(x=>`<tr><td>${x.date||""}</td><td>${x.who||""}${x.cash?" — كاش":""}</td><td>${x.product||""}</td><td>${x.qty||1}</td><td>${money(x.total||0)}</td></tr>`).join("")}</tbody></table>`:"لا توجد مبيعات"}</div>
  <h3>التحصيلات</h3><div style="overflow:auto">${payments.length?`<table><thead><tr><th>التاريخ</th><th>الضابط</th><th>المبلغ</th></tr></thead><tbody>${payments.map(x=>`<tr><td>${x.date||""}</td><td>${x.who||x.name||""}</td><td>${money(x.amount||0)}</td></tr>`).join("")}</tbody></table>`:"لا توجد تحصيلات"}</div>
- <h3>الضيافة</h3><div style="overflow:auto">${hospitality.filter(x=>!x.returned).length?`<table><thead><tr><th>التاريخ</th><th>الأصناف</th><th>القيمة</th><th>الحالة</th></tr></thead><tbody>${hospitality.filter(x=>!x.returned).map(x=>`<tr><td>${x.date||""}</td><td>${hospitalityItemsText(x)}</td><td>${money(x.total||0)}</td><td>${hospitalityStatusLabel(x.status)}</td></tr>`).join("")}</tbody></table>`:"لا توجد ضيافة"}</div>`;
+ <h3>الضيافة</h3><div style="overflow:auto">${hospitality.length?`<table><thead><tr><th>التاريخ</th><th>التفاصيل</th><th>القيمة</th><th>الحالة</th></tr></thead><tbody>${hospitality.map(h=>`<tr><td>${h.date||""}</td><td>${hospitalityItemsText(h)}</td><td>${money(h.total||0)}</td><td>${hospitalityStatusLabel(h.status)}</td></tr>`).join("")}</tbody></table>`:"لا توجد ضيافة"}</div>`;
  d.scrollIntoView({behavior:"smooth",block:"start"});
 }
 function archiveCurrentMonth(){
+ normalizeState();
  const month=new Date().toLocaleDateString("ar-EG",{month:"long",year:"numeric"});
  const activeSales=(S.sales||[]).filter(x=>!x.returned);
  const sales=activeSales.reduce((a,x)=>a+Number(x.total||0),0),cashOnly=activeSales.filter(x=>x.cash).reduce((a,x)=>a+Number(x.total||0),0),accountOnly=Math.max(0,sales-cashOnly);
  const cost=activeSales.reduce((a,x)=>a+Number(x.cost||0),0),exp=S.expenses.reduce((a,x)=>a+Number(x.a||0),0),pur=S.purchases.reduce((a,x)=>a+Number(x.total||0),0);
  const dueAtClose=totalDue();
  const carryDue={};S.people.forEach(n=>{const d=officerDue(n);if(d>0)carryDue[n]=d;});
- const hospAll=activeHospitality(),hospNew=hospAll.filter(x=>!x.carried&&(x.originMonthKey||currentMonthKey())===currentMonthKey());
- const hospitalityValue=hospNew.reduce((a,x)=>a+Number(x.total||0),0),hospitalityCost=hospNew.reduce((a,x)=>a+Number(x.cost||0),0);
- const hospitalityPending=hospAll.filter(x=>x.status==="pending").reduce((a,x)=>a+Number(x.total||0),0),hospitalityDueAtClose=hospitalityDue(),hospitalityCollected=cashHospitalityCollections();
  let ar=[];try{const parsed=JSON.parse(localStorage.getItem("buffet_archive")||"[]");if(Array.isArray(parsed))ar=parsed;}catch(e){}
  const closingCash=cashBalance(),debtCarry=cashDebtOutstanding();
- ar.push({month,date:new Date().toISOString(),openingDue:JSON.parse(JSON.stringify(S.openingDue||{})),sales:JSON.parse(JSON.stringify(S.sales)),payments:JSON.parse(JSON.stringify(S.payments||[])),purchases:JSON.parse(JSON.stringify(S.purchases)),expenses:JSON.parse(JSON.stringify(S.expenses)),hospitality:JSON.parse(JSON.stringify(S.hospitality||[])),cash:JSON.parse(JSON.stringify(S.cash||{opening:0,movements:[]})),summary:{sales,cashSales:cashOnly,accountSales:accountOnly,cost,exp,pur,profit:sales-cost-exp,collections:(S.payments||[]).reduce((a,x)=>a+Number(x.amount||0),0),due:dueAtClose,closingCash,debtOutstanding:debtCarry,hospitalityValue,hospitalityCost,hospitalityPending,hospitalityDue:hospitalityDueAtClose,hospitalityCollected}});
+ const hospitalityMonth=(S.hospitality||[]).filter(h=>h.period===currentPeriodKey());
+ const hospitalityValue=hospitalityMonth.reduce((a,h)=>a+Number(h.total||0),0);
+ ar.push({month,date:new Date().toISOString(),openingDue:JSON.parse(JSON.stringify(S.openingDue||{})),sales:JSON.parse(JSON.stringify(S.sales)),payments:JSON.parse(JSON.stringify(S.payments||[])),purchases:JSON.parse(JSON.stringify(S.purchases)),expenses:JSON.parse(JSON.stringify(S.expenses)),hospitality:JSON.parse(JSON.stringify(hospitalityMonth)),cash:JSON.parse(JSON.stringify(S.cash||{opening:0,movements:[]})),summary:{sales,cashSales:cashOnly,accountSales:accountOnly,cost,exp,pur,profit:sales-cost-exp,collections:(S.payments||[]).reduce((a,x)=>a+Number(x.amount||0),0),due:dueAtClose,closingCash,debtOutstanding:debtCarry,hospitalityValue,hospitalityDue:hospitalityDueOnGeneral()}});
  localStorage.setItem("buffet_archive",JSON.stringify(ar));
  const carryMoves=debtCarry>0?[{type:"debt",amount:debtCarry,note:"دين مرحل من "+month,date:new Date().toLocaleString("ar-EG")}]:[];
- const carryHospitality=hospAll.filter(x=>x.status==="pending"||x.status==="general").map(x=>({...JSON.parse(JSON.stringify(x)),carried:true,carriedFrom:x.carriedFrom||month}));
- S.sales=[];S.payments=[];S.purchases=[];S.expenses=[];S.openingDue=carryDue;S.hospitality=carryHospitality;S.cash={opening:closingCash+debtCarry,movements:carryMoves};logAction("إغلاق الشهر",month);save();render();
+ S.sales=[];S.payments=[];S.purchases=[];S.expenses=[];S.openingDue=carryDue;S.cash={opening:closingCash+debtCarry,movements:carryMoves};logAction("إغلاق الشهر",month);save();render();
 }
-function closeMonth(){if(!confirm("تأكيد إغلاق الشهر وحفظه في الأرشيف؟"))return;archiveCurrentMonth();alert("تم إغلاق الشهر وحفظه في الأرشيف")}
+function closeMonth(){
+ try{
+   normalizeState();
+   if(!window.confirm("تأكيد إغلاق الشهر وحفظه في الأرشيف؟"))return;
+   archiveCurrentMonth();
+   window.alert("تم إغلاق الشهر وحفظه في الأرشيف");
+ }catch(err){
+   console.error("closeMonth error",err);
+   window.alert("حصل خطأ أثناء إغلاق الشهر: "+(err?.message||err));
+ }
+}
 function newMonth(){closeMonth()}
 
 function sellRecipe(index){
@@ -911,9 +868,41 @@ function deleteSale(i){
 if(document.getElementById("expenseTypeList")){
  expenseTypeList.innerHTML=S.expenseTypes.map(x=>`<span class="pill" style="margin:3px">${x}</span>`).join("");
 }
+function hospitalityStatusLabel(status){return status==="pending"?"معلّقة":status==="buffet"?"على البوفيه":status==="general"?"على اللواء":status==="paid"?"تم التحصيل من اللواء":"معلّقة"}
+function hospitalityDueOnGeneral(){return (S.hospitality||[]).filter(x=>x.status==="general").reduce((a,x)=>a+Number(x.total||0),0)}
+function hospitalityCollectedCash(){return ((S.cash?.movements)||[]).filter(x=>x.type==="hospitalityCollect").reduce((a,x)=>a+Number(x.amount||0),0)}
+function setHospitalityStatus(i,status){
+ const h=(S.hospitality||[])[i];if(!h)return;
+ if(h.status==="paid")return alert("الضيافة دي تم تحصيلها بالفعل");
+ if(!["pending","buffet","general"].includes(status))return;
+ const old=h.status||"pending";
+ if(old===status)return;
+ h.status=status;h.statusDate=new Date().toISOString();
+ logAction("تعديل حالة ضيافة",money(h.total)+" | "+hospitalityStatusLabel(old)+" → "+hospitalityStatusLabel(status));
+ save();render();
+}
+function collectHospitality(i){
+ try{
+   normalizeState();
+   const h=(S.hospitality||[])[i];if(!h)return window.alert("حركة الضيافة غير موجودة");
+   if(h.status!=="general")return window.alert("لازم تكون الضيافة على اللواء أولًا");
+   if(!window.confirm("تأكيد تحصيل "+money(h.total)+" من اللواء؟"))return;
+   if(!Array.isArray(S.cash.movements))S.cash.movements=[];
+   const now=new Date();
+   S.cash.movements.push({type:"hospitalityCollect",amount:Number(h.total||0),note:"تحصيل ضيافة من اللواء",ref:h.id||("hospitality-"+i),date:now.toLocaleString("ar-EG")});
+   h.status="paid";h.paidAt=now.toISOString();h.paidDate=now.toLocaleDateString("ar-EG");h.paidPeriod=currentPeriodKey();h.statusDate=now.toISOString();
+   logAction("تحصيل ضيافة من اللواء",money(h.total));
+   save();
+   render();
+   window.alert("تم تسجيل تحصيل الضيافة من اللواء");
+ }catch(err){
+   console.error("collectHospitality error",err);
+   window.alert("حصل خطأ أثناء تحصيل الضيافة: "+(err?.message||err));
+ }
+}
+function hospitalityItemsText(h){return (h.items||[]).map(x=>x.name+" × "+x.qty).join("، ")||"بدون تفاصيل"}
 function cashSales(){return (S.sales||[]).filter(x=>!x.returned&&x.cash).reduce((a,x)=>a+Number(x.total||0),0)}
 function cashPayments(){return (S.payments||[]).reduce((a,x)=>a+Number(x.amount||0),0)}
-function cashHospitality(){return cashHospitalityCollections()}
 function cashPurchases(){return (S.purchases||[]).reduce((a,x)=>a+Number(x.total||0),0)}
 function cashExpenses(){return (S.expenses||[]).reduce((a,x)=>a+Number(x.a||0),0)}
 function cashAdjustments(){return ((S.cash&&S.cash.movements)||[]).filter(x=>x.type==='in'||x.type==='out').reduce((a,x)=>a+(x.type==='in'?Number(x.amount||0):-Number(x.amount||0)),0)}
@@ -921,7 +910,7 @@ function cashDebt(){return ((S.cash?.movements)||[]).filter(x=>x.type==='debt').
 function cashDebtPaid(){return ((S.cash?.movements)||[]).filter(x=>x.type==='debtPay').reduce((t,x)=>t+Number(x.amount||0),0)}
 function cashDebtOutstanding(){return Math.max(0,cashDebt()-cashDebtPaid())}
 function payDebt(){let a=Number(document.getElementById('cashDebtPayAmount').value),n=document.getElementById('cashDebtPayNote').value.trim();let due=cashDebtOutstanding();if(!a||a<=0)return alert('اكتب مبلغ صحيح');if(a>due)a=due;if(!a)return alert('لا يوجد دين قائم');S.cash=S.cash||{opening:0,movements:[]};S.cash.movements.push({type:'debtPay',amount:a,note:n,date:new Date().toLocaleString('ar-EG')});logAction('سداد دين',money(a)+(n?' — '+n:''));document.getElementById('cashDebtPayAmount').value='';document.getElementById('cashDebtPayNote').value='';save();render()}
-function cashBalance(){return Number(S.cash?.opening||0)+cashSales()+cashPayments()+cashHospitalityCollections()-cashPurchases()-cashExpenses()+cashAdjustments()-cashDebt()+cashDebtPaid()}
+function cashBalance(){return Number(S.cash?.opening||0)+cashSales()+cashPayments()+hospitalityCollectedCash()-cashPurchases()-cashExpenses()+cashAdjustments()-cashDebt()+cashDebtPaid()}
 function setCashOpening(){let v=Number(document.getElementById('cashOpening').value);if(v<0||!Number.isFinite(v))return alert('اكتب رصيد صحيح');S.cash=S.cash||{opening:0,movements:[]};S.cash.opening=v;logAction('تعديل رصيد بداية الخزنة',money(v));save();render()}
 function addCashMove(){let type=document.getElementById('cashMoveType').value,a=Number(document.getElementById('cashMoveAmount').value),n=document.getElementById('cashMoveNote').value.trim();if(!a||a<0)return alert('اكتب مبلغ صحيح');S.cash=S.cash||{opening:0,movements:[]};S.cash.movements.push({type,amount:a,note:n,date:new Date().toLocaleString('ar-EG')});logAction(type==='in'?'إيداع خزنة':'سحب خزنة',money(a)+(n?' — '+n:''));document.getElementById('cashMoveAmount').value='';document.getElementById('cashMoveNote').value='';save();render()}
 function addDebt(){let a=Number(document.getElementById('cashDebtAmount').value),n=document.getElementById('cashDebtNote').value.trim();if(!a||a<0)return alert('اكتب قيمة الدين');S.cash=S.cash||{opening:0,movements:[]};S.cash.movements.push({type:'debt',amount:a,note:n,date:new Date().toLocaleString('ar-EG')});logAction('دين من الخزنة',money(a)+(n?' — '+n:''));document.getElementById('cashDebtAmount').value='';document.getElementById('cashDebtNote').value='';save();render()}
@@ -946,11 +935,11 @@ if(document.getElementById("salesMainStats")){
  <div class="stat">المستحقات<br><b>${money(due)}</b></div>
  <div class="stat">عدد المبيعات<br><b>${count}</b></div>
  <div class="stat">المشتريات<br><b>${money(pur)}</b></div>
- <div class="stat">قيمة المخزون<br><b>${money(stock)}</b></div><div class="stat">ضيافة الشهر<br><b>${money(hospitalityMonthValue())}</b></div><div class="stat">مستحق على اللواء<br><b>${money(hospitalityDue())}</b></div>`;
+ <div class="stat">قيمة المخزون<br><b>${money(stock)}</b></div>`;
 }
 if(document.getElementById("closingSummary")){
  const sales=S.sales.filter(x=>!x.returned).reduce((a,x)=>a+x.total,0), cost=S.sales.filter(x=>!x.returned).reduce((a,x)=>a+x.cost,0), exp=S.expenses.reduce((a,x)=>a+x.a,0);
- closingSummary.innerHTML=`<div class="statgrid"><div class="stat">المبيعات<br><b>${money(sales)}</b></div><div class="stat">الربح بعد المصروفات<br><b>${money(sales-cost-exp)}</b></div><div class="stat">قيمة الضيافة<br><b>${money(hospitalityMonthValue())}</b></div><div class="stat">ضيافة معلّقة<br><b>${money(hospitalityPending())}</b></div><div class="stat">مستحق على اللواء<br><b>${money(hospitalityDue())}</b></div></div>`;
+ closingSummary.innerHTML=`<div class="statgrid"><div class="stat">المبيعات<br><b>${money(sales)}</b></div><div class="stat">الربح بعد المصروفات<br><b>${money(sales-cost-exp)}</b></div></div>`;
 }
 if(document.getElementById("archiveList")){
  let ar=[];try{const a=JSON.parse(localStorage.getItem("buffet_archive")||"[]");if(Array.isArray(a))ar=a;}catch(e){}
@@ -961,9 +950,15 @@ if(document.getElementById("salesSummary")){
  const gross=sales-cost, exp=S.expenses.reduce((a,x)=>a+x.a,0), due=totalDue();
  const cashOnly=cashSales(), accountOnly=Math.max(0,sales-cashOnly); salesSummary.innerHTML=`<div class="rowtitle"><span>إجمالي المبيعات</span><b>${money(sales)}</b></div><div class="rowtitle"><span>مبيعات الكاش</span><b>${money(cashOnly)}</b></div><div class="rowtitle"><span>مبيعات على الحساب</span><b>${money(accountOnly)}</b></div><div class="rowtitle"><span>المستحقات المتبقية</span><b>${money(due)}</b></div><div class="rowtitle"><span>تكلفة البضاعة المباعة</span><b>${money(cost)}</b></div><div class="rowtitle"><span>مجمل الربح</span><b>${money(gross)}</b></div><div class="rowtitle"><span>المصروفات</span><b>${money(exp)}</b></div><div class="rowtitle"><span>صافي الربح</span><b>${money(gross-exp)}</b></div>`;
 }
-if(document.getElementById("salesHospitalitySummary")){
- const hv=hospitalityMonthValue(),hc=hospitalityMonthCost(),hp=hospitalityPending(),hb=hospitalityMonthBuffet(),hd=hospitalityDue(),hcol=cashHospitalityCollections();
- salesHospitalitySummary.innerHTML=`<div class="rowtitle"><span>قيمة ضيافة الشهر بسعر البيع</span><b>${money(hv)}</b></div><div class="rowtitle"><span>تكلفة ضيافة الشهر</span><b>${money(hc)}</b></div><div class="rowtitle"><span>الضيافة المعلّقة</span><b>${money(hp)}</b></div><div class="rowtitle"><span>ضيافة على البوفيه</span><b>${money(hb)}</b></div><div class="rowtitle"><span>المستحق على اللواء</span><b>${money(hd)}</b></div><div class="rowtitle"><span>المحصل من اللواء</span><b>${money(hcol)}</b></div>`;
+if(document.getElementById("hospitalityStats")){
+ const all=S.hospitality||[],period=currentPeriodKey(),monthRows=all.filter(h=>h.period===period);
+ const totalMonth=monthRows.reduce((a,h)=>a+Number(h.total||0),0);
+ const pending=all.filter(h=>h.status==="pending").reduce((a,h)=>a+Number(h.total||0),0);
+ const buffet=monthRows.filter(h=>h.status==="buffet").reduce((a,h)=>a+Number(h.total||0),0);
+ const generalDue=hospitalityDueOnGeneral();
+ const paidMonth=all.filter(h=>h.status==="paid"&&((h.paidPeriod||String(h.paidAt||"").slice(0,7))===period)).reduce((a,h)=>a+Number(h.total||0),0);
+ hospitalityStats.innerHTML=`<div class="stat">إجمالي ضيافة الشهر<br><b>${money(totalMonth)}</b></div><div class="stat">ضيافة معلّقة<br><b>${money(pending)}</b></div><div class="stat">على البوفيه<br><b>${money(buffet)}</b></div><div class="stat">مستحق على اللواء<br><b>${money(generalDue)}</b></div><div class="stat">تم تحصيله من اللواء هذا الشهر<br><b>${money(paidMonth)}</b></div>`;
+ const visibleHospitality=all.map((h,i)=>({h,i})).filter(x=>x.h.period===period||x.h.status==="pending"||x.h.status==="general").reverse().slice(0,40);hospitalityRows.innerHTML=visibleHospitality.length?visibleHospitality.map(({h,i})=>{let actions="";if(h.status==="pending")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'buffet')">على البوفيه</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'general')">على اللواء</button>`;else if(h.status==="buffet")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;else if(h.status==="general")actions=`<button type="button" class="primary hospitality-collect-btn" data-hospitality-index="${i}">تحصيل من اللواء</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;return `<div class="card" style="margin:10px 0"><div class="rowtitle"><span><b>${hospitalityStatusLabel(h.status)}</b><div class="muted">${h.date||""} — ${hospitalityItemsText(h)}</div></span><b>${money(h.total)}</b></div>${actions?`<div class="public-actions">${actions}</div>`:""}</div>`}).join(""):`<div class="hint">لا توجد ضيافة مسجلة.</div>`;
 }
 if(document.getElementById("productSalesReport")){
  const by={};
@@ -983,32 +978,14 @@ if(document.getElementById("salesHistory")){
  salesHistoryCount.textContent=S.sales.length+" حركة";
  salesHistory.innerHTML=S.sales.slice().reverse().slice(0,20).map((x,rev)=>{
    const i=S.sales.length-1-rev;
-   return `<div class="rowtitle"><span>${x.who} — ${x.product} × ${x.qty||1}${x.returned?" — مرتجع":""}<div class="muted">${x.returned?(x.returnDate||""):x.date||""}</div></span><span>${money(x.total)} ${x.returned?"":`<button type="button" class="tab" onclick="editSale(${i})">تعديل</button> <button type="button" class="tab danger" onclick="deleteSale(${i})">مرتجع</button>`}</span></div>`;
+   return `<div class="rowtitle"><span>${x.who} — ${x.product} × ${x.qty||1}${x.returned?" — مرتجع":""}<div class="muted">${x.returned?(x.returnDate||""):x.date||""}</div></span><span>${money(x.total)} ${x.returned?"":`<button type="button" class="tab sale-edit-btn" data-sale-index="${i}">تعديل</button> <button type="button" class="tab danger sale-return-btn" data-sale-index="${i}">مرتجع</button>`}</span></div>`;
  }).join("") || `<div class="hint">لا توجد مبيعات.</div>`;
 }
 if(document.getElementById("saleProducts")){
- const csb=document.getElementById("confirmSaleBtn"),ccb=document.getElementById("confirmCashBtn"),chb=document.getElementById("confirmHospitalityBtn");if(csb){csb.textContent="تسجيل على الحساب";csb.style.display=(currentOfficer&&currentOfficer!=="__CASH__"&&currentOfficer!=="__HOSPITALITY__")?"block":"none";}if(ccb){ccb.textContent="تسجيل بيع كاش";ccb.style.display=currentOfficer==="__CASH__"?"block":"none";}if(chb){chb.textContent="تسجيل الضيافة";chb.style.display=currentOfficer==="__HOSPITALITY__"?"block":"none";}
+ const csb=document.getElementById("confirmSaleBtn"),ccb=document.getElementById("confirmCashBtn");if(csb){const hosp=currentOfficer==="__HOSPITALITY__";csb.textContent=hosp?"تسجيل ضيافة معلّقة":"تسجيل على الحساب";csb.style.display=currentOfficer==="__CASH__"?"none":"block";}if(ccb){ccb.textContent="تسجيل بيع كاش";ccb.style.display=currentOfficer==="__CASH__"?"block":"none";}
  renderSaleProducts();
  cartRows.innerHTML=cart.length?cart.map((x,j)=>{const item=x.type==="recipe"?S.recipes[x.i]:S.products[x.i];if(!item)return "";const name=item.name,price=x.type==="recipe"?Number(item.price||0):Number(item.sell||0);return `<div class="rowtitle"><span>${name} × ${x.q}<div class="muted">${x.type==="recipe"?"ريسبي":"منتج"}</div></span><span><button type="button" class="tab" onclick="event.stopPropagation();changeCart(${j},-1)">−</button> <button type="button" class="tab" onclick="event.stopPropagation();changeCart(${j},1)">+</button> ${money(price*x.q)}</span></div>`}).join(""):"لم يتم اختيار أصناف";
  cartTotal.textContent=money(cart.reduce((a,x)=>{const item=x.type==="recipe"?S.recipes[x.i]:S.products[x.i];const price=x.type==="recipe"?Number(item?.price||0):Number(item?.sell||0);return a+price*x.q},0));
-}
-if(document.getElementById("hospitalityStats")){
- const active=activeHospitality(),total=active.reduce((a,x)=>a+Number(x.total||0),0),pending=hospitalityPending(),buffet=active.filter(x=>x.status==="buffet").reduce((a,x)=>a+Number(x.total||0),0),due=hospitalityDue(),collected=active.filter(x=>x.status==="collected").reduce((a,x)=>a+Number(x.total||0),0);
- hospitalityStats.innerHTML=`<div class="stat">إجمالي الضيافة الحالية<br><b>${money(total)}</b></div><div class="stat">معلّقة<br><b>${money(pending)}</b></div><div class="stat">على البوفيه<br><b>${money(buffet)}</b></div><div class="stat">على اللواء<br><b>${money(due)}</b></div><div class="stat">تم تحصيلها من اللواء<br><b>${money(collected)}</b></div>`;
- const list=(S.hospitality||[]).slice().reverse();
- const count=document.getElementById("hospitalityCount");if(count)count.textContent=active.length+" حركة نشطة";
- const rows=document.getElementById("hospitalityRows");if(rows)rows.innerHTML=list.map((x,rev)=>{
-   const i=S.hospitality.length-1-rev,status=hospitalityStatusLabel(x.status),cancelled=x.returned||x.status==="cancelled";
-   let actions="";
-   if(!cancelled&&x.status!=="collected"){
-     actions+=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">معلّقة</button> `;
-     actions+=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'buffet')">على البوفيه</button> `;
-     actions+=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'general')">على اللواء</button> `;
-     if(x.status==="general")actions+=`<button type="button" class="primary" onclick="collectHospitality(${i})">تحصيل من اللواء</button> `;
-     actions+=`<button type="button" class="tab danger" onclick="cancelHospitality(${i})">إلغاء</button>`;
-   }
-   return `<div class="card" style="margin:10px 0;${cancelled?'opacity:.55':''}"><div class="rowtitle"><div><b>${status}</b><div class="muted">${x.date||""}${x.carried?" • مرحّلة من شهر سابق":""}</div></div><span class="amount">${money(x.total||0)}</span></div><div>${hospitalityItemsText(x)}</div><div class="muted">التكلفة: ${money(x.cost||0)}</div>${actions?`<div class="public-actions" style="margin-top:10px">${actions}</div>`:""}</div>`;
- }).join("")||`<div class="hint">لا توجد حركات ضيافة.</div>`;
 }
 if(document.getElementById("lowStockBox")){
  const low=S.products.filter(p=>(p.min||0)>0 && p.qty<=p.min);
@@ -1042,7 +1019,7 @@ recipeRows.innerHTML=S.recipes.map((r,i)=>`<tr><td>${r.name}</td><td>${money(r.p
 let sales=S.sales.filter(x=>!x.returned).reduce((a,x)=>a+x.total,0),cost=S.sales.filter(x=>!x.returned).reduce((a,x)=>a+x.cost,0),exp=S.expenses.reduce((a,x)=>a+x.a,0),pur=S.purchases.reduce((a,x)=>a+x.total,0),stock=S.products.reduce((a,x)=>a+x.buy*x.qty,0);
 
 const debtEl=document.getElementById('cashDebtOutstanding'); if(debtEl) debtEl.textContent='الدين القائم: '+money(window.cashDebtOutstanding());
-if(document.getElementById('cashStats')){const cs=cashSales(),col=cashPayments(),hcol=cashHospitalityCollections(),pur=cashPurchases(),exp=cashExpenses(),adj=cashAdjustments(),bal=cashBalance();cashMonth.textContent=new Date().toLocaleDateString('ar-EG',{month:'long',year:'numeric'});cashStats.innerHTML=`<div class="stat">مبيعات الكاش<br><b>${money(cs)}</b></div><div class="stat">تحصيلات الضباط<br><b>${money(col)}</b></div><div class="stat">تحصيلات الضيافة من اللواء<br><b>${money(hcol)}</b></div><div class="stat">مستحق على اللواء<br><b>${money(hospitalityDue())}</b></div><div class="stat">المشتريات<br><b>${money(pur)}</b></div><div class="stat">المصروفات<br><b>${money(exp)}</b></div><div class="stat">تعديلات الخزنة<br><b>${money(adj)}</b></div><div class="stat">الدين القائم<br><b>${money(cashDebtOutstanding())}</b></div><div class="stat">رصيد الخزنة الحالي<br><b>${money(bal)}</b></div>`;cashRows.innerHTML=((S.cash?.movements)||[]).slice().reverse().map(x=>{const label=x.type==='in'?'إيداع':x.type==='out'?'سحب':x.type==='debt'?'دين':x.type==='debtPay'?'سداد دين':x.type==='hospitalityCollect'?'تحصيل ضيافة من اللواء':'حركة خزنة';return `<div class="rowtitle"><span>${label} — ${x.note||'بدون بيان'}<div class="muted">${x.date}</div></span><b>${money(x.amount)}</b></div>`}).join('')||`<div class="hint">لا توجد حركات خزنة.</div>`;}
+if(document.getElementById('cashStats')){const cs=cashSales(),col=cashPayments(),hcol=hospitalityCollectedCash(),hdue=hospitalityDueOnGeneral(),pur=cashPurchases(),exp=cashExpenses(),adj=cashAdjustments(),bal=cashBalance();cashMonth.textContent=new Date().toLocaleDateString('ar-EG',{month:'long',year:'numeric'});cashStats.innerHTML=`<div class="stat">مبيعات الكاش<br><b>${money(cs)}</b></div><div class="stat">التحصيلات<br><b>${money(col)}</b></div><div class="stat">تحصيل ضيافة من اللواء<br><b>${money(hcol)}</b></div><div class="stat">مستحق على اللواء<br><b>${money(hdue)}</b></div><div class="stat">المشتريات<br><b>${money(pur)}</b></div><div class="stat">المصروفات<br><b>${money(exp)}</b></div><div class="stat">تعديلات الخزنة<br><b>${money(adj)}</b></div><div class="stat">الدين القائم<br><b>${money(cashDebtOutstanding())}</b></div><div class="stat">رصيد الخزنة الحالي<br><b>${money(bal)}</b></div>`;cashRows.innerHTML=((S.cash?.movements)||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${x.type==='in'?'إيداع':(x.type==='debt'?'دين':(x.type==='debtPay'?'سداد دين':(x.type==='hospitalityCollect'?'تحصيل ضيافة من اللواء':'سحب')))} — ${x.note||'بدون بيان'}<div class="muted">${x.date}</div></span><b>${money(x.amount)}</b></div>`).join('')||`<div class="hint">لا توجد حركات خزنة.</div>`;}
 officerReport.innerHTML=S.people.map(n=>`<div class="person"><div><span class="name">${n}</span><div class="muted">مدفوع ${money(officerPaid(n))}</div></div><span class="amount">${money(officerDue(n))}</span></div>`).join("");
 const paidAll=(S.payments||[]).reduce((a,x)=>a+x.amount,0);
 const currentDue=totalDue();
@@ -1174,6 +1151,39 @@ document.addEventListener("click",function(e){
  e.stopPropagation();
  const i=Number(btn.dataset.purchaseIndex);
  deletePurchase(i);
+},true);
+// ربط الأزرار الحساسة بحدث ثابت بدل الاعتماد على inline onclick على الموبايل
+document.addEventListener("click",function(e){
+ const btn=e.target.closest?.(".hospitality-collect-btn");
+ if(!btn)return;
+ e.preventDefault();
+ e.stopPropagation();
+ collectHospitality(Number(btn.dataset.hospitalityIndex));
+},true);
+document.addEventListener("click",function(e){
+ const btn=e.target.closest?.(".close-month-btn");
+ if(!btn)return;
+ e.preventDefault();
+ e.stopPropagation();
+ closeMonth();
+},true);
+// ربط تعديل/مرتجع المبيعات بحدث ثابت على Safari/Chrome للموبايل
+document.addEventListener("click",function(e){
+ const editBtn=e.target.closest?.(".sale-edit-btn");
+ const returnBtn=e.target.closest?.(".sale-return-btn");
+ const btn=editBtn||returnBtn;
+ if(!btn)return;
+ e.preventDefault();
+ e.stopPropagation();
+ const i=Number(btn.dataset.saleIndex);
+ if(!Number.isInteger(i)||i<0)return alert("تعذر تحديد حركة البيع");
+ try{
+   if(editBtn) editSale(i);
+   else deleteSale(i);
+ }catch(err){
+   console.error(err);
+   alert("حصل خطأ أثناء تنفيذ العملية: "+(err?.message||err));
+ }
 },true);
 // ربط التنقل أولًا حتى يظل التطبيق قابلًا للاستخدام حتى لو حصل خطأ أثناء تحديث بيانات قسم معيّن
 document.addEventListener("click",function(e){
