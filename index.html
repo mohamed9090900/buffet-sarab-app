@@ -65,7 +65,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 
 <section id="purchases"><h2>المشتريات</h2><div class="hint">المنتج = تعريف الصنف. المشتريات = إضافة بضاعة فعلية للمخزون وتسجيل المورد وسعر الشراء.</div>
 <div class="card" style="margin-bottom:12px"><div class="rowtitle"><b>الموردين</b><span class="pill">إدارة الموردين</span></div>
-<div class="grid"><input id="newSupplier" placeholder="اسم المورد"><button type="button" class="primary" onclick="addSupplier()">إضافة مورد</button></div>
+<div class="grid"><input id="newSupplier" placeholder="اسم المورد"><button type="button" class="primary" onclick="addSupplier(event)">إضافة مورد</button></div>
 <div id="supplierList" class="hint"></div></div><div class="grid3"><div><div class="hint">المورد</div><select id="sup"><option value="">اختر المورد</option></select></div><div><div class="hint">المنتج</div><input id="pp" list="purchaseProductList" placeholder="اكتب أو اختر اسم الصنف" autocomplete="off" oninput="syncPurchaseUnit()"><datalist id="purchaseProductList"></datalist></div><div><div class="hint">الكمية</div><input id="pqq" type="number" inputmode="decimal" step="0.01" min="0.01" placeholder="مثال: 0.25" oninput="updatePurchaseTotal()"></div><div><div class="hint">الوحدة</div><select id="punit"><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select></div><div><div class="hint">سعر الوحدة</div><input id="ppr" type="number" inputmode="decimal" step="0.01" min="0" placeholder="مثال: 600" oninput="updatePurchaseTotal()"></div><div><div class="hint">إجمالي المشتريات</div><input id="ptotal" type="text" readonly value="0.00 جنيه"></div></div><button id="purchaseBtn" type="button" class="primary" onclick="purchase(event)">تسجيل المشتريات</button><table><thead><tr><th>التاريخ</th><th>المورد</th><th>الصنف</th><th>الكمية</th><th>الإجمالي</th><th>حذف</th></tr></thead><tbody id="purchaseRows"></tbody></table></section>
 
 <section id="expenses"><h2>المصروفات</h2>
@@ -308,34 +308,101 @@ function openDetail(name){
  show("officerDetail");
 }
 function deleteProduct(i){
- const p=S.products[i];
+ const idx=Number(i);
+ if(!Number.isInteger(idx)||idx<0||idx>=S.products.length)return;
+ const p=S.products[idx];
  if(!p)return;
  const name=p.name;
- S.products.splice(i,1);
+ // لو الصنف كان موجودًا في فاتورة مفتوحة عند أحد الضباط، شيله منها أولًا
+ cart=cart.filter(x=>!(x.type!=="recipe"&&x.i===idx)).map(x=>x.type==="recipe"?x:({...x,i:x.i>idx?x.i-1:x.i}));
+ S.products.splice(idx,1);
  logAction("حذف منتج",name);
  save();
+ // إعادة الرسم هنا تجعل الصنف يختفي فورًا من شاشة الضباط ومن كل قوائم المنتجات
  render();
 }
 function openOfficer(name){currentOfficer=name;cart=[];show("sale");document.getElementById("saleTitle").textContent="استهلاك "+name;render()}
 
-function renderSaleProducts(){
- const q=(saleSearch?.value||"").trim().toLowerCase();
- const list=S.products.filter(p=>Number(p.sell||0)>0 && p.name.toLowerCase().includes(q));
- saleProducts.innerHTML=list.map(p=>{
-   const i=S.products.indexOf(p);
-   return `<div class="card" onclick="addToCart(${i})"><div class="rowtitle"><span class="name">${p.name}</span><span class="amount">${money(p.sell)}</span></div><div class="muted">المتاح: ${p.qty} ${p.unit||"قطعة"}</div></div>`;
- }).join("")||`<div class="hint">لا يوجد صنف مطابق.</div>`;
+function recipeAvailableQty(r){
+ if(!r || !Array.isArray(r.ins) || !r.ins.length)return 0;
+ let max=Infinity;
+ for(const ing of r.ins){
+   const p=S.products.find(x=>x.name===ing.n);
+   const need=Number(ing.q||0);
+   if(!p || need<=0)return 0;
+   max=Math.min(max,Math.floor(Number(p.qty||0)/need));
+ }
+ return Number.isFinite(max)?Math.max(0,max):0;
 }
-function addToCart(i){let p=S.products[i];if(p.qty<1)return alert("المخزون غير كافٍ");let x=cart.find(x=>x.i===i);if(x){if(x.q>=p.qty)return;x.q++;}else cart.push({i,q:1});render()}
-function changeCart(j,d){
- if(!cart[j])return;
- const p=S.products[cart[j].i];
- if(d>0 && cart[j].q>=p.qty)return;
- cart[j].q+=d;
- if(cart[j].q<=0)cart.splice(j,1);
+function renderSaleProducts(){
+ const q=(document.getElementById("saleSearch")?.value||"").trim().toLowerCase();
+ const products=S.products.filter(p=>Number(p.sell||0)>0 && p.name.toLowerCase().includes(q));
+ const recipes=(S.recipes||[]).filter(r=>Number(r.price||0)>0 && r.name.toLowerCase().includes(q));
+ const productCards=products.map(p=>{
+   const i=S.products.indexOf(p);
+   return `<div class="card" onclick="addToCart(${i})"><div class="rowtitle"><span class="name">${p.name}</span><span class="amount">${money(p.sell)}</span></div><div class="muted">منتج • المتاح: ${p.qty} ${p.unit||"قطعة"}</div></div>`;
+ });
+ const recipeCards=recipes.map(r=>{
+   const i=S.recipes.indexOf(r),available=recipeAvailableQty(r);
+   return `<div class="card" onclick="addRecipeToCart(${i})"><div class="rowtitle"><span class="name">${r.name}</span><span class="amount">${money(r.price)}</span></div><div class="muted">ريسبي • المتاح حسب المكونات: ${available}</div></div>`;
+ });
+ saleProducts.innerHTML=[...productCards,...recipeCards].join("")||`<div class="hint">لا يوجد صنف مطابق.</div>`;
+}
+function addToCart(i){
+ const p=S.products[i]; if(!p)return;
+ const x=cart.find(x=>x.type==="product"&&x.i===i), reserved=x?.q||0;
+ if(Number(p.qty||0)<=reserved)return alert("المخزون غير كافٍ");
+ if(x)x.q++;else cart.push({type:"product",i,q:1});
  render();
 }
-function confirmCart(){if(!currentOfficer||!cart.length)return;for(let x of cart){let p=S.products[x.i];if(p.qty<x.q)return alert("الكمية غير متاحة: "+p.name)}for(let x of cart){let p=S.products[x.i];p.qty-=x.q;S.sales.push({who:currentOfficer,total:p.sell*x.q,cost:p.buy*x.q,product:p.name,qty:x.q,date:new Date().toLocaleDateString("ar-EG"),type:"بيع"});logAction("بيع",currentOfficer+" — "+p.name+" × "+x.q);}cart=[];save();alert("تم تسجيل الاستهلاك");show("officers");}
+function addRecipeToCart(i){
+ const r=S.recipes[i];if(!r)return;
+ const x=cart.find(x=>x.type==="recipe"&&x.i===i),reserved=x?.q||0;
+ if(recipeAvailableQty(r)<=reserved)return alert("المخزون غير كافٍ لمكونات الريسبي");
+ if(x)x.q++;else cart.push({type:"recipe",i,q:1});
+ render();
+}
+function changeCart(j,d){
+ if(!cart[j])return;
+ const x=cart[j];
+ if(d>0){
+   if(x.type==="recipe"){
+     const r=S.recipes[x.i];if(!r||x.q>=recipeAvailableQty(r))return;
+   }else{
+     const p=S.products[x.i];if(!p||x.q>=Number(p.qty||0))return;
+   }
+ }
+ x.q+=d;if(x.q<=0)cart.splice(j,1);render();
+}
+function confirmCart(){
+ if(!currentOfficer||!cart.length)return;
+ // تحقق من إجمالي احتياج كل خامة/منتج قبل الخصم
+ const productNeed=new Map();
+ for(const x of cart){
+   if(x.type==="recipe"){
+     const r=S.recipes[x.i];if(!r)return alert("ريسبي غير موجود");
+     for(const ing of r.ins||[]) productNeed.set(ing.n,(productNeed.get(ing.n)||0)+Number(ing.q||0)*x.q);
+   }else{
+     const p=S.products[x.i];if(!p)return alert("منتج غير موجود");
+     productNeed.set(p.name,(productNeed.get(p.name)||0)+x.q);
+   }
+ }
+ for(const [name,need] of productNeed){const p=S.products.find(z=>z.name===name);if(!p||Number(p.qty||0)<need)return alert("الكمية غير متاحة: "+name);}
+ for(const x of cart){
+   if(x.type==="recipe"){
+     const r=S.recipes[x.i];
+     const unitCost=recipeCost(r);
+     for(const ing of r.ins||[]){const p=S.products.find(z=>z.name===ing.n);p.qty-=Number(ing.q||0)*x.q;}
+     S.sales.push({who:currentOfficer,total:Number(r.price||0)*x.q,cost:unitCost*x.q,product:r.name,qty:x.q,date:new Date().toLocaleDateString("ar-EG"),type:"ريسبي",recipeIns:JSON.parse(JSON.stringify(r.ins||[]))});
+     logAction("بيع ريسبي",currentOfficer+" — "+r.name+" × "+x.q);
+   }else{
+     const p=S.products[x.i];p.qty-=x.q;
+     S.sales.push({who:currentOfficer,total:Number(p.sell||0)*x.q,cost:Number(p.buy||0)*x.q,product:p.name,qty:x.q,date:new Date().toLocaleDateString("ar-EG"),type:"بيع"});
+     logAction("بيع",currentOfficer+" — "+p.name+" × "+x.q);
+   }
+ }
+ cart=[];save();render();alert("تم تسجيل الاستهلاك");show("officers");
+}
 function sell(i){addToCart(i)}
 function editProduct(i){const p=S.products[i];if(!p)return;window._editingProductIndex=i;document.getElementById("editProductName").value=p.name||"";document.getElementById("editProductBuy").value=p.buy??0;document.getElementById("editProductSell").value=p.sell??0;document.getElementById("editProductQty").value=p.qty??0;document.getElementById("editProductMin").value=p.min??0;document.getElementById("editProductUnit").value=p.unit||"قطعة";const c=document.getElementById("editProductCat");c.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${x}">${x}</option>`).join("");c.value=p.cat||"";document.getElementById("productModal").classList.add("show");document.getElementById("productModal").setAttribute("aria-hidden","false");}
 function closeProductModal(){window._editingProductIndex=null;document.getElementById("productModal").classList.remove("show");document.getElementById("productModal").setAttribute("aria-hidden","true");}
@@ -401,7 +468,10 @@ function recipeCost(r){return (r.ins||[]).reduce((a,x)=>a+(S.products.find(p=>p.
 function deleteRecipe(i){
  const idx=Number(i);
  if(!Number.isInteger(idx)||idx<0||idx>=S.recipes.length)return;
+ const name=S.recipes[idx].name;
+ cart=cart.filter(x=>!(x.type==="recipe"&&x.i===idx)).map(x=>x.type==="recipe"&&x.i>idx?({...x,i:x.i-1}):x);
  S.recipes.splice(idx,1);
+ logAction("حذف ريسبي",name);
  save();
  render();
 }
@@ -417,10 +487,28 @@ function saveRecipe(){
  rn.value=rs.value="";ings.innerHTML="";save();render();
 }
 
-function addSupplier(){
- const x=newSupplier.value.trim(); if(!x)return;
- if(!S.suppliers.includes(x))S.suppliers.push(x);
- newSupplier.value="";save();render();
+function addSupplier(ev){
+ if(ev){ev.preventDefault();ev.stopPropagation();}
+ try{
+  const input=document.getElementById("newSupplier");
+  const x=String(input?.value||"").trim();
+  if(!x){alert("اكتب اسم المورد أولاً"); input?.focus(); return false;}
+  S.suppliers=S.suppliers||[];
+  const exists=S.suppliers.some(v=>String(v||"").trim()===x);
+  if(exists){alert("المورد موجود بالفعل"); input?.focus(); return false;}
+  S.suppliers.push(x);
+  if(input)input.value="";
+  save();
+  render();
+  const sel=document.getElementById("sup");
+  if(sel){sel.value=x;}
+  alert("تمت إضافة المورد بنجاح");
+  return false;
+ }catch(err){
+  console.error(err);
+  alert("حصل خطأ أثناء إضافة المورد: "+(err?.message||err));
+  return false;
+ }
 }
 function addExpenseType(){
  const x=newExpenseType.value.trim(); if(!x)return;
@@ -460,12 +548,13 @@ function purchase(ev){
   S.purchases.push({date:new Date().toLocaleDateString("ar-EG"),sup:supEl?.value||"",p:p.name,q,unit,total,unitPrice:pr});
   logAction("شراء",p.name+" × "+q+" "+unit);
   save();
+  // حدّث الشاشة قبل رسالة النجاح حتى يظهر الشراء فورًا ولا يظل التغيير مخفيًا خلف alert
+  render();
   if(ppEl)ppEl.value="";
   if(pqqEl)pqqEl.value="";
   if(pprEl)pprEl.value="";
   if(ptotalEl)ptotalEl.value="0.00 جنيه";
   alert("تم تسجيل المشتريات بنجاح");
-  try{render();}catch(renderErr){console.error(renderErr);}
   return false;
  }catch(err){
   console.error(err);
@@ -508,7 +597,7 @@ function sellRecipe(index){
    if(!p || p.qty<ing.q)return alert("المخزون غير كافٍ للمكوّن: "+ing.n);
  }
  for(const ing of r.ins)S.products.find(x=>x.name===ing.n).qty-=ing.q;
- S.sales.push({who:currentOfficer||"بيع مباشر",total:r.price,cost:recipeCost(r),product:r.name,qty:1,date:new Date().toLocaleDateString("ar-EG"),type:"ريسبي"});logAction("بيع ريسبي",(currentOfficer||"بيع مباشر")+" — "+r.name);
+ S.sales.push({who:currentOfficer||"بيع مباشر",total:r.price,cost:recipeCost(r),product:r.name,qty:1,date:new Date().toLocaleDateString("ar-EG"),type:"ريسبي",recipeIns:JSON.parse(JSON.stringify(r.ins||[]))});logAction("بيع ريسبي",(currentOfficer||"بيع مباشر")+" — "+r.name);
  save();render();
 }
 function deleteSale(i){
@@ -516,9 +605,10 @@ function deleteSale(i){
  if(!x||x.returned)return;
  if(!confirm("تأكيد مرتجع الحركة وإرجاعها للمخزون؟"))return;
  if(x.product){
+   const recipeIns=Array.isArray(x.recipeIns)?x.recipeIns:null;
    const r=S.recipes.find(r=>r.name===x.product);
-   if(r){
-     for(const ing of r.ins){const p=S.products.find(p=>p.name===ing.n);if(p)p.qty+=ing.q*(x.qty||1);}
+   if(recipeIns || r){
+     for(const ing of (recipeIns||r.ins||[])){const p=S.products.find(p=>p.name===ing.n);if(p)p.qty+=Number(ing.q||0)*(x.qty||1);}
    }else{
      const p=S.products.find(p=>p.name===x.product);if(p)p.qty+=(x.qty||1);
    }
@@ -610,8 +700,8 @@ if(document.getElementById("salesHistory")){
 }
 if(document.getElementById("saleProducts")){
  renderSaleProducts();
- cartRows.innerHTML=cart.length?cart.map((x,j)=>{let p=S.products[x.i];return `<div class="rowtitle"><span>${p.name} × ${x.q}</span><span><button type="button" class="tab" onclick="event.stopPropagation();changeCart(${j},-1)">−</button> <button type="button" class="tab" onclick="event.stopPropagation();changeCart(${j},1)">+</button> ${money(p.sell*x.q)}</span></div>`}).join(""):"لم يتم اختيار أصناف";
- cartTotal.textContent=money(cart.reduce((a,x)=>a+S.products[x.i].sell*x.q,0));
+ cartRows.innerHTML=cart.length?cart.map((x,j)=>{const item=x.type==="recipe"?S.recipes[x.i]:S.products[x.i];if(!item)return "";const name=item.name,price=x.type==="recipe"?Number(item.price||0):Number(item.sell||0);return `<div class="rowtitle"><span>${name} × ${x.q}<div class="muted">${x.type==="recipe"?"ريسبي":"منتج"}</div></span><span><button type="button" class="tab" onclick="event.stopPropagation();changeCart(${j},-1)">−</button> <button type="button" class="tab" onclick="event.stopPropagation();changeCart(${j},1)">+</button> ${money(price*x.q)}</span></div>`}).join(""):"لم يتم اختيار أصناف";
+ cartTotal.textContent=money(cart.reduce((a,x)=>{const item=x.type==="recipe"?S.recipes[x.i]:S.products[x.i];const price=x.type==="recipe"?Number(item?.price||0):Number(item?.sell||0);return a+price*x.q},0));
 }
 if(document.getElementById("lowStockBox")){
  const low=S.products.filter(p=>(p.min||0)>0 && p.qty<=p.min);
