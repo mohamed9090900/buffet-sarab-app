@@ -24,7 +24,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 .product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="بوفيه السرب"><link rel="apple-touch-icon" href="icon.svg">
 </head>
-<body>
+<body data-app-version="v6">
 <header><div class="title">بوفيه السرب</div><div class="sub">إدارة المبيعات والمخزون والريسبي</div><div class="month" id="currentMonthLabel"></div></header>
 <nav id="nav">
 <button type="button" class="active" data-page="officers">الضباط</button><button type="button" data-page="products">المنتجات</button><button type="button" data-page="categories">الفئات</button><button type="button" data-page="recipes">الريسبي</button><button type="button" data-page="purchases">المشتريات</button><button type="button" data-page="expenses">المصروفات</button><button type="button" data-page="stock">المخزون</button><button type="button" data-page="paymentsPage">التحصيلات</button><button type="button" data-page="cashPage">الخزنة</button><button type="button" data-page="salesPage">المبيعات</button>
@@ -123,6 +123,8 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 </section>
 <section id="cashPage"><div class="rowtitle"><h2>الخزنة</h2><span class="pill" id="cashMonth"></span></div><div class="statgrid" id="cashStats"></div><div class="card" style="margin-bottom:14px"><h3>رصيد بداية الشهر</h3><div class="formgrid"><input id="cashOpening" type="number" step="0.01" placeholder="رصيد بداية الشهر"><button type="button" class="primary" onclick="setCashOpening()">حفظ الرصيد</button></div></div><div class="card" style="margin-bottom:14px"><h3>إيداع / سحب</h3><div class="formgrid"><select id="cashMoveType"><option value="in">إيداع</option><option value="out">سحب</option></select><input id="cashMoveAmount" type="number" step="0.01" placeholder="المبلغ"><input id="cashMoveNote" placeholder="البيان"><button type="button" class="primary" onclick="addCashMove()">تسجيل</button></div></div><div class="card" style="margin-bottom:14px"><h3>الدين</h3><div class="formgrid"><input id="cashDebtAmount" type="number" step="0.01" placeholder="قيمة الدين"><input id="cashDebtNote" placeholder="بيان الدين"><button type="button" class="danger" onclick="addDebt()">تسجيل الدين</button></div><div class="hint">الدين يُسجل كمبلغ خارج من الخزنة ويظهر منفصلًا في الحسابات.</div></div><div class="card" style="margin-bottom:14px"><h3>سداد دين</h3><div class="formgrid"><input id="cashDebtPayAmount" type="number" step="0.01" placeholder="مبلغ السداد"><input id="cashDebtPayNote" placeholder="بيان السداد"><button type="button" class="primary" onclick="payDebt()">تسجيل السداد</button></div><div class="hint" id="cashDebtOutstanding"></div></div><div class="card"><h3>حركات الخزنة</h3><div id="cashRows"></div></div></section>
 </main>
+<div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3><input id="editProductName" placeholder="اسم المنتج"><input id="editProductBuy" type="number" step="0.01" placeholder="سعر الشراء"><input id="editProductSell" type="number" step="0.01" placeholder="سعر البيع"><input id="editProductQty" type="number" step="0.01" placeholder="الكمية"><input id="editProductMin" type="number" step="0.01" placeholder="حد التنبيه"><select id="editProductUnit"><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select><select id="editProductCat"></select><div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div><div id="payModal" class="pay-modal" aria-hidden="true">
+<div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
 <script>
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
@@ -191,6 +193,7 @@ var pp=document.getElementById("pp");
 var ppr=document.getElementById("ppr");
 var pqq=document.getElementById("pqq");
 var productCategoryEdit=document.getElementById("productCategoryEdit");
+var pc=document.getElementById("pc"); // توافق مع نسخ قديمة على Safari
 var productFromPurchases=document.getElementById("productFromPurchases");
 var productMinStock=document.getElementById("productMinStock");
 var productModal=document.getElementById("productModal");
@@ -493,6 +496,16 @@ function saveRecipe(){
  rn.value=rs.value="";ings.innerHTML="";save();render();
 }
 
+function refreshSupplierUI(selectedValue=""){
+ const list=document.getElementById("supplierList");
+ const vals=(S.suppliers||[]).filter(Boolean);
+ if(list)list.innerHTML=vals.map(x=>`<span class="pill" style="margin:3px">${x}</span>`).join("")||"لا يوجد موردين";
+ const sel=document.getElementById("sup");
+ if(sel){
+  sel.innerHTML=vals.length?`<option value="">اختر المورد</option>`+vals.map(x=>`<option value="${String(x).replaceAll('"','&quot;')}">${x}</option>`).join(""):`<option value="">لا يوجد مورد — أضف موردًا أولًا</option>`;
+  if(selectedValue && [...sel.options].some(o=>o.value===selectedValue))sel.value=selectedValue;
+ }
+}
 function addSupplier(ev){
  if(ev){ev.preventDefault();ev.stopPropagation();}
  try{
@@ -505,9 +518,7 @@ function addSupplier(ev){
   S.suppliers.push(x);
   if(input)input.value="";
   save();
-  render();
-  const sel=document.getElementById("sup");
-  if(sel){sel.value=x;}
+  refreshSupplierUI(x);
   alert("تمت إضافة المورد بنجاح");
   return false;
  }catch(err){
@@ -624,9 +635,6 @@ function deleteSale(i){
  save();render();
 }
 
-if(document.getElementById("supplierList")){
- supplierList.innerHTML=S.suppliers.filter(Boolean).map(x=>`<span class="pill" style="margin:3px">${x}</span>`).join("")||"لا يوجد موردين";
-}
 if(document.getElementById("expenseTypeList")){
  expenseTypeList.innerHTML=S.expenseTypes.map(x=>`<span class="pill" style="margin:3px">${x}</span>`).join("");
 }
@@ -720,7 +728,7 @@ const pcEl=document.getElementById("pc"); if(pcEl)pcEl.innerHTML=`<option value=
 renderProducts();
 renderStock();
 catList.innerHTML=S.cats.map((x,i)=>`<div class="card"><div class="rowtitle"><span>${x}</span><button type="button" class="tab danger" onclick="deleteCategory(${i})">حذف</button></div></div>`).join("")||`<div class="hint">لسه مفيش فئات. أضف الفئات اللي عايزها.</div>`;
-if(document.getElementById("sup")){const sel=document.getElementById("sup");const cur=sel.value;sel.innerHTML=S.suppliers.filter(Boolean).length?`<option value="">اختر المورد</option>`+S.suppliers.filter(Boolean).map(x=>`<option value="${x.replaceAll("\"","&quot;")}">${x}</option>`).join(""):`<option value="">لا يوجد مورد — أضف موردًا أولًا</option>`;if([...sel.options].some(o=>o.value===cur))sel.value=cur;}
+{const sel=document.getElementById("sup"); const cur=sel?.value||""; refreshSupplierUI(cur);}
 if(document.getElementById("et"))et.outerHTML=`<select id="et">${S.expenseTypes.map(x=>`<option>${x}</option>`).join("")}</select>`;
 purchaseRows.innerHTML=S.purchases.map((x,i)=>`<tr><td>${x.date}</td><td>${x.sup}</td><td>${x.p}</td><td>${x.q}</td><td>${money(x.total)}</td><td><button type="button" class="tab danger purchase-delete-btn" data-purchase-index="${i}">حذف</button></td></tr>`).join("")||`<tr><td colspan="6">لا توجد مشتريات.</td></tr>`;
 expenseRows.innerHTML=S.expenses.map(x=>`<tr><td>${x.date}</td><td>${x.t}</td><td>${x.n}</td><td>${money(x.a)}</td></tr>`).join("");
@@ -789,7 +797,7 @@ function renderPaymentsView(){
  const accounts=S.people.map(n=>({name:n,...officerAccountBetween(n,from,to)}));
  const debtors=accounts.filter(x=>x.due>0).sort((a,b)=>b.due-a.due);
  const debtorEl=document.getElementById("paymentDebtors");
- if(debtorEl) debtorEl.innerHTML=debtors.map(x=>`<div class="person"><div><div class="name">${x.name}</div><div class="muted">إجمالي: ${money(x.total)} • مدفوع: ${money(x.paid)}</div></div><div style="text-align:left"><div class="amount">${money(x.due)}</div><div class="muted">عليه فلوس</div></div></div>`).join("")||`<div class="hint">لا يوجد ضباط عليهم فلوس خلال الفترة المحددة.</div>`;
+ if(debtorEl) debtorEl.innerHTML=debtors.map(x=>{const safe=x.name.replace(/'/g,"\\'");return `<div class="person"><div><div class="name">${x.name}</div><div class="muted">إجمالي: ${money(x.total)} • مدفوع: ${money(x.paid)}</div></div><div style="text-align:left"><div class="amount">${money(x.due)}</div><div class="muted">عليه فلوس</div><button type="button" class="tab" onclick="openPayModal('${safe}')">تحصيل</button></div></div>`}).join("")||`<div class="hint">لا يوجد ضباط عليهم فلوس خلال الفترة المحددة.</div>`;
  const chosen=sel?.value||"";
  const detailEl=document.getElementById("paymentRows");
  const titleEl=document.getElementById("paymentDetailTitle");
@@ -814,14 +822,42 @@ function renderOfficers(){
 function openPayModal(name){
  const due=officerDue(name);
  if(due<=0)return alert("حساب الضابط مدفوع بالكامل");
- payTarget=name; payModalTitle.textContent="تحصيل — "+name; payModalDue.textContent="المستحق: "+money(due); payAmount.value=due; payModal.classList.add("show"); payModal.setAttribute("aria-hidden","false"); setTimeout(()=>payAmount.focus(),50);
+ const modal=document.getElementById("payModal");
+ const title=document.getElementById("payModalTitle");
+ const dueEl=document.getElementById("payModalDue");
+ const amountEl=document.getElementById("payAmount");
+ if(!modal||!title||!dueEl||!amountEl)return alert("تعذر فتح شاشة التحصيل. حدّث الصفحة وجرب مرة أخرى.");
+ payTarget=name;
+ title.textContent="تحصيل — "+name;
+ dueEl.textContent="المستحق: "+money(due);
+ amountEl.value=due.toFixed(2);
+ modal.classList.add("show");
+ modal.setAttribute("aria-hidden","false");
+ setTimeout(()=>amountEl.focus(),50);
 }
-function closePayModal(){payTarget=null;payModal.classList.remove("show");payModal.setAttribute("aria-hidden","true");payAmount.value="";}
+function closePayModal(){
+ const modal=document.getElementById("payModal");
+ const amountEl=document.getElementById("payAmount");
+ payTarget=null;
+ if(modal){modal.classList.remove("show");modal.setAttribute("aria-hidden","true");}
+ if(amountEl)amountEl.value="";
+}
 function confirmPayment(){
- if(!payTarget)return;
- const name=payTarget,due=officerDue(name); let v=Number(payAmount.value);
+ const amountEl=document.getElementById("payAmount");
+ if(!payTarget)return alert("اختار ضابط للتحصيل");
+ const name=payTarget;
+ const due=officerDue(name);
+ let v=Number(String(amountEl?.value||"").replace(",","."));
  if(!Number.isFinite(v)||v<=0)return alert("اكتب مبلغ صحيح");
- if(v>due)v=due; S.payments=S.payments||[]; S.payments.push({who:name,amount:v,date:new Date().toLocaleDateString("ar-EG")}); logAction("تحصيل",name+" — "+money(v)); save(); closePayModal(); render();
+ if(due<=0){closePayModal();return alert("حساب الضابط مدفوع بالكامل");}
+ if(v>due)v=due;
+ S.payments=S.payments||[];
+ S.payments.push({who:name,amount:v,date:new Date().toLocaleDateString("ar-EG")});
+ logAction("تحصيل",name+" — "+money(v));
+ save();
+ closePayModal();
+ render();
+ alert("تم تسجيل التحصيل بنجاح");
 }
 function personSale(name){openOfficer(name)}
 function handleProductAction(e){
@@ -870,7 +906,6 @@ document.addEventListener("click",function(e){
  deleteRecipe(Number(btn.dataset.recipeIndex));
 },true);
 </script>
-<div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3><input id="editProductName" placeholder="اسم المنتج"><input id="editProductBuy" type="number" step="0.01" placeholder="سعر الشراء"><input id="editProductSell" type="number" step="0.01" placeholder="سعر البيع"><input id="editProductQty" type="number" step="0.01" placeholder="الكمية"><input id="editProductMin" type="number" step="0.01" placeholder="حد التنبيه"><select id="editProductUnit"><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select><select id="editProductCat"></select><div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div><div id="payModal" class="pay-modal" aria-hidden="true">
-<div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
+
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
 </body></html>
