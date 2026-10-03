@@ -225,8 +225,7 @@ var stockSearch=document.getElementById("stockSearch");
 var sup=document.getElementById("sup");
 var supplierList=document.getElementById("supplierList");
 
-const S={cash:{opening:0,movements:[]},cats:[],people:["محمد","أحمد","محمود"],suppliers:[""],expenseTypes:["كهرباء","مياه","صيانة","نقل","أخرى"],products:[
-{name:"مولتو",buy:15,sell:20,qty:20,cat:"سناكس"},{name:"شيبسي",buy:10,sell:15,qty:30,cat:"سناكس"},{name:"مياه",buy:6,sell:10,qty:40,cat:"مشروبات"},{name:"بن",buy:.6,sell:0,qty:1000,cat:"مواد خام"},{name:"كوب",buy:1,sell:0,qty:100,cat:"مواد خام"},{name:"مياه للمشروب",buy:.05,sell:0,qty:10000,cat:"مواد خام"}],sales:[],payments:[],purchases:[],expenses:[],recipes:[],audit:[]};
+const S={cash:{opening:0,movements:[]},cats:[],people:["محمد","أحمد","محمود"],suppliers:[""],expenseTypes:["كهرباء","مياه","صيانة","نقل","أخرى"],products:[],sales:[],payments:[],purchases:[],expenses:[],recipes:[],audit:[]};
 const money=x=>Number(x||0).toFixed(2)+" ج";
 function save(){localStorage.setItem("buffet_sarab_v3",JSON.stringify(S))}
 function logAction(action,detail=""){S.audit=S.audit||[];S.audit.push({date:new Date().toLocaleString("ar-EG"),action,detail});if(S.audit.length>500)S.audit.shift();}
@@ -241,6 +240,13 @@ function load(){
  const demoCats=["سناكس","مشروبات","مشروبات ساخنة","مواد خام"];
  if(S.cats.every(c=>demoCats.includes(c))) S.cats=[];
  S.products=S.products||[];
+ // تنظيف المنتجات التجريبية/القديمة مرة واحدة حتى يبدأ المستخدم من الصفر.
+ if(!localStorage.getItem("buffet_products_reset_v5")){
+   S.products=[];
+   S.recipes=[];
+   localStorage.setItem("buffet_products_reset_v5","1");
+   save();
+ }
  S.products.forEach(p=>{if(demoCats.includes(p.cat))p.cat="";});
 }
 function show(id,b){
@@ -710,7 +716,7 @@ if(document.getElementById("lowStockBox")){
 if(document.getElementById("auditRows")){auditRows.innerHTML=(S.audit||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${x.action}<div class="muted">${x.detail||""}</div></span><span class="muted">${x.date}</span></div>`).join("")||"لا توجد حركات مسجلة";}
 quickStats.innerHTML=`<div class="stat">مبيعات الشهر<br><b>${money(S.sales.reduce((a,x)=>a+x.total,0))}</b></div><div class="stat">إجمالي المستحقات<br><b>${money(totalDue())}</b></div><div class="stat">المحصّل<br><b>${money((S.payments||[]).reduce((a,x)=>a+x.amount,0))}</b></div><div class="stat">عدد حركات البيع<br><b>${S.sales.length}</b></div>`;
 renderOfficers();
-pc.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${x}">${x}</option>`).join(""); if(document.getElementById("purchaseProductList")){purchaseProductList.innerHTML=S.products.map(x=>`<option value="${x.name}">${x.name} — ${x.unit||"قطعة"}</option>`).join("");}
+const pcEl=document.getElementById("pc"); if(pcEl)pcEl.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${x}">${x}</option>`).join(""); if(document.getElementById("purchaseProductList")){purchaseProductList.innerHTML=S.products.map(x=>`<option value="${x.name}">${x.name} — ${x.unit||"قطعة"}</option>`).join("");}
 renderProducts();
 renderStock();
 catList.innerHTML=S.cats.map((x,i)=>`<div class="card"><div class="rowtitle"><span>${x}</span><button type="button" class="tab danger" onclick="deleteCategory(${i})">حذف</button></div></div>`).join("")||`<div class="hint">لسه مفيش فئات. أضف الفئات اللي عايزها.</div>`;
