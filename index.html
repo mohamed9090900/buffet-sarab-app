@@ -18,13 +18,14 @@ table{width:100%;border-collapse:collapse;background:#151515;border-radius:16px;
 h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:space-between;align-items:center;margin:18px 0 8px}
 .statgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.stat{background:#1e1e1e;border:1px solid #333;border-radius:20px;padding:18px}.stat b{font-size:23px}.hint{color:#999;margin:6px 0 12px}
 .pill{display:inline-block;padding:6px 10px;border-radius:10px;background:#222;color:#bbb;font-size:13px}
+.sale-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 14px}.sale-category-btn{width:100%;min-height:78px;background:#242424;color:#fff;border:1px solid #474747;border-radius:18px;padding:14px;font-size:18px;font-weight:700;text-align:center;touch-action:manipulation}.sale-category-btn .muted{font-weight:400;margin-top:5px}.sale-item-card{cursor:pointer;touch-action:manipulation}
 @media(max-width:600px){header{padding:22px 18px 14px}.title{font-size:29px}main{padding:0 18px}.grid3{grid-template-columns:1fr}.grid{grid-template-columns:1fr}nav{padding:8px 18px 16px}.person{padding:18px}.amount{font-size:23px}}
 
 .pay-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999}.pay-modal.show{display:flex}.pay-box{width:min(520px,100%);background:#202020;border:1px solid #555;border-radius:24px;padding:24px;box-shadow:0 20px 60px #000}.pay-box h3{margin:0 0 8px;font-size:25px}.pay-box .due{font-size:18px;color:#bbb;margin-bottom:18px}.pay-box input{width:100%;font-size:24px;padding:16px;border-radius:14px;border:1px solid #555;background:#111;color:#fff}.pay-actions{display:flex;gap:10px;margin-top:16px}.pay-actions button{flex:1;padding:15px;border-radius:14px;font-size:18px}.pay-cancel{background:#111;color:#fff;border:1px solid #444}.pay-ok{background:#07111f;color:#fff;border:1px solid #0b4f9c}
 .product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="بوفيه السرب"><link rel="apple-touch-icon" href="icon.svg">
 </head>
-<body data-app-version="v8.6.7-finance-clean">
+<body data-app-version="v8.6.8-sale-categories">
 <header><div class="title">بوفيه السرب</div><div class="sub">إدارة المبيعات والمخزون والريسبي</div><div class="month" id="currentMonthLabel"></div></header>
 <nav id="nav">
 <button type="button" class="active" data-page="officers">الضباط</button><button type="button" data-page="products">المنتجات</button><button type="button" data-page="categories">الفئات</button><button type="button" data-page="recipes">الريسبي</button><button type="button" data-page="purchases">المشتريات</button><button type="button" data-page="expenses">المصروفات</button><button type="button" data-page="stock">المخزون</button><button type="button" data-page="paymentsPage">التحصيلات</button><button type="button" data-page="cashPage">مالية البوفيه</button><button type="button" data-page="salesPage">المبيعات</button>
@@ -34,7 +35,10 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 
 <section id="sale">
 <div class="rowtitle"><h2 id="saleTitle">تسجيل استهلاك</h2><button type="button" class="tab" onclick="show('officers')">رجوع</button></div>
-<input id="saleSearch" placeholder="ابحث عن صنف..." oninput="renderSaleProducts()"><div id="saleProducts" class="cards"></div>
+<input id="saleSearch" placeholder="ابحث عن صنف..." oninput="renderSaleProducts()">
+<div id="saleCategoryHeader" class="rowtitle" style="display:none"><button type="button" class="tab sale-back-categories-btn">← الفئات</button><b id="saleCategoryTitle"></b></div>
+<div id="saleCategoryBar" class="sale-category-grid"></div>
+<div id="saleProducts" class="cards"></div>
 <div class="card" style="margin-top:14px"><div class="rowtitle"><b>الفاتورة الحالية</b><span id="cartTotal">0.00 ج</span></div><div id="cartRows" class="hint">لم يتم اختيار أصناف</div><div class="grid" id="saleActionButtons"><button id="confirmSaleBtn" type="button" class="primary" onclick="confirmCart(false)">تسجيل على الحساب</button><button id="confirmCashBtn" type="button" class="tab" onclick="confirmCart(true)">تسجيل كاش</button></div></div>
 </section>
 
@@ -242,6 +246,9 @@ var rs=document.getElementById("rs");
 var sale=document.getElementById("sale");
 var saleProducts=document.getElementById("saleProducts");
 var saleSearch=document.getElementById("saleSearch");
+var saleCategoryBar=document.getElementById("saleCategoryBar");
+var saleCategoryHeader=document.getElementById("saleCategoryHeader");
+var saleCategoryTitle=document.getElementById("saleCategoryTitle");
 var saleTitle=document.getElementById("saleTitle");
 var salesHistory=document.getElementById("salesHistory");
 var salesHistoryCount=document.getElementById("salesHistoryCount");
@@ -406,7 +413,8 @@ function addOfficer(){
  if(S.people.includes(n))return alert("الاسم موجود بالفعل");
  S.people.push(n);logAction("إضافة ضابط",n);el.value="";save();render();
 }
-let currentOfficer=null,cart=[];
+let currentOfficer=null,cart=[],selectedSaleCategory=null;
+function resetSaleBrowser(){selectedSaleCategory=null;if(saleSearch)saleSearch.value="";}
 function openDetail(name){
  document.getElementById("detailName").textContent="كشف حساب — "+name;
  const rows=S.sales.filter(x=>x.who===name&&!x.returned&&!x.cash), total=Number(S.openingDue?.[name]||0)+rows.reduce((a,x)=>a+x.total,0);
@@ -428,9 +436,9 @@ function deleteProduct(i){
  // إعادة الرسم هنا تجعل الصنف يختفي فورًا من شاشة الضباط ومن كل قوائم المنتجات
  render();
 }
-function openOfficer(name){currentOfficer=name;cart=[];show("sale");document.getElementById("saleTitle").textContent="استهلاك "+name;render()}
-function openCashSale(){currentOfficer="__CASH__";cart=[];show("sale");document.getElementById("saleTitle").textContent="بيع كاش";render()}
-function openHospitality(){currentOfficer="__HOSPITALITY__";cart=[];show("sale");document.getElementById("saleTitle").textContent="تسجيل ضيافة";render()}
+function openOfficer(name){currentOfficer=name;cart=[];resetSaleBrowser();show("sale");document.getElementById("saleTitle").textContent="استهلاك "+name;render()}
+function openCashSale(){currentOfficer="__CASH__";cart=[];resetSaleBrowser();show("sale");document.getElementById("saleTitle").textContent="بيع كاش";render()}
+function openHospitality(){currentOfficer="__HOSPITALITY__";cart=[];resetSaleBrowser();show("sale");document.getElementById("saleTitle").textContent="تسجيل ضيافة";render()}
 function currentPeriodKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`}
 
 function recipeAvailableQty(r){
@@ -444,19 +452,79 @@ function recipeAvailableQty(r){
  }
  return Number.isFinite(max)?Math.max(0,max):0;
 }
-function renderSaleProducts(){
- const q=(document.getElementById("saleSearch")?.value||"").trim().toLowerCase();
- const products=S.products.filter(p=>Number(p.sell||0)>0 && p.name.toLowerCase().includes(q));
- const recipes=(S.recipes||[]).filter(r=>Number(r.price||0)>0 && r.name.toLowerCase().includes(q));
- const productCards=products.map(p=>{
+function saleCategoryGroups(){
+ const saleable=S.products.filter(p=>Number(p.sell||0)>0);
+ const groups=[];
+ const seen=new Set();
+ for(const cat of (S.cats||[])){
+   const name=String(cat||"").trim();
+   if(!name||seen.has(name))continue;
+   const count=saleable.filter(p=>(p.cat||"")===name).length;
+   groups.push({key:"cat:"+name,label:name,count,type:"category"});seen.add(name);
+ }
+ for(const p of saleable){
+   const name=String(p.cat||"").trim();
+   if(name&&!seen.has(name)){
+     const count=saleable.filter(x=>(x.cat||"")===name).length;
+     groups.push({key:"cat:"+name,label:name,count,type:"category"});seen.add(name);
+   }
+ }
+ const uncategorized=saleable.filter(p=>!String(p.cat||"").trim()).length;
+ if(uncategorized)groups.push({key:"uncategorized",label:"بدون فئة",count:uncategorized,type:"uncategorized"});
+ const recipeCount=(S.recipes||[]).filter(r=>Number(r.price||0)>0).length;
+ if(recipeCount)groups.push({key:"recipes",label:"الريسبي",count:recipeCount,type:"recipes"});
+ return groups;
+}
+function saleItemsForCategory(key){
+ if(key==="recipes")return {products:[],recipes:(S.recipes||[]).filter(r=>Number(r.price||0)>0)};
+ if(key==="uncategorized")return {products:S.products.filter(p=>Number(p.sell||0)>0&&!String(p.cat||"").trim()),recipes:[]};
+ if(String(key||"").startsWith("cat:")){
+   const cat=String(key).slice(4);
+   return {products:S.products.filter(p=>Number(p.sell||0)>0&&(p.cat||"")===cat),recipes:[]};
+ }
+ return {products:[],recipes:[]};
+}
+function saleProductCards(products){
+ return products.map(p=>{
    const i=S.products.indexOf(p);
-   return `<div class="card" onclick="addToCart(${i})"><div class="rowtitle"><span class="name">${p.name}</span><span class="amount">${money(p.sell)}</span></div><div class="muted">منتج • المتاح: ${p.qty} ${p.unit||"قطعة"}</div></div>`;
+   return `<div class="card sale-item-card sale-product-card" data-product-index="${i}"><div class="rowtitle"><span class="name">${esc(p.name)}</span><span class="amount">${money(p.sell)}</span></div><div class="muted">منتج • المتاح: ${Number(p.qty||0)} ${esc(p.unit||"قطعة")}</div></div>`;
  });
- const recipeCards=recipes.map(r=>{
+}
+function saleRecipeCards(recipes){
+ return recipes.map(r=>{
    const i=S.recipes.indexOf(r),available=recipeAvailableQty(r);
-   return `<div class="card" onclick="addRecipeToCart(${i})"><div class="rowtitle"><span class="name">${r.name}</span><span class="amount">${money(r.price)}</span></div><div class="muted">ريسبي • المتاح حسب المكونات: ${available}</div></div>`;
+   return `<div class="card sale-item-card sale-recipe-card" data-recipe-index="${i}"><div class="rowtitle"><span class="name">${esc(r.name)}</span><span class="amount">${money(r.price)}</span></div><div class="muted">ريسبي • المتاح حسب المكونات: ${available}</div></div>`;
  });
- saleProducts.innerHTML=[...productCards,...recipeCards].join("")||`<div class="hint">لا يوجد صنف مطابق.</div>`;
+}
+function chooseSaleCategory(key){selectedSaleCategory=String(key||"");if(saleSearch)saleSearch.value="";renderSaleProducts();}
+function backToSaleCategories(){selectedSaleCategory=null;if(saleSearch)saleSearch.value="";renderSaleProducts();}
+function renderSaleProducts(){
+ if(!saleProducts||!saleCategoryBar)return;
+ const q=(saleSearch?.value||"").trim().toLowerCase();
+ const groups=saleCategoryGroups();
+ if(q){
+   saleCategoryBar.style.display="none";
+   if(saleCategoryHeader){saleCategoryHeader.style.display="flex";}
+   if(saleCategoryTitle)saleCategoryTitle.textContent="نتائج البحث";
+   const products=S.products.filter(p=>Number(p.sell||0)>0&&String(p.name||"").toLowerCase().includes(q));
+   const recipes=(S.recipes||[]).filter(r=>Number(r.price||0)>0&&String(r.name||"").toLowerCase().includes(q));
+   saleProducts.innerHTML=[...saleProductCards(products),...saleRecipeCards(recipes)].join("")||`<div class="hint">لا يوجد صنف مطابق.</div>`;
+   return;
+ }
+ if(selectedSaleCategory&&!groups.some(g=>g.key===selectedSaleCategory))selectedSaleCategory=null;
+ if(!selectedSaleCategory){
+   if(saleCategoryHeader)saleCategoryHeader.style.display="none";
+   saleCategoryBar.style.display="grid";
+   saleCategoryBar.innerHTML=groups.map(g=>`<button type="button" class="sale-category-btn" data-sale-category="${esc(g.key)}"><div>${esc(g.label)}</div><div class="muted">${g.count} صنف</div></button>`).join("")||`<div class="hint" style="grid-column:1/-1">لا توجد أصناف للبيع. أضف سعر بيع للمنتجات أولًا.</div>`;
+   saleProducts.innerHTML=groups.length?`<div class="hint">اختر الفئة لعرض منتجاتها.</div>`:"";
+   return;
+ }
+ saleCategoryBar.style.display="none";
+ const group=groups.find(g=>g.key===selectedSaleCategory);
+ if(saleCategoryHeader)saleCategoryHeader.style.display="flex";
+ if(saleCategoryTitle)saleCategoryTitle.textContent=group?.label||"الفئة";
+ const {products,recipes}=saleItemsForCategory(selectedSaleCategory);
+ saleProducts.innerHTML=[...saleProductCards(products),...saleRecipeCards(recipes)].join("")||`<div class="hint">لا توجد أصناف قابلة للبيع داخل الفئة.</div>`;
 }
 function addToCart(i){
  const p=S.products[i]; if(!p)return;
@@ -1170,6 +1238,17 @@ function handleProductAction(e){
  else deleteProduct(i);
 }
 document.addEventListener("click",handleProductAction,true);
+// تنقل شاشة البيع بالفئات وربط كروت الأصناف بحدث ثابت للموبايل
+document.addEventListener("click",function(e){
+ const categoryBtn=e.target.closest?.(".sale-category-btn");
+ if(categoryBtn){e.preventDefault();e.stopPropagation();chooseSaleCategory(categoryBtn.dataset.saleCategory||"");return;}
+ const backBtn=e.target.closest?.(".sale-back-categories-btn");
+ if(backBtn){e.preventDefault();e.stopPropagation();backToSaleCategories();return;}
+ const productBtn=e.target.closest?.(".sale-product-card");
+ if(productBtn){e.preventDefault();e.stopPropagation();addToCart(Number(productBtn.dataset.productIndex));return;}
+ const recipeBtn=e.target.closest?.(".sale-recipe-card");
+ if(recipeBtn){e.preventDefault();e.stopPropagation();addRecipeToCart(Number(recipeBtn.dataset.recipeIndex));}
+},true);
 document.addEventListener("click",function(e){
  const btn=e.target.closest?.(".purchase-delete-btn");
  if(!btn)return;
