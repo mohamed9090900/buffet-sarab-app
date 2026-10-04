@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>بوفيه السرب</title>
+<title>البوفيه</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#050505;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 header{padding:28px 22px 18px}.title{font-size:31px;font-weight:800}.sub{font-size:19px;color:#aaa;margin-top:4px}.month{font-size:18px;color:#ddd;margin-top:14px}
@@ -41,7 +41,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 .product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v8.7.5-splash-refined">
+<body data-app-version="v8.7.6-reviewed">
 <div id="appSplash" class="app-splash" aria-hidden="true">
   <div class="splash-inner">
     <div class="splash-logo-wrap"><img class="splash-logo" src="icon-512.png" alt=""></div>
@@ -84,7 +84,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 </div>
 <button type="button" id="installFloatBtn" class="install-float" aria-label="تثبيت التطبيق"><span>⬇️</span><span>تثبيت التطبيق</span></button>
 
-<header><div class="title">بوفيه السرب</div><div class="sub">إدارة المبيعات والمخزون والريسبي</div><div class="month" id="currentMonthLabel"></div></header>
+<header><div class="title">البوفيه</div><div class="sub">إدارة المبيعات والمخزون والريسبي</div><div class="month" id="currentMonthLabel"></div></header>
 <nav id="nav" aria-label="أقسام البرنامج">
 <button type="button" class="nav-card" data-page="salesPage"><span class="nav-icon">🛒</span><span class="nav-label">المبيعات</span></button>
 <button type="button" class="nav-card active" data-page="officers"><span class="nav-icon">👥</span><span class="nav-label">الضباط</span></button>
@@ -475,7 +475,7 @@ async function shareOfficerAccountByIndex(i){
  const payload=officerSharePayload(name);
  const token=toBase64Url(JSON.stringify(payload));
  const url=location.href.split("#")[0]+"#account="+token;
- const title="كشف حساب "+name+" — بوفيه السرب";
+ const title="كشف حساب "+name+" — البوفيه";
  try{if(navigator.share){await navigator.share({title,text:"كشف حساب للعرض فقط",url});return;}}catch(e){if(e?.name==="AbortError")return;}
  try{if(navigator.clipboard){await navigator.clipboard.writeText(url);alert("تم نسخ رابط حساب "+name);return;}}catch(e){}
  prompt("انسخ رابط حساب "+name,url);
@@ -496,7 +496,7 @@ function renderPublicAccount(data){
  const sales=document.getElementById("publicAccountSales");if(sales)sales.innerHTML=(data.s||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${esc(x.p)} × ${Number(x.q||1)}<div class="muted">${esc(x.d||"")}</div></span><b>${money(x.t)}</b></div>`).join("")||`<div class="hint">لا توجد حركات استهلاك.</div>`;
  const pays=document.getElementById("publicAccountPayments");if(pays)pays.innerHTML=(data.p||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>تحصيل<div class="muted">${esc(x.d||"")}</div></span><b>${money(x.a)}</b></div>`).join("")||`<div class="hint">لا توجد تحصيلات.</div>`;
  const gen=document.getElementById("publicAccountGenerated");if(gen)gen.textContent="نسخة للعرض فقط — تم إنشاء الرابط: "+String(data.g||"");
- document.title="كشف حساب "+String(data.n||"")+" — بوفيه السرب";
+ document.title="كشف حساب "+String(data.n||"")+" — البوفيه";
 }
 function editOfficer(oldName){
  const newName=prompt("تعديل اسم الضابط",oldName);
