@@ -24,13 +24,68 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 .metric-head{display:flex;align-items:center;gap:9px;color:#d8d8d8;font-size:17px}.metric-icon{width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--accent) 18%,#222);color:var(--accent);font-weight:900;font-size:18px}.metric-value{font-size:29px;font-weight:850;margin-top:12px;letter-spacing:.2px}.metric-note{color:#929292;font-size:14px;line-height:1.55;margin-top:7px}.metric-wide{grid-column:1/-1}.metric-main{min-height:150px;padding:22px}.metric-main .metric-value{font-size:38px}.tone-green{--accent:#4fb477}.tone-red{--accent:#d45e5e}.tone-blue{--accent:#5c8fd8}.tone-cyan{--accent:#55a9b7}.tone-orange{--accent:#d89a55}.tone-purple{--accent:#9b7bd6}.tone-amber{--accent:#d8b255}.tone-gray{--accent:#7f8791}
 .summary-list{display:grid;gap:7px}.summary-row{--accent:#6f7883;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px 13px 12px;background:#1b1b1b;border:1px solid #2c2c2c;border-right:4px solid var(--accent);border-radius:14px}.summary-row b{font-size:19px}.summary-row.tone-green,.summary-row.tone-red,.summary-row.tone-blue,.summary-row.tone-cyan,.summary-row.tone-orange,.summary-row.tone-purple,.summary-row.tone-amber{border-right-color:var(--accent)}
 .section-label{font-size:15px;color:#a8a8a8;margin:16px 2px 8px;font-weight:700}.auto-tag{display:inline-block;font-size:12px;padding:4px 8px;border-radius:999px;background:#3b2d17;color:#f2c77d;margin-inline-start:5px}
+
+/* PWA install experience */
+.install-modal{position:fixed;inset:0;z-index:20000;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.install-modal.show{display:flex}.install-box{width:min(460px,100%);background:linear-gradient(160deg,#202020,#111);border:1px solid #3b3b3b;border-radius:28px;padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.65);text-align:center;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto}.install-logo{width:92px;height:92px;margin:0 auto 14px;border-radius:23px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.45);border:1px solid #444}.install-logo img{width:100%;height:100%;display:block}.install-box h3{font-size:27px;margin:2px 0 7px}.install-box p{color:#b7b7b7;line-height:1.7;margin:0 0 18px}.install-actions{display:grid;gap:10px}.install-btn{width:100%;border-radius:16px;padding:15px 16px;font-size:17px;font-weight:800;cursor:pointer;touch-action:manipulation}.install-primary{background:#12345b;color:#fff;border:1px solid #2f6ca8}.install-secondary{background:#171717;color:#f0f0f0;border:1px solid #3b3b3b}.install-help{display:none;text-align:right;margin-top:15px;background:#151515;border:1px solid #333;border-radius:16px;padding:14px 15px;color:#ddd;line-height:1.75}.install-help.show{display:block}.install-help b{color:#fff}.install-float{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:90;display:none;align-items:center;gap:7px;background:#101b2a;color:#fff;border:1px solid #315b87;border-radius:999px;padding:11px 15px;font-size:14px;font-weight:800;box-shadow:0 8px 28px rgba(0,0,0,.4);cursor:pointer}.install-float.show{display:flex}.public-view .install-float,.public-view .install-modal{display:none!important}body.install-overlay-open{overflow:hidden}
+
+/* Splash screen */
+.app-splash{position:fixed;inset:0;z-index:30000;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,#14263a 0,#08111c 42%,#030507 100%);opacity:1;transition:opacity .25s ease;overflow:hidden}
+.app-splash.hide{opacity:0;pointer-events:none}.splash-inner{text-align:center;transform:translateY(-8px);animation:splashIn .62s cubic-bezier(.2,.8,.2,1) both}.splash-logo{width:134px;height:134px;border-radius:30px;display:block;margin:auto;box-shadow:0 22px 60px rgba(0,0,0,.48),0 0 0 1px rgba(255,255,255,.08)}.splash-name{margin-top:17px;font-size:28px;font-weight:850;letter-spacing:.2px;color:#f7f1e7}.splash-sub{margin-top:5px;color:#9faab6;font-size:14px}.public-view .app-splash{display:none!important}@keyframes splashIn{0%{opacity:0;transform:translateY(2px) scale(.92)}100%{opacity:1;transform:translateY(-8px) scale(1)}}
+
+/* Reset all */
+.reset-modal{position:fixed;inset:0;z-index:24000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.82);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}.reset-modal.show{display:flex}.reset-box{width:min(500px,100%);max-height:calc(100dvh - 36px);overflow:auto;background:linear-gradient(160deg,#211b1b,#111);border:1px solid #553232;border-radius:26px;padding:23px;box-shadow:0 24px 80px rgba(0,0,0,.68)}.reset-icon{width:54px;height:54px;border-radius:17px;background:#3a1515;border:1px solid #703232;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px}.reset-box h3{margin:0 0 8px;font-size:25px}.reset-box p{color:#b9b9b9;line-height:1.7}.reset-warning{background:#271616;border:1px solid #5b2b2b;border-radius:15px;padding:13px 14px;color:#e7caca;line-height:1.7;margin:13px 0}.reset-actions{display:grid;gap:9px;margin-top:14px}.reset-actions button{width:100%;border-radius:14px;padding:14px 15px;font-size:16px;font-weight:800;cursor:pointer}.reset-backup{background:#10251b;color:#e9fff1;border:1px solid #2e6b49}.reset-continue{background:#251414;color:#ffeaea;border:1px solid #6e3030}.reset-cancel{background:#171717;color:#eee;border:1px solid #3a3a3a}.reset-confirm-input{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:2px;text-align:center;font-weight:800;font-size:20px!important}.reset-execute{background:#8c2424;color:#fff;border:1px solid #be4444}.reset-execute:disabled{opacity:.38;cursor:not-allowed}.danger-zone{border-color:#542c2c!important;background:linear-gradient(145deg,#281a1a,#1d1717)!important}.danger-zone .hint{color:#bda8a8}body.reset-overlay-open{overflow:hidden}
 @media(max-width:600px){header{padding:22px 18px 14px}.title{font-size:29px}main{padding:0 18px}.grid3{grid-template-columns:1fr}.grid{grid-template-columns:1fr}nav{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px 18px 16px}nav button.nav-card{min-height:76px;font-size:15px}.person{padding:18px}.amount{font-size:23px}}
 
 .pay-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999}.pay-modal.show{display:flex}.pay-box{width:min(520px,100%);background:#202020;border:1px solid #555;border-radius:24px;padding:24px;box-shadow:0 20px 60px #000}.pay-box h3{margin:0 0 8px;font-size:25px}.pay-box .due{font-size:18px;color:#bbb;margin-bottom:18px}.pay-box input{width:100%;font-size:24px;padding:16px;border-radius:14px;border:1px solid #555;background:#111;color:#fff}.pay-actions{display:flex;gap:10px;margin-top:16px}.pay-actions button{flex:1;padding:15px;border-radius:14px;font-size:18px}.pay-cancel{background:#111;color:#fff;border:1px solid #444}.pay-ok{background:#07111f;color:#fff;border:1px solid #0b4f9c}
 .product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="بوفيه السرب"><link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v8.7.1-nav-daily-cash-sales">
+<body data-app-version="v8.7.4-splash-reset">
+<div id="appSplash" class="app-splash" aria-hidden="true">
+  <div class="splash-inner">
+    <img class="splash-logo" src="icon-192.png" alt="">
+    <div class="splash-name">البوفيه</div>
+    <div class="splash-sub">إدارة البوفيه بسهولة</div>
+  </div>
+</div>
+<div id="installModal" class="install-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="installTitle">
+  <div class="install-box">
+    <div class="install-logo"><img src="icon-192.png" alt="أيقونة البوفيه"></div>
+    <h3 id="installTitle">البوفيه</h3>
+    <p>تقدر تثبّت التطبيق على جهازك، أو تكمّل مباشرة من المتصفح.</p>
+    <div class="install-actions">
+      <button type="button" id="installAppBtn" class="install-btn install-primary">تثبيت التطبيق · Install App</button>
+      <button type="button" id="continueBrowserBtn" class="install-btn install-secondary">المتابعة من المتصفح</button>
+    </div>
+    <div id="installHelp" class="install-help"></div>
+  </div>
+</div>
+<div id="resetModal" class="reset-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+  <div class="reset-box">
+    <div class="reset-icon">⚠️</div>
+    <h3 id="resetTitle">إعادة ضبط البرنامج</h3>
+    <div id="resetChoiceStep">
+      <p>هترجع بيانات البوفيه كأن البرنامج اتفتح لأول مرة.</p>
+      <div class="reset-warning">هيتم مسح المنتجات والفئات والريسبي والضباط والمبيعات والمشتريات والمخزون والتحصيلات والضيافة والمصروفات وحركات الكاش والدين والأرشيف.</div>
+      <div class="reset-actions">
+        <button type="button" class="reset-backup" id="resetBackupBtn">إنشاء نسخة احتياطية أولًا</button>
+        <button type="button" class="reset-continue" id="resetWithoutBackupBtn">متابعة بدون نسخة احتياطية</button>
+        <button type="button" class="reset-cancel" id="resetCancelBtn">إلغاء</button>
+      </div>
+    </div>
+    <div id="resetConfirmStep" style="display:none">
+      <p>للتأكيد، اكتب <b dir="ltr">RESET</b> في الخانة. لا يمكن التراجع بعد تنفيذ المسح إلا من نسخة احتياطية محفوظة.</p>
+      <input id="resetConfirmInput" class="reset-confirm-input" dir="ltr" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="RESET">
+      <div class="reset-actions">
+        <button type="button" id="resetExecuteBtn" class="reset-execute" disabled>مسح جميع البيانات</button>
+        <button type="button" id="resetBackBtn" class="reset-cancel">رجوع</button>
+      </div>
+    </div>
+  </div>
+</div>
+<button type="button" id="installFloatBtn" class="install-float" aria-label="تثبيت التطبيق"><span>⬇️</span><span>تثبيت التطبيق</span></button>
+
 <header><div class="title">بوفيه السرب</div><div class="sub">إدارة المبيعات والمخزون والريسبي</div><div class="month" id="currentMonthLabel"></div></header>
 <nav id="nav" aria-label="أقسام البرنامج">
 <button type="button" class="nav-card" data-page="salesPage"><span class="nav-icon">🛒</span><span class="nav-label">المبيعات</span></button>
@@ -153,6 +208,11 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
     <button type="button" class="tab" onclick="document.getElementById('restoreFile').click()">استرجاع نسخة</button>
   </div>
   <input id="restoreFile" type="file" accept="application/json,.json" style="display:none" onchange="restore(event)">
+</div>
+<div class="card danger-zone" style="margin-top:14px">
+  <div class="rowtitle"><h3 style="margin:0">إعادة ضبط البرنامج</h3><span class="pill">منطقة حساسة</span></div>
+  <div class="hint">يرجع البرنامج لصفر ويمسح كل بيانات التشغيل والأرشيف. إنشاء نسخة احتياطية قبل المسح اختياري.</div>
+  <button type="button" class="danger" style="width:100%;border-radius:14px;padding:14px 16px;font-size:17px;color:#fff;font-weight:800" onclick="openResetModal()">إعادة ضبط البرنامج</button>
 </div>
 </section>
 <section id="cashPage"><div class="rowtitle"><h2>مالية البوفيه</h2><span class="pill" id="cashMonth"></span></div><div class="statgrid" id="cashStats"></div><div class="card" style="margin-bottom:14px"><h3>إيداع / سحب</h3><div class="formgrid"><select id="cashMoveType"><option value="in">إيداع</option><option value="out">سحب</option></select><input id="cashMoveAmount" type="number" step="0.01" placeholder="المبلغ"><input id="cashMoveNote" placeholder="البيان"><button type="button" class="primary" onclick="addCashMove()">تسجيل</button></div><div class="hint">استخدم السحب عند دفع مشتريات من كاش البوفيه أو لأي خروج نقدي غير مسجل كمصروف أو سداد دين. المشتريات نفسها لا تحرّك الكاش تلقائيًا.</div></div><div class="card" style="margin-bottom:14px"><h3>الدين</h3><div class="formgrid"><input id="cashDebtAmount" type="number" step="0.01" placeholder="قيمة الدين"><input id="cashDebtNote" placeholder="بيان الدين"><button type="button" class="danger" onclick="addDebt()">تسجيل الدين</button></div><div class="hint">تسجيل الدين يغيّر الدين القائم فقط ولا يضيف ولا يسحب من الكاش المتاح.</div></div><div class="card" style="margin-bottom:14px"><h3>سداد دين</h3><div class="formgrid"><input id="cashDebtPayAmount" type="number" step="0.01" placeholder="مبلغ السداد"><input id="cashDebtPayNote" placeholder="بيان السداد"><button type="button" class="primary" onclick="payDebt()">تسجيل السداد</button></div><div class="hint" id="cashDebtOutstanding"></div><div class="hint">سداد الدين يقلل الدين القائم ويُخصم من الكاش المتاح.</div></div><div class="card"><h3>حركات المالية</h3><div id="cashRows"></div></div></section>
@@ -318,10 +378,10 @@ function show(id,b){
 async function shareOrDownload(text,filename,type){
  const blob=new Blob([text],{type});
  try{
-  if(navigator.share && navigator.canShare){const file=new File([blob],filename,{type});if(navigator.canShare({files:[file]})){await navigator.share({files:[file],title:filename});return;}}
- }catch(e){if(e&&e.name==="AbortError")return;}
+  if(navigator.share && navigator.canShare){const file=new File([blob],filename,{type});if(navigator.canShare({files:[file]})){await navigator.share({files:[file],title:filename});return true;}}
+ }catch(e){if(e&&e.name==="AbortError")return false;}
  const url=URL.createObjectURL(blob);
- const a=document.createElement("a");a.href=url;a.download=filename;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+ const a=document.createElement("a");a.href=url;a.download=filename;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);return true;
 }
 async function exportOfficersCSV(){
  let rows=[["الضابط","إجمالي الشهر","عدد الحركات"]];
@@ -339,7 +399,40 @@ async function backup(){
  let archive=[];try{const a=JSON.parse(localStorage.getItem(ARCHIVE_KEY)||"[]");if(Array.isArray(a))archive=a;}catch(e){}
  const payload={backupVersion:3,createdAt:new Date().toISOString(),state:JSON.parse(JSON.stringify(S)),archive};
  const day=new Date().toISOString().slice(0,10);
- await shareOrDownload(JSON.stringify(payload,null,2),"buffet-backup-"+day+".json","application/json");
+ return await shareOrDownload(JSON.stringify(payload,null,2),"buffet-backup-"+day+".json","application/json");
+}
+function openResetModal(){
+ const modal=document.getElementById("resetModal"),choice=document.getElementById("resetChoiceStep"),confirmStep=document.getElementById("resetConfirmStep"),input=document.getElementById("resetConfirmInput"),execute=document.getElementById("resetExecuteBtn");
+ if(!modal)return;
+ if(choice)choice.style.display="block";if(confirmStep)confirmStep.style.display="none";if(input)input.value="";if(execute)execute.disabled=true;
+ modal.classList.add("show");modal.setAttribute("aria-hidden","false");document.body.classList.add("reset-overlay-open");
+}
+function closeResetModal(){
+ const modal=document.getElementById("resetModal");if(modal){modal.classList.remove("show");modal.setAttribute("aria-hidden","true");}
+ document.body.classList.remove("reset-overlay-open");
+}
+function showResetConfirmStep(){
+ const choice=document.getElementById("resetChoiceStep"),confirmStep=document.getElementById("resetConfirmStep"),input=document.getElementById("resetConfirmInput"),execute=document.getElementById("resetExecuteBtn");
+ if(choice)choice.style.display="none";if(confirmStep)confirmStep.style.display="block";if(input){input.value="";setTimeout(()=>input.focus(),80);}if(execute)execute.disabled=true;
+}
+async function backupBeforeReset(){
+ const btn=document.getElementById("resetBackupBtn");if(btn)btn.disabled=true;
+ try{const ok=await backup();if(ok!==false)showResetConfirmStep();}catch(err){console.error("Backup before reset failed",err);alert("تعذر إنشاء النسخة الاحتياطية. لم يتم مسح أي بيانات.");}
+ finally{if(btn)btn.disabled=false;}
+}
+function resetFreshState(){
+ return {cash:{opening:0,movements:[]},openingDue:{},cats:[],people:[],suppliers:[""],expenseTypes:["كهرباء","مياه","صيانة","نقل","ضيافة على البوفيه","أخرى"],products:[],sales:[],payments:[],purchases:[],expenses:[],recipes:[],hospitality:[],audit:[]};
+}
+function executeResetAll(){
+ const input=document.getElementById("resetConfirmInput");if(!input||input.value.trim().toUpperCase()!=="RESET")return;
+ try{
+   const fresh=resetFreshState();
+   Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,fresh);normalizeState();
+   localStorage.removeItem(ARCHIVE_KEY);
+   save();
+   closeResetModal();
+   location.reload();
+ }catch(err){console.error("Reset all failed",err);alert("حصل خطأ أثناء إعادة الضبط. لم يتم إكمال العملية.");}
 }
 function restore(e){
  const f=e.target.files[0];if(!f)return;
@@ -1380,6 +1473,98 @@ document.addEventListener("click",function(e){
   e.stopPropagation();
   show(b.dataset.page,b);
 },true);
+
+
+// إعادة ضبط البرنامج: حماية على مرحلتين + نسخة احتياطية اختيارية
+document.getElementById("resetBackupBtn")?.addEventListener("click",backupBeforeReset);
+document.getElementById("resetWithoutBackupBtn")?.addEventListener("click",showResetConfirmStep);
+document.getElementById("resetCancelBtn")?.addEventListener("click",closeResetModal);
+document.getElementById("resetBackBtn")?.addEventListener("click",()=>{const c=document.getElementById("resetChoiceStep"),s=document.getElementById("resetConfirmStep");if(c)c.style.display="block";if(s)s.style.display="none";});
+document.getElementById("resetConfirmInput")?.addEventListener("input",function(){const b=document.getElementById("resetExecuteBtn");if(b)b.disabled=this.value.trim().toUpperCase()!=="RESET";});
+document.getElementById("resetExecuteBtn")?.addEventListener("click",executeResetAll);
+document.getElementById("resetModal")?.addEventListener("click",function(e){if(e.target===this)closeResetModal();});
+
+// شاشة افتتاح احترافية: 1.5 ثانية إجماليًا، ولا تظهر في رابط كشف الحساب العام
+(function initSplash(){
+ const splash=document.getElementById("appSplash");if(!splash)return;
+ if((location.hash||"").startsWith("#account=")){splash.remove();return;}
+ setTimeout(()=>splash.classList.add("hide"),1250);
+ setTimeout(()=>splash.remove(),1500);
+})();
+
+// تجربة تثبيت الـPWA: اختيار واضح بين التثبيت والمتصفح، بدون إزعاج المستخدم لاحقًا
+let deferredInstallPrompt=null;
+const INSTALL_BROWSER_CHOICE_KEY="buffet_install_browser_choice_v1";
+function isStandaloneApp(){
+  return (window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
+}
+function isIOSDevice(){
+  const ua=navigator.userAgent||"";
+  return /iphone|ipad|ipod/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+}
+function isPublicAccountLink(){return (location.hash||"").startsWith("#account=")||document.body.classList.contains("public-view")}
+function installModalEl(){return document.getElementById("installModal")}
+function installHelpEl(){return document.getElementById("installHelp")}
+function hideInstallModal(){
+  const modal=installModalEl();if(modal){modal.classList.remove("show");modal.setAttribute("aria-hidden","true");}
+  document.body.classList.remove("install-overlay-open");
+  const help=installHelpEl();if(help){help.classList.remove("show");help.innerHTML="";}
+}
+function showInstallModal(force=false){
+  if(isStandaloneApp()||isPublicAccountLink())return;
+  if(!force&&localStorage.getItem(INSTALL_BROWSER_CHOICE_KEY)==="browser")return;
+  const modal=installModalEl();if(!modal)return;
+  modal.classList.add("show");modal.setAttribute("aria-hidden","false");document.body.classList.add("install-overlay-open");
+}
+function updateInstallEntry(){
+  const btn=document.getElementById("installFloatBtn");if(!btn)return;
+  const canShow=!isStandaloneApp()&&!isPublicAccountLink();
+  btn.classList.toggle("show",canShow);
+}
+function showInstallHelp(){
+  const help=installHelpEl();if(!help)return;
+  if(isIOSDevice()){
+    help.innerHTML='<b>على iPhone / iPad:</b><br>1) افتح الرابط في Safari.<br>2) اضغط زر المشاركة <b>↗︎</b>.<br>3) اختر <b>إضافة إلى الشاشة الرئيسية</b>.<br>4) اضغط <b>إضافة</b>.';
+  }else{
+    help.innerHTML='<b>لو زر التثبيت المباشر مش ظاهر:</b><br>افتح قائمة المتصفح واختر <b>Install app / تثبيت التطبيق</b> أو <b>إضافة إلى الشاشة الرئيسية</b>. يفضّل Chrome أو Edge على Android واللاب.';
+  }
+  help.classList.add("show");
+}
+async function requestAppInstall(){
+  if(isStandaloneApp()){hideInstallModal();updateInstallEntry();return;}
+  if(deferredInstallPrompt){
+    const promptEvent=deferredInstallPrompt;deferredInstallPrompt=null;
+    try{
+      promptEvent.prompt();
+      const choice=await promptEvent.userChoice;
+      if(choice&&choice.outcome==="accepted"){
+        localStorage.removeItem(INSTALL_BROWSER_CHOICE_KEY);hideInstallModal();
+      }else{
+        showInstallHelp();
+      }
+    }catch(err){console.error("Install prompt error",err);showInstallHelp();}
+    updateInstallEntry();
+    return;
+  }
+  showInstallHelp();
+}
+function continueInBrowser(){
+  try{localStorage.setItem(INSTALL_BROWSER_CHOICE_KEY,"browser");}catch(e){}
+  hideInstallModal();updateInstallEntry();
+}
+window.addEventListener("beforeinstallprompt",function(e){
+  e.preventDefault();deferredInstallPrompt=e;updateInstallEntry();
+});
+window.addEventListener("appinstalled",function(){
+  deferredInstallPrompt=null;try{localStorage.removeItem(INSTALL_BROWSER_CHOICE_KEY);}catch(e){}
+  hideInstallModal();updateInstallEntry();
+});
+document.getElementById("installAppBtn")?.addEventListener("click",requestAppInstall);
+document.getElementById("continueBrowserBtn")?.addEventListener("click",continueInBrowser);
+document.getElementById("installFloatBtn")?.addEventListener("click",()=>showInstallModal(true));
+window.addEventListener("load",function(){
+  setTimeout(function(){updateInstallEntry();if(!isStandaloneApp()&&!isPublicAccountLink()&&localStorage.getItem(INSTALL_BROWSER_CHOICE_KEY)!=="browser")showInstallModal(false);},450);
+});
 
 const __publicPayload=readPublicAccountHash();
 if(__publicPayload){
