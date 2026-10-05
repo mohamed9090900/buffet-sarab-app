@@ -5,11 +5,11 @@
 <title>البوفيه</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#050505;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-header{padding:22px 22px 18px;max-width:900px;margin:auto}.app-header-grid{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px}.header-date{grid-column:1;justify-self:start;color:#c8c8c8;font-size:15px;font-weight:650;white-space:nowrap}.header-brand{grid-column:2;justify-self:center;position:relative;font-size:32px;font-weight:900;letter-spacing:.4px;line-height:1.15;padding:3px 14px 9px}.header-brand::after{content:"";position:absolute;left:28%;right:28%;bottom:0;height:2px;border-radius:999px;background:#315b87;box-shadow:0 0 12px rgba(49,91,135,.55)}.header-spacer{grid-column:3}.month{font-size:18px;color:#ddd;margin-top:14px}@media(max-width:520px){header{padding:18px 14px 14px}.app-header-grid{gap:8px}.header-date{font-size:12.5px}.header-brand{font-size:28px;padding-inline:8px}}
+header{padding:16px 22px 14px;max-width:900px;margin:auto}.app-header-grid{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;min-height:82px}.header-date{grid-column:1;justify-self:start;color:#c8c8c8;font-size:15px;font-weight:700;white-space:nowrap}.header-brand{grid-column:2;justify-self:center;display:flex;align-items:center;justify-content:center;width:82px;height:82px}.header-brand img{display:block;width:100%;height:100%;object-fit:contain;border-radius:20px;filter:drop-shadow(0 8px 18px rgba(0,0,0,.34))}.header-spacer{grid-column:3}.month{font-size:18px;color:#ddd;margin-top:14px}@media(max-width:520px){header{padding:12px 14px 10px}.app-header-grid{gap:8px;min-height:66px}.header-date{font-size:12.5px}.header-brand{width:64px;height:64px}.header-brand img{border-radius:16px}}@media(min-width:900px){.header-brand{width:88px;height:88px}}
 nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:8px 22px 20px;max-width:900px;margin:auto}nav button,.tab{background:#050505;color:#eee;border:1px solid #292929;border-radius:18px;padding:15px 23px;font-size:18px}nav button.nav-card{min-height:82px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#111;border-color:#303030;font-size:15px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.2);touch-action:manipulation}nav button.nav-card .nav-icon{font-size:23px;line-height:1}nav button.nav-card .nav-label{white-space:nowrap}nav button.active{background:#0b1a2c;border-color:#285784;box-shadow:inset 0 0 0 1px #285784,0 5px 16px rgba(0,0,0,.28)}nav button.active .nav-icon{transform:scale(1.06)}
 main{padding:0 22px 40px;max-width:900px;margin:auto}section{display:none}.active{display:block!important}
 .cards{display:grid;gap:14px}.person,.card{background:#303030;border:1px solid #4b4b4b;border-radius:24px;padding:20px 22px;box-shadow:0 3px 12px #000}
-.person{display:flex;justify-content:space-between;align-items:center;margin:14px 0}.name{font-size:22px;font-weight:700}.amount{font-size:25px;font-weight:800}.muted{color:#aaa;font-size:16px;margin-top:4px}
+.person{display:flex;justify-content:space-between;align-items:center;margin:14px 0;content-visibility:auto;contain-intrinsic-size:96px}.name{font-size:22px;font-weight:700}.amount{font-size:25px;font-weight:800}.muted{color:#aaa;font-size:16px;margin-top:4px}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 input,select{width:100%;background:#171717;color:#fff;border:1px solid #444;border-radius:13px;padding:13px;font-size:16px;margin:5px 0}
 button.primary{background:#07111f;color:white;border:1px solid #17355c;border-radius:14px;padding:13px 18px;font-size:17px;margin-top:8px}
@@ -17,7 +17,7 @@ button.danger{background:#381010;border-color:#5d2222}button.product-delete-btn,
 table{width:100%;border-collapse:collapse;background:#151515;border-radius:16px;overflow:hidden;margin-top:14px}th,td{padding:11px;border-bottom:1px solid #292929;text-align:right}th{color:#aaa}
 h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:space-between;align-items:center;margin:18px 0 8px}
 .statgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.stat{background:#1e1e1e;border:1px solid #333;border-radius:20px;padding:18px}.stat b{font-size:23px}.hint{color:#999;margin:6px 0 12px}
-.pill{display:inline-block;padding:6px 10px;border-radius:10px;background:#222;color:#bbb;font-size:13px}
+.pill{display:inline-block;padding:6px 10px;border-radius:10px;background:#222;color:#bbb;font-size:13px}.account-payment-note{display:none;margin-top:14px;padding:12px 14px;border-radius:14px;background:#142016;border:1px solid #29452f;color:#d7eadb;line-height:1.7;font-size:15px}.account-payment-note.show{display:block}
 .sale-category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 14px}.sale-category-btn{width:100%;min-height:78px;background:#242424;color:#fff;border:1px solid #474747;border-radius:18px;padding:14px;font-size:18px;font-weight:700;text-align:center;touch-action:manipulation}.sale-category-btn .muted{font-weight:400;margin-top:5px}.sale-item-card{cursor:pointer;touch-action:manipulation}
 .metric-card{--accent:#6e7b8b;position:relative;overflow:hidden;background:linear-gradient(145deg,#222,#1a1a1a);border:1px solid #343434;border-radius:22px;padding:18px 18px 17px;min-height:126px;box-shadow:0 4px 14px rgba(0,0,0,.28)}
 .metric-card::before{content:"";position:absolute;right:0;top:0;bottom:0;width:5px;background:var(--accent)}
@@ -41,7 +41,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 .product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v8.7.7-reviewed">
+<body data-app-version="v8.7.8-reviewed">
 <div id="appSplash" class="app-splash" aria-hidden="true">
   <div class="splash-inner">
     <div class="splash-logo-wrap"><img class="splash-logo" src="icon-512.png" alt=""></div>
@@ -84,7 +84,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 </div>
 <button type="button" id="installFloatBtn" class="install-float" aria-label="تثبيت التطبيق"><span>⬇️</span><span>تثبيت التطبيق</span></button>
 
-<header><div class="app-header-grid"><div class="header-date" id="currentDateLabel"></div><div class="header-brand">البوفيه</div><div class="header-spacer" aria-hidden="true"></div></div></header>
+<header><div class="app-header-grid"><div class="header-date" id="currentDateLabel"></div><div class="header-brand"><img src="icon-192.png" alt="البوفيه"></div><div class="header-spacer" aria-hidden="true"></div></div></header>
 <nav id="nav" aria-label="أقسام البرنامج">
 <button type="button" class="nav-card" data-page="salesPage"><span class="nav-icon">🛒</span><span class="nav-label">المبيعات</span></button>
 <button type="button" class="nav-card active" data-page="officers"><span class="nav-icon">👥</span><span class="nav-label">الضباط</span></button>
@@ -217,10 +217,10 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 
 <section id="publicAccount">
   <div class="card public-readonly">
-    <div class="rowtitle"><div><h2 id="publicAccountName" style="margin:0">كشف حساب</h2><div class="hint" id="publicAccountMonth"></div></div><span class="pill">قراءة فقط</span></div>
+    <div class="rowtitle"><h2 id="publicAccountName" style="margin:0">كشف حساب</h2><span class="pill">قراءة فقط</span></div>
     <div class="statgrid" id="publicAccountStats"></div>
   </div>
-  <div class="card" style="margin-top:14px"><h3>المشتريات من آخر مرة الحساب كان صفر</h3><div class="hint">قائمة المشتريات للمراجعة فقط. المستحق بالأعلى هو الرقم النهائي المطلوب دفعه الآن.</div><div id="publicAccountSales"></div></div>
+  <div class="card" style="margin-top:14px"><h3>الأصناف</h3><div id="publicAccountSales"></div><div id="publicAccountPaymentNote" class="account-payment-note"></div></div>
   <div class="hint" id="publicAccountGenerated" style="margin-top:14px;text-align:center"></div>
 </section>
 </main>
@@ -393,9 +393,9 @@ function syncAccountPayment(pay){
  const row=(S.accountLedger||[]).find(x=>x.type==="payment"&&x.paymentId===pay.id);
  if(row){row.amount=Number(pay.amount||0);row.date=pay.date||"";row.who=pay.who||row.who;}
 }
-function accountCycleSales(name){
+function accountCycleInfo(name){
  const rows=(S.accountLedger||[]).filter(x=>x.who===name).slice().sort((a,b)=>Number(a.seq||0)-Number(b.seq||0));
- let balance=0,open=[];
+ let balance=0,open=[],paid=0;
  for(const x of rows){
    const amount=Math.max(0,Number(x.amount||0));
    if(x.type==="opening"){balance+=amount;continue;}
@@ -404,12 +404,16 @@ function accountCycleSales(name){
      balance+=amount;open.push(x);continue;
    }
    if(x.type==="payment"){
-     balance=Math.max(0,balance-amount);
-     if(balance<=0.000001){balance=0;open=[];}
+     if(balance<=0)continue;
+     const applied=Math.min(balance,amount);
+     balance=Math.max(0,balance-applied);
+     paid+=applied;
+     if(balance<=0.000001){balance=0;open=[];paid=0;}
    }
  }
- return open;
+ return {sales:open,paid,due:balance};
 }
+function accountCycleSales(name){return accountCycleInfo(name).sales;}
 function normalizeState(){
  const arrayKeys=["cats","people","suppliers","expenseTypes","products","sales","payments","purchases","expenses","recipes","hospitality","audit","accountLedger"];
  arrayKeys.forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];});
@@ -536,8 +540,9 @@ function fromBase64Url(text){
  const bin=atob(s),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes);
 }
 function officerSharePayload(name){
- const sales=accountCycleSales(name).map(x=>({d:x.date||"",p:x.product||"",q:Number(x.qty||1),t:Number(x.amount||0)}));
- return {v:2,n:name,m:"من آخر مرة الحساب كان صفر",g:new Date().toLocaleString("ar-EG"),s:sales,d:officerDue(name)};
+ const cycle=accountCycleInfo(name);
+ const sales=cycle.sales.map(x=>({d:x.date||"",p:x.product||"",q:Number(x.qty||1),t:Number(x.amount||0)}));
+ return {v:3,n:name,g:new Date().toLocaleString("ar-EG"),s:sales,d:officerDue(name),p:Number(cycle.paid||0)};
 }
 async function shareOfficerAccountByIndex(i){
  const name=S.people?.[Number(i)];if(!name)return;
@@ -550,7 +555,7 @@ async function shareOfficerAccountByIndex(i){
  prompt("انسخ رابط حساب "+name,url);
 }
 function readPublicAccountHash(){
- try{const h=location.hash||"";if(!h.startsWith("#account="))return null;const data=JSON.parse(fromBase64Url(h.slice(9)));return data&&(data.v===1||data.v===2)?data:null;}catch(e){return null;}
+ try{const h=location.hash||"";if(!h.startsWith("#account="))return null;const data=JSON.parse(fromBase64Url(h.slice(9)));return data&&(data.v===1||data.v===2||data.v===3)?data:null;}catch(e){return null;}
 }
 function renderPublicAccount(data){
  document.body.classList.add("public-view");
@@ -558,10 +563,10 @@ function renderPublicAccount(data){
  document.querySelectorAll("main section").forEach(x=>x.classList.remove("active"));
  const sec=document.getElementById("publicAccount");if(sec)sec.classList.add("active");
  const name=document.getElementById("publicAccountName");if(name)name.textContent="كشف حساب — "+String(data.n||"");
- const pm=document.getElementById("publicAccountMonth");if(pm)pm.textContent=data.m||"";
- const due=Number(data.d||0);
+ const due=Number(data.d||0),paid=Number(data.p||0);
  const stats=document.getElementById("publicAccountStats");if(stats)stats.innerHTML=`<div class="stat" style="grid-column:1/-1;text-align:center">المستحق حاليًا<br><b style="font-size:30px">${money(due)}</b></div>`;
- const sales=document.getElementById("publicAccountSales");if(sales)sales.innerHTML=(data.s||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${esc(x.p)} × ${Number(x.q||1)}<div class="muted">${esc(x.d||"")}</div></span><b>${money(x.t)}</b></div>`).join("")||`<div class="hint">لا توجد مشتريات مستحقة حاليًا.</div>`;
+ const sales=document.getElementById("publicAccountSales");if(sales)sales.innerHTML=(data.s||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${esc(x.p)} × ${Number(x.q||1)}<div class="muted">${esc(x.d||"")}</div></span><b>${money(x.t)}</b></div>`).join("")||`<div class="hint">لا توجد أصناف مستحقة حاليًا.</div>`;
+ const note=document.getElementById("publicAccountPaymentNote");if(note){if(paid>0&&due>0){note.textContent=`كنت دفعت قبل كده ${money(paid)}، وفاضل على حضرتك ${money(due)}.`;note.classList.add("show");}else{note.textContent="";note.classList.remove("show");}}
  const gen=document.getElementById("publicAccountGenerated");if(gen)gen.textContent="نسخة للعرض فقط — تم إنشاء الرابط: "+String(data.g||"");
  document.title="كشف حساب "+String(data.n||"")+" — البوفيه";
 }
@@ -1363,10 +1368,24 @@ if(document.getElementById("paymentFromDate")) renderPaymentsView();
 
 }
 function officerOpening(name){return Number(S.openingDue?.[name]||0)}
-function officerTotal(name){return S.sales.filter(x=>x.who===name&&!x.returned&&!x.cash).reduce((a,x)=>a+x.total,0)}
-function officerPaid(name){return (S.payments||[]).filter(x=>x.who===name).reduce((a,x)=>a+x.amount,0)}
+function officerTotal(name){return S.sales.filter(x=>x.who===name&&!x.returned&&!x.cash).reduce((a,x)=>a+Number(x.total||0),0)}
+function officerPaid(name){return (S.payments||[]).filter(x=>x.who===name).reduce((a,x)=>a+Number(x.amount||0),0)}
 function officerDue(name){return Math.max(0,officerOpening(name)+officerTotal(name)-officerPaid(name))}
-function totalDue(){return S.people.reduce((a,n)=>a+officerDue(n),0)}
+function buildOfficerBalanceMap(){
+ const map=new Map();
+ for(const name of (S.people||[]))map.set(name,{name,opening:officerOpening(name),sales:0,paid:0,due:0});
+ for(const x of (S.sales||[])){
+   if(x.cash||x.returned||!map.has(x.who))continue;
+   map.get(x.who).sales+=Number(x.total||0);
+ }
+ for(const x of (S.payments||[])){
+   if(!map.has(x.who))continue;
+   map.get(x.who).paid+=Number(x.amount||0);
+ }
+ for(const v of map.values())v.due=Math.max(0,v.opening+v.sales-v.paid);
+ return map;
+}
+function totalDue(){let total=0;for(const v of buildOfficerBalanceMap().values())total+=v.due;return total}
 let payTarget=null;
 function normalizeDateKey(v){
  if(!v)return "";
@@ -1401,7 +1420,8 @@ function renderPaymentsView(){
    sel.innerHTML=`<option value="">كل الضباط</option>`+S.people.map(n=>`<option>${n}</option>`).join("");
    if(S.people.includes(old))sel.value=old;
  }
- const debtors=S.people.map(n=>({name:n,opening:officerOpening(n),sales:officerTotal(n),paid:officerPaid(n),due:officerDue(n)})).filter(x=>x.due>0).sort((a,b)=>b.due-a.due);
+ const balanceMap=buildOfficerBalanceMap();
+ const debtors=Array.from(balanceMap.values()).filter(x=>x.due>0).sort((a,b)=>b.due-a.due);
  const debtorEl=document.getElementById("paymentDebtors");
  if(debtorEl) debtorEl.innerHTML=debtors.map(x=>{const safe=x.name.replace(/'/g,"\\'");return `<div class="person"><div><div class="name">${x.name}</div><div class="muted">المستحق الحالي</div></div><div style="text-align:left"><div class="amount">${money(x.due)}</div><button type="button" class="tab" onclick="openPayModal('${safe}')">تحصيل</button></div></div>`}).join("")||`<div class="hint">لا يوجد ضباط عليهم مستحقات حاليًا.</div>`;
  const chosen=sel?.value||"";
@@ -1419,10 +1439,13 @@ function renderPaymentsView(){
 function renderOfficers(){
  const q=(document.getElementById("officerSearch")?.value||"").trim().toLowerCase();
  const list=S.people.filter(n=>n.toLowerCase().includes(q));
+ const balanceMap=buildOfficerBalanceMap();
+ const peopleIndex=new Map(S.people.map((n,i)=>[n,i]));
  people.innerHTML=list.map(n=>{
-   const opening=officerOpening(n), total=officerTotal(n), paid=officerPaid(n), due=officerDue(n), done=(opening+total)>0 && due<=0;
+   const b=balanceMap.get(n)||{opening:0,sales:0,paid:0,due:0};
+   const due=b.due, done=(b.opening+b.sales)>0 && due<=0;
    const safe=n.replace(/\\/g,"\\\\").replace(/'/g,"\\'");
-   const personIndex=S.people.indexOf(n);
+   const personIndex=peopleIndex.get(n);
    return `<div class="person" style="${done?"background:#5a4a00;border-color:#a88b00":""}" onclick="personSale('${safe}')"><div><div class="name">${n}</div><div class="muted">${done?"الحساب مسدد":"المستحق الحالي"}</div></div><div style="text-align:left"><div class="amount">${money(due)}</div><button type="button" class="tab" onclick="event.stopPropagation();openPayModal('${safe}')">${done?"مدفوع":"تحصيل"}</button> <button type="button" class="tab share-btn" onclick="event.stopPropagation();shareOfficerAccountByIndex(${personIndex})">مشاركة الحساب</button> <button type="button" class="tab" onclick="event.stopPropagation();editOfficer('${safe}')">تعديل الاسم</button></div></div>`;
  }).join("") || `<div class="hint">لا يوجد ضابط بهذا الاسم.</div>`;
 }
