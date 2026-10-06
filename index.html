@@ -39,9 +39,9 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 
 .pay-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999}.pay-modal.show{display:flex}.pay-box{width:min(520px,100%);background:#202020;border:1px solid #555;border-radius:24px;padding:24px;box-shadow:0 20px 60px #000}.pay-box h3{margin:0 0 8px;font-size:25px}.pay-box .due{font-size:18px;color:#bbb;margin-bottom:18px}.pay-box input{width:100%;font-size:24px;padding:16px;border-radius:14px;border:1px solid #555;background:#111;color:#fff}.pay-actions{display:flex;gap:10px;margin-top:16px}.pay-actions button{flex:1;padding:15px;border-radius:14px;font-size:18px}.pay-cancel{background:#111;color:#fff;border:1px solid #444}.pay-ok{background:#07111f;color:#fff;border:1px solid #0b4f9c}
 .product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
-<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v8.7.8-reviewed">
+<body data-app-version="v9.1.0-online-final">
 <div id="appSplash" class="app-splash" aria-hidden="true">
   <div class="splash-inner">
     <div class="splash-logo-wrap"><img class="splash-logo" src="icon-512.png" alt=""></div>
@@ -226,7 +226,17 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 </main>
 <div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3><input id="editProductName" placeholder="اسم المنتج" readonly><input id="editProductBuy" type="number" step="0.01" placeholder="متوسط التكلفة — تلقائي" readonly><input id="editProductSell" type="number" step="0.01" placeholder="سعر البيع"><input id="editProductQty" type="number" step="0.01" placeholder="المخزون الحالي — تلقائي" readonly><input id="editProductMin" type="number" step="0.01" placeholder="حد التنبيه"><select id="editProductUnit" disabled><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select><select id="editProductCat"></select><div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div><div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
+<script src="online.js"></script>
 <script>
+// Copy V8.7.8 local data once into the isolated V9 local store.
+(function(){
+  try{
+    const legacyData="buffet_sarab_v867_clean", legacyArchive="buffet_archive_v867_clean";
+    const v9Data="buffet_v9_online_state", v9Archive="buffet_v9_online_archive";
+    if(!localStorage.getItem(v9Data) && localStorage.getItem(legacyData)) localStorage.setItem(v9Data,localStorage.getItem(legacyData));
+    if(!localStorage.getItem(v9Archive) && localStorage.getItem(legacyArchive)) localStorage.setItem(v9Archive,localStorage.getItem(legacyArchive));
+  }catch(e){console.error("V9 local migration",e);}
+})();
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
 var audit=document.getElementById("audit");
@@ -331,11 +341,13 @@ var stockSearch=document.getElementById("stockSearch");
 var sup=document.getElementById("sup");
 var supplierList=document.getElementById("supplierList");
 
-const DATA_KEY="buffet_sarab_v867_clean";
-const ARCHIVE_KEY="buffet_archive_v867_clean";
+const DATA_KEY="buffet_v9_online_state";
+const ARCHIVE_KEY="buffet_v9_online_archive";
 const S={cash:{opening:0,movements:[]},openingDue:{},cats:[],people:[],suppliers:[""],expenseTypes:["كهرباء","مياه","صيانة","نقل","ضيافة على البوفيه","أخرى"],products:[],sales:[],payments:[],purchases:[],expenses:[],recipes:[],hospitality:[],audit:[],accountLedger:[],accountLedgerVersion:0};
+window.DATA_KEY=DATA_KEY;window.ARCHIVE_KEY=ARCHIVE_KEY;window.S=S;
+
 const money=x=>Number(x||0).toFixed(2)+" ج";
-function save(){localStorage.setItem(DATA_KEY,JSON.stringify(S))}
+function save(){localStorage.setItem(DATA_KEY,JSON.stringify(S));try{window.onlineAfterLocalSave?.(S)}catch(e){console.error("Online save hook",e)}}
 function logAction(action,detail=""){S.audit=S.audit||[];S.audit.push({date:new Date().toLocaleString("ar-EG"),action,detail});if(S.audit.length>500)S.audit.shift();}
 function makeTxnId(prefix="T"){return prefix+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function nextAccountSeq(){return (S.accountLedger||[]).reduce((m,x)=>Math.max(m,Number(x.seq||0)),0)+1}
@@ -789,7 +801,7 @@ function confirmCart(forceCash){
  cart=[];save();render();alert(isCash?"تم تسجيل البيع الكاش":"تم تسجيل الاستهلاك");currentOfficer=null;show("officers");
 }
 function sell(i){addToCart(i)}
-function editProduct(i){const p=S.products[i];if(!p)return;window._editingProductIndex=i;document.getElementById("editProductName").value=p.name||"";document.getElementById("editProductBuy").value=p.buy??0;document.getElementById("editProductSell").value=p.sell??0;document.getElementById("editProductQty").value=p.qty??0;document.getElementById("editProductMin").value=p.min??0;document.getElementById("editProductUnit").value=p.unit||"قطعة";const c=document.getElementById("editProductCat");c.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${x}">${x}</option>`).join("");c.value=p.cat||"";document.getElementById("productModal").classList.add("show");document.getElementById("productModal").setAttribute("aria-hidden","false");}
+function editProduct(i){const p=S.products[i];if(!p)return;window._editingProductIndex=i;document.getElementById("editProductName").value=p.name||"";document.getElementById("editProductBuy").value=p.buy??0;document.getElementById("editProductSell").value=p.sell??0;document.getElementById("editProductQty").value=p.qty??0;document.getElementById("editProductMin").value=p.min??0;document.getElementById("editProductUnit").value=p.unit||"قطعة";const c=document.getElementById("editProductCat");c.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");c.value=p.cat||"";document.getElementById("productModal").classList.add("show");document.getElementById("productModal").setAttribute("aria-hidden","false");}
 function closeProductModal(){window._editingProductIndex=null;document.getElementById("productModal").classList.remove("show");document.getElementById("productModal").setAttribute("aria-hidden","true");}
 function saveProductEdit(){const i=window._editingProductIndex,p=S.products[i];if(!p)return;const n=document.getElementById("editProductName").value.trim();if(!n)return alert("اكتب اسم المنتج");if(S.products.some((x,j)=>j!==i&&String(x.name||"").trim()===n))return alert("اسم المنتج موجود بالفعل");const oldName=p.name;if(n!==oldName){p.name=n;(S.purchases||[]).forEach(x=>{if(x.p===oldName)x.p=n});(S.recipes||[]).forEach(r=>(r.ins||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n}));(S.sales||[]).forEach(x=>{if(x.product===oldName)x.product=n;(x.recipeIns||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n});});(S.accountLedger||[]).forEach(x=>{if(x.type==="sale"&&x.product===oldName)x.product=n;});}p.sell=Number(document.getElementById("editProductSell").value)||0;p.min=Number(document.getElementById("editProductMin").value)||0;p.cat=document.getElementById("editProductCat").value||"";logAction("تعديل منتج",oldName+" ← "+p.name);save();closeProductModal();render();}
 
@@ -802,7 +814,7 @@ function renderProductPurchasePicker(){
  sel.innerHTML='<option value="">اختر منتجًا</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");
  if(names.includes(current))sel.value=current;
  const cat=document.getElementById("productCategoryEdit");
- if(cat){const cv=cat.value;cat.innerHTML='<option value="">بدون فئة</option>'+S.cats.map(x=>`<option value="${x}">${x}</option>`).join("");if(S.cats.includes(cv))cat.value=cv;}
+ if(cat){const cv=cat.value;cat.innerHTML='<option value="">بدون فئة</option>'+S.cats.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(S.cats.includes(cv))cat.value=cv;}
 }
 function loadPurchasedProduct(){
  const name=document.getElementById("productFromPurchases")?.value;
@@ -826,7 +838,7 @@ function renderProducts(){
  renderProductPurchasePicker();
  const q=(productSearch?.value||"").trim().toLowerCase();
  const list=S.products.filter(p=>p.name.toLowerCase().includes(q));
- productRows.innerHTML=list.map(p=>{const i=S.products.indexOf(p);return `<tr><td>${p.name}</td><td>${money(p.buy)}</td><td><b>${money(p.sell)}</b></td><td>${p.qty}</td><td>${p.unit||"قطعة"}</td><td>${p.cat||""}</td><td><button type="button" class="tab product-edit-btn" data-product-index="${i}">تعديل السعر</button> <button type="button" class="tab danger product-delete-btn" data-product-index="${i}">حذف</button></td></tr>`}).join("");
+ productRows.innerHTML=list.map(p=>{const i=S.products.indexOf(p);return `<tr><td>${esc(p.name)}</td><td>${money(p.buy)}</td><td><b>${money(p.sell)}</b></td><td>${Number(p.qty||0)}</td><td>${esc(p.unit||"قطعة")}</td><td>${esc(p.cat||"")}</td><td><button type="button" class="tab product-edit-btn" data-product-index="${i}">تعديل السعر</button> <button type="button" class="tab danger product-delete-btn" data-product-index="${i}">حذف</button></td></tr>`}).join("");
 }
 function addCategory(){
  let x=cn.value.trim();
@@ -847,7 +859,7 @@ function addIng(){
  let d=document.createElement("div");
  d.className="grid";
  d.style.marginBottom="8px";
- d.innerHTML=`<select class="ing">${S.products.map(p=>`<option value="${p.name}">${p.name} — ${p.unit||"قطعة"} — تكلفة ${money(p.buy)}</option>`).join("")}</select><input class="iq" type="number" step="0.01" min="0" placeholder="الكمية"><button type="button" class="tab danger" onclick="this.parentElement.remove()">حذف المكوّن</button>`;
+ d.innerHTML=`<select class="ing">${S.products.map(p=>`<option value="${esc(p.name)}">${esc(p.name)} — ${esc(p.unit||"قطعة")} — تكلفة ${money(p.buy)}</option>`).join("")}</select><input class="iq" type="number" step="0.01" min="0" placeholder="الكمية"><button type="button" class="tab danger" onclick="this.parentElement.remove()">حذف المكوّن</button>`;
  ings.appendChild(d);
 }
 function recipeCost(r){return (r.ins||[]).reduce((a,x)=>a+(S.products.find(p=>p.name===x.n)?.buy||0)*x.q,0)}
@@ -889,10 +901,10 @@ function saveRecipe(){
 function refreshSupplierUI(selectedValue=""){
  const list=document.getElementById("supplierList");
  const vals=(S.suppliers||[]).filter(Boolean);
- if(list)list.innerHTML=vals.map(x=>`<span class="pill" style="margin:3px">${x}</span>`).join("")||"لا يوجد موردين";
+ if(list)list.innerHTML=vals.map(x=>`<span class="pill" style="margin:3px">${esc(x)}</span>`).join("")||"لا يوجد موردين";
  const sel=document.getElementById("sup");
  if(sel){
-  sel.innerHTML=vals.length?`<option value="">اختر المورد</option>`+vals.map(x=>`<option value="${String(x).replaceAll('"','&quot;')}">${x}</option>`).join(""):`<option value="">لا يوجد مورد — أضف موردًا أولًا</option>`;
+  sel.innerHTML=vals.length?`<option value="">اختر المورد</option>`+vals.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(""):`<option value="">لا يوجد مورد — أضف موردًا أولًا</option>`;
   if(selectedValue && [...sel.options].some(o=>o.value===selectedValue))sel.value=selectedValue;
  }
 }
@@ -1020,11 +1032,11 @@ function showArchivedMonth(i){
  const hospitalityDue=Number(m.summary?.hospitalityDue ?? hospitality.filter(h=>h.status==="general").reduce((a,h)=>a+Number(h.total||0),0));
  const d=document.getElementById("archiveDetail"); if(!d)return;
  d.style.display="block";
- d.innerHTML=`<div class="rowtitle"><h3 style="margin:0">${m.month||"شهر محفوظ"}</h3><button type="button" class="tab" onclick="this.closest('#archiveDetail').style.display='none'">إغلاق</button></div>
+ d.innerHTML=`<div class="rowtitle"><h3 style="margin:0">${esc(m.month||"شهر محفوظ")}</h3><button type="button" class="tab" onclick="this.closest('#archiveDetail').style.display='none'">إغلاق</button></div>
  <div class="statgrid" style="margin-top:12px"><div class="stat">إجمالي المبيعات<br><b>${money(totalSales)}</b></div><div class="stat">مبيعات الكاش<br><b>${money(cashOnly)}</b></div><div class="stat">مبيعات على الحساب<br><b>${money(accountOnly)}</b></div><div class="stat">المستحقات عند الإغلاق<br><b>${money(due)}</b></div><div class="stat">تكلفة البضاعة<br><b>${money(cost)}</b></div><div class="stat">المصروفات<br><b>${money(exp)}</b></div><div class="stat">صافي الربح<br><b>${money(profit)}</b></div><div class="stat">المشتريات<br><b>${money(pur)}</b></div><div class="stat">ضيافة الشهر<br><b>${money(hospitalityValue)}</b></div><div class="stat">مستحق على اللواء عند الإغلاق<br><b>${money(hospitalityDue)}</b></div></div>
- <h3>المبيعات</h3><div style="overflow:auto">${combinedSales.length?`<table><thead><tr><th>التاريخ</th><th>الضابط/النوع</th><th>الصنف</th><th>الكمية</th><th>الإجمالي</th></tr></thead><tbody>${combinedSales.map(x=>`<tr><td>${x.date||""}</td><td>${x.who||""}${x.cash?" — كاش":""}${x.hospitality?" — على الحساب":""}</td><td>${x.product||""}</td><td>${x.qty||1}</td><td>${money(x.total||0)}</td></tr>`).join("")}</tbody></table>`:"لا توجد مبيعات"}</div>
- <h3>التحصيلات</h3><div style="overflow:auto">${payments.length?`<table><thead><tr><th>التاريخ</th><th>الضابط</th><th>المبلغ</th></tr></thead><tbody>${payments.map(x=>`<tr><td>${x.date||""}</td><td>${x.who||x.name||""}</td><td>${money(x.amount||0)}</td></tr>`).join("")}</tbody></table>`:"لا توجد تحصيلات"}</div>
- <h3>الضيافة</h3><div style="overflow:auto">${hospitality.length?`<table><thead><tr><th>التاريخ</th><th>التفاصيل</th><th>القيمة</th><th>الحالة</th></tr></thead><tbody>${hospitality.map(h=>`<tr><td>${h.date||""}</td><td>${hospitalityItemsText(h)}</td><td>${money(h.total||0)}</td><td>${hospitalityStatusLabel(h.status)}</td></tr>`).join("")}</tbody></table>`:"لا توجد ضيافة"}</div>`;
+ <h3>المبيعات</h3><div style="overflow:auto">${combinedSales.length?`<table><thead><tr><th>التاريخ</th><th>الضابط/النوع</th><th>الصنف</th><th>الكمية</th><th>الإجمالي</th></tr></thead><tbody>${combinedSales.map(x=>`<tr><td>${esc(x.date||"")}</td><td>${esc(x.who||"")}${x.cash?" — كاش":""}${x.hospitality?" — على الحساب":""}</td><td>${esc(x.product||"")}</td><td>${Number(x.qty||1)}</td><td>${money(x.total||0)}</td></tr>`).join("")}</tbody></table>`:"لا توجد مبيعات"}</div>
+ <h3>التحصيلات</h3><div style="overflow:auto">${payments.length?`<table><thead><tr><th>التاريخ</th><th>الضابط</th><th>المبلغ</th></tr></thead><tbody>${payments.map(x=>`<tr><td>${esc(x.date||"")}</td><td>${esc(x.who||x.name||"")}</td><td>${money(x.amount||0)}</td></tr>`).join("")}</tbody></table>`:"لا توجد تحصيلات"}</div>
+ <h3>الضيافة</h3><div style="overflow:auto">${hospitality.length?`<table><thead><tr><th>التاريخ</th><th>التفاصيل</th><th>القيمة</th><th>الحالة</th></tr></thead><tbody>${hospitality.map(h=>`<tr><td>${esc(h.date||"")}</td><td>${esc(hospitalityItemsText(h))}</td><td>${money(h.total||0)}</td><td>${hospitalityStatusLabel(h.status)}</td></tr>`).join("")}</tbody></table>`:"لا توجد ضيافة"}</div>`;
  d.scrollIntoView({behavior:"smooth",block:"start"});
 }
 function archiveCurrentMonth(){
@@ -1122,7 +1134,7 @@ function deleteSale(i){
 }
 
 if(document.getElementById("expenseTypeList")){
- expenseTypeList.innerHTML=S.expenseTypes.map(x=>`<span class="pill" style="margin:3px">${x}</span>`).join("");
+ expenseTypeList.innerHTML=S.expenseTypes.map(x=>`<span class="pill" style="margin:3px">${esc(x)}</span>`).join("");
 }
 function hospitalityStatusLabel(status){return status==="pending"?"معلّقة":status==="buffet"?"على البوفيه":status==="general"?"على اللواء":status==="paid"?"تم التحصيل من اللواء":"معلّقة"}
 function hospitalityDueOnGeneral(){return (S.hospitality||[]).filter(x=>x.status==="general").reduce((a,x)=>a+Number(x.total||0),0)}
@@ -1265,7 +1277,7 @@ if(document.getElementById("closingSummary")){
 }
 if(document.getElementById("archiveList")){
  let ar=[];try{const a=JSON.parse(localStorage.getItem(ARCHIVE_KEY)||"[]");if(Array.isArray(a))ar=a;}catch(e){}
- archiveList.innerHTML=ar.length?ar.map((m,i)=>({m,i})).reverse().map(({m,i})=>`<button type="button" class="tab" style="width:100%;margin:5px 0;text-align:right" onclick="showArchivedMonth(${i})">${m.month||("شهر محفوظ "+(i+1))} — ${money(m.summary?.sales||0)} مبيعات — ${money(m.summary?.profit||0)} صافي</button>`).join(""):"لا توجد أشهر محفوظة";
+ archiveList.innerHTML=ar.length?ar.map((m,i)=>({m,i})).reverse().map(({m,i})=>`<button type="button" class="tab" style="width:100%;margin:5px 0;text-align:right" onclick="showArchivedMonth(${i})">${esc(m.month||("شهر محفوظ "+(i+1)))} — ${money(m.summary?.sales||0)} مبيعات — ${money(m.summary?.profit||0)} صافي</button>`).join(""):"لا توجد أشهر محفوظة";
 }
 if(document.getElementById("salesSummary")){
  const reportSales=currentReportingSales();
@@ -1281,57 +1293,57 @@ if(document.getElementById("hospitalityStats")){
  const generalDue=hospitalityDueOnGeneral();
  const paidMonth=all.filter(h=>h.status==="paid"&&((h.paidPeriod||String(h.paidAt||"").slice(0,7))===period)).reduce((a,h)=>a+Number(h.total||0),0);
  hospitalityStats.innerHTML=`<div class="metric-card tone-blue"><div class="metric-head">إجمالي ضيافة الشهر</div><div class="metric-value">${money(totalMonth)}</div></div><div class="metric-card tone-amber"><div class="metric-head">ضيافة معلّقة</div><div class="metric-value">${money(pending)}</div></div><div class="metric-card tone-red"><div class="metric-head">على البوفيه</div><div class="metric-value">${money(buffet)}</div></div><div class="metric-card tone-purple"><div class="metric-head">مستحق على اللواء</div><div class="metric-value">${money(generalDue)}</div></div><div class="metric-card tone-green metric-wide"><div class="metric-head">تم تحصيله من اللواء هذا الشهر</div><div class="metric-value">${money(paidMonth)}</div></div>`;
- const visibleHospitality=all.map((h,i)=>({h,i})).filter(x=>x.h.period===period||x.h.status==="pending"||x.h.status==="general").reverse().slice(0,40);hospitalityRows.innerHTML=visibleHospitality.length?visibleHospitality.map(({h,i})=>{let actions="";if(h.status==="pending")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'buffet')">على البوفيه</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'general')">على اللواء</button>`;else if(h.status==="buffet")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;else if(h.status==="general")actions=`<button type="button" class="primary hospitality-collect-btn" data-hospitality-index="${i}">تحصيل من اللواء</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;return `<div class="card" style="margin:10px 0"><div class="rowtitle"><span><b>${hospitalityStatusLabel(h.status)}</b><div class="muted">${h.date||""} — ${hospitalityItemsText(h)}</div></span><b>${money(h.total)}</b></div>${actions?`<div class="public-actions">${actions}</div>`:""}</div>`}).join(""):`<div class="hint">لا توجد ضيافة مسجلة.</div>`;
+ const visibleHospitality=all.map((h,i)=>({h,i})).filter(x=>x.h.period===period||x.h.status==="pending"||x.h.status==="general").reverse().slice(0,40);hospitalityRows.innerHTML=visibleHospitality.length?visibleHospitality.map(({h,i})=>{let actions="";if(h.status==="pending")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'buffet')">على البوفيه</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'general')">على اللواء</button>`;else if(h.status==="buffet")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;else if(h.status==="general")actions=`<button type="button" class="primary hospitality-collect-btn" data-hospitality-index="${i}">تحصيل من اللواء</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;return `<div class="card" style="margin:10px 0"><div class="rowtitle"><span><b>${hospitalityStatusLabel(h.status)}</b><div class="muted">${esc(h.date||"")} — ${esc(hospitalityItemsText(h))}</div></span><b>${money(h.total)}</b></div>${actions?`<div class="public-actions">${actions}</div>`:""}</div>`}).join(""):`<div class="hint">لا توجد ضيافة مسجلة.</div>`;
 }
 if(document.getElementById("productSalesReport")){
  const by={};
  currentReportingSales().forEach(x=>{const q=Number(x.qty||1);const key=x.product||"غير محدد";if(!by[key])by[key]={q:0,sales:0,cost:0};by[key].q+=q;by[key].sales+=Number(x.total||0);by[key].cost+=Number(x.cost||0);});
  const rows=Object.entries(by).sort((a,b)=>b[1].sales-a[1].sales);
- productSalesReport.innerHTML=rows.length?`<table><thead><tr><th>المنتج</th><th>الكمية</th><th>المبيعات</th><th>التكلفة</th><th>الربح</th></tr></thead><tbody>${rows.map(([k,v])=>`<tr><td>${k}</td><td>${v.q}</td><td>${money(v.sales)}</td><td>${money(v.cost)}</td><td>${money(v.sales-v.cost)}</td></tr>`).join("")}</tbody></table>`:"لا توجد مبيعات.";
+ productSalesReport.innerHTML=rows.length?`<table><thead><tr><th>المنتج</th><th>الكمية</th><th>المبيعات</th><th>التكلفة</th><th>الربح</th></tr></thead><tbody>${rows.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.q}</td><td>${money(v.sales)}</td><td>${money(v.cost)}</td><td>${money(v.sales-v.cost)}</td></tr>`).join("")}</tbody></table>`:"لا توجد مبيعات.";
 }
 if(document.getElementById("topProducts")){
  const by={};currentReportingSales().forEach(x=>by[x.product]=(by[x.product]||0)+(x.qty||1));
- topProducts.innerHTML=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>`<div class="rowtitle"><span>${k}</span><b>${v} وحدة</b></div>`).join("")||"لا توجد مبيعات";
+ topProducts.innerHTML=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>`<div class="rowtitle"><span>${esc(k)}</span><b>${v} وحدة</b></div>`).join("")||"لا توجد مبيعات";
 }
 if(document.getElementById("categoryStock")){
  const by={}; S.products.forEach(p=>by[p.cat]=(by[p.cat]||0)+p.buy*p.qty);
- categoryStock.innerHTML=Object.entries(by).map(([k,v])=>`<div class="rowtitle"><span>${k}</span><b>${money(v)}</b></div>`).join("")||"لا يوجد";
+ categoryStock.innerHTML=Object.entries(by).map(([k,v])=>`<div class="rowtitle"><span>${esc(k)}</span><b>${money(v)}</b></div>`).join("")||"لا يوجد";
 }
 if(document.getElementById("salesHistory")){
  salesHistoryCount.textContent=S.sales.length+" حركة";
  salesHistory.innerHTML=S.sales.slice().reverse().slice(0,20).map((x,rev)=>{
    const i=S.sales.length-1-rev;
-   return `<div class="rowtitle"><span>${x.who} — ${x.product} × ${x.qty||1}${x.returned?" — مرتجع":""}<div class="muted">${x.returned?(x.returnDate||""):x.date||""}</div></span><span>${money(x.total)} ${x.returned?"":`<button type="button" class="tab sale-edit-btn" data-sale-index="${i}">تعديل</button> <button type="button" class="tab danger sale-return-btn" data-sale-index="${i}">مرتجع</button>`}</span></div>`;
+   return `<div class="rowtitle"><span>${esc(x.who)} — ${esc(x.product)} × ${Number(x.qty||1)}${x.returned?" — مرتجع":""}<div class="muted">${esc(x.returned?(x.returnDate||""):x.date||"")}</div></span><span>${money(x.total)} ${x.returned?"":`<button type="button" class="tab sale-edit-btn" data-sale-index="${i}">تعديل</button> <button type="button" class="tab danger sale-return-btn" data-sale-index="${i}">مرتجع</button>`}</span></div>`;
  }).join("") || `<div class="hint">لا توجد مبيعات.</div>`;
 }
 if(document.getElementById("saleProducts")){
  const csb=document.getElementById("confirmSaleBtn"),ccb=document.getElementById("confirmCashBtn");if(csb){const hosp=currentOfficer==="__HOSPITALITY__";csb.textContent=hosp?"تسجيل ضيافة معلّقة":"تسجيل على الحساب";csb.style.display=currentOfficer==="__CASH__"?"none":"block";}if(ccb){ccb.textContent="تسجيل بيع كاش";ccb.style.display=currentOfficer==="__CASH__"?"block":"none";}
  renderSaleProducts();
- cartRows.innerHTML=cart.length?cart.map((x,j)=>{const item=x.type==="recipe"?S.recipes[x.i]:S.products[x.i];if(!item)return "";const name=item.name,price=x.type==="recipe"?Number(item.price||0):Number(item.sell||0);return `<div class="rowtitle"><span>${name} × ${x.q}<div class="muted">${x.type==="recipe"?"ريسبي":"منتج"}</div></span><span><button type="button" class="tab" onclick="event.stopPropagation();changeCart(${j},-1)">−</button> <button type="button" class="tab" onclick="event.stopPropagation();changeCart(${j},1)">+</button> ${money(price*x.q)}</span></div>`}).join(""):"لم يتم اختيار أصناف";
+ cartRows.innerHTML=cart.length?cart.map((x,j)=>{const item=x.type==="recipe"?S.recipes[x.i]:S.products[x.i];if(!item)return "";const name=item.name,price=x.type==="recipe"?Number(item.price||0):Number(item.sell||0);return `<div class="rowtitle"><span>${esc(name)} × ${x.q}<div class="muted">${x.type==="recipe"?"ريسبي":"منتج"}</div></span><span><button type="button" class="tab" onclick="event.stopPropagation();changeCart(${j},-1)">−</button> <button type="button" class="tab" onclick="event.stopPropagation();changeCart(${j},1)">+</button> ${money(price*x.q)}</span></div>`}).join(""):"لم يتم اختيار أصناف";
  cartTotal.textContent=money(cart.reduce((a,x)=>{const item=x.type==="recipe"?S.recipes[x.i]:S.products[x.i];const price=x.type==="recipe"?Number(item?.price||0):Number(item?.sell||0);return a+price*x.q},0));
 }
 if(document.getElementById("lowStockBox")){
  const low=S.products.filter(p=>(p.min||0)>0 && p.qty<=p.min);
- lowStockBox.innerHTML=low.length?`<b>تنبيه مخزون</b><div class="hint">${low.map(p=>`${p.name}: ${p.qty} متبقي`).join(" • ")}</div>`:`<b>المخزون</b><div class="hint">لا توجد أصناف تحت حد التنبيه.</div>`;
+ lowStockBox.innerHTML=low.length?`<b>تنبيه مخزون</b><div class="hint">${low.map(p=>`${esc(p.name)}: ${Number(p.qty||0)} متبقي`).join(" • ")}</div>`:`<b>المخزون</b><div class="hint">لا توجد أصناف تحت حد التنبيه.</div>`;
 }
-if(document.getElementById("auditRows")){auditRows.innerHTML=(S.audit||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${x.action}<div class="muted">${x.detail||""}</div></span><span class="muted">${x.date}</span></div>`).join("")||"لا توجد حركات مسجلة";}
+if(document.getElementById("auditRows")){auditRows.innerHTML=(S.audit||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${esc(x.action)}<div class="muted">${esc(x.detail||"")}</div></span><span class="muted">${esc(x.date||"")}</span></div>`).join("")||"لا توجد حركات مسجلة";}
 if(quickStats){quickStats.innerHTML="";quickStats.style.display="none";}
 renderOfficers();
-const pcEl=document.getElementById("pc"); if(pcEl)pcEl.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${x}">${x}</option>`).join(""); if(document.getElementById("purchaseProductList")){purchaseProductList.innerHTML=S.products.map(x=>`<option value="${x.name}">${x.name} — ${x.unit||"قطعة"}</option>`).join("");}
+const pcEl=document.getElementById("pc"); if(pcEl)pcEl.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(""); if(document.getElementById("purchaseProductList")){purchaseProductList.innerHTML=S.products.map(x=>`<option value="${esc(x.name)}">${esc(x.name)} — ${esc(x.unit||"قطعة")}</option>`).join("");}
 renderProducts();
 renderStock();
-catList.innerHTML=S.cats.map((x,i)=>`<div class="card"><div class="rowtitle"><span>${x}</span><button type="button" class="tab danger" onclick="deleteCategory(${i})">حذف</button></div></div>`).join("")||`<div class="hint">لسه مفيش فئات. أضف الفئات اللي عايزها.</div>`;
+catList.innerHTML=S.cats.map((x,i)=>`<div class="card"><div class="rowtitle"><span>${esc(x)}</span><button type="button" class="tab danger" onclick="deleteCategory(${i})">حذف</button></div></div>`).join("")||`<div class="hint">لسه مفيش فئات. أضف الفئات اللي عايزها.</div>`;
 {const sel=document.getElementById("sup"); const cur=sel?.value||""; refreshSupplierUI(cur);}
-if(document.getElementById("et")){const etEl=document.getElementById("et"),curEt=etEl.value;etEl.innerHTML=S.expenseTypes.map(x=>`<option>${x}</option>`).join("");if(S.expenseTypes.includes(curEt))etEl.value=curEt;}
-if(document.getElementById("expenseTypeList")) expenseTypeList.innerHTML=S.expenseTypes.map(x=>`<span class="pill" style="margin:3px">${x}</span>`).join("")||"لا توجد أنواع مصروفات";
-purchaseRows.innerHTML=S.purchases.map((x,i)=>`<tr><td>${x.date}</td><td>${x.sup}</td><td>${x.p}</td><td>${x.q}</td><td>${money(x.total)}</td><td><button type="button" class="tab" onclick="editPurchase(${i})">تعديل</button> <button type="button" class="tab danger purchase-delete-btn" data-purchase-index="${i}">حذف</button></td></tr>`).join("")||`<tr><td colspan="6">لا توجد مشتريات.</td></tr>`;
-expenseRows.innerHTML=S.expenses.map((x,i)=>`<tr><td>${x.date}</td><td>${x.t}${x.nonCash?` <span class="auto-tag">غير نقدي</span>`:""}</td><td>${x.n}</td><td>${money(x.a)}</td><td>${x.source==="hospitality"?`<span class="pill">تلقائي</span>`:`<button type="button" class="tab" onclick="editExpense(${i})">تعديل</button>`}</td></tr>`).join("");
+if(document.getElementById("et")){const etEl=document.getElementById("et"),curEt=etEl.value;etEl.innerHTML=S.expenseTypes.map(x=>`<option>${esc(x)}</option>`).join("");if(S.expenseTypes.includes(curEt))etEl.value=curEt;}
+if(document.getElementById("expenseTypeList")) expenseTypeList.innerHTML=S.expenseTypes.map(x=>`<span class="pill" style="margin:3px">${esc(x)}</span>`).join("")||"لا توجد أنواع مصروفات";
+purchaseRows.innerHTML=S.purchases.map((x,i)=>`<tr><td>${esc(x.date||"")}</td><td>${esc(x.sup||"")}</td><td>${esc(x.p||"")}</td><td>${Number(x.q||0)}</td><td>${money(x.total)}</td><td><button type="button" class="tab" onclick="editPurchase(${i})">تعديل</button> <button type="button" class="tab danger purchase-delete-btn" data-purchase-index="${i}">حذف</button></td></tr>`).join("")||`<tr><td colspan="6">لا توجد مشتريات.</td></tr>`;
+expenseRows.innerHTML=S.expenses.map((x,i)=>`<tr><td>${esc(x.date||"")}</td><td>${esc(x.t||"")}${x.nonCash?` <span class="auto-tag">غير نقدي</span>`:""}</td><td>${esc(x.n||"")}</td><td>${money(x.a)}</td><td>${x.source==="hospitality"?`<span class="pill">تلقائي</span>`:`<button type="button" class="tab" onclick="editExpense(${i})">تعديل</button>`}</td></tr>`).join("");
 function renderStock(){
  const q=(document.getElementById("stockSearch")?.value||"").trim().toLowerCase();
  const list=S.products.filter(p=>p.name.toLowerCase().includes(q));
  stockRows.innerHTML=list.map(p=>{
    const i=S.products.indexOf(p);
-   return `<tr><td>${p.name}</td><td>${p.qty} ${p.unit||"قطعة"}</td><td><input id="actual${i}" type="number" step="0.01" value="${p.qty}" oninput="document.getElementById('diff${i}').textContent=(+this.value||0)-${p.qty}"></td><td id="diff${i}">0</td><td><button type="button" class="primary" onclick="adjust(${i})">تثبيت</button></td></tr>`;
+   return `<tr><td>${esc(p.name)}</td><td>${Number(p.qty||0)} ${esc(p.unit||"قطعة")}</td><td><input id="actual${i}" type="number" step="0.01" value="${Number(p.qty||0)}" oninput="document.getElementById('diff${i}').textContent=(+this.value||0)-${Number(p.qty||0)}"></td><td id="diff${i}">0</td><td><button type="button" class="primary" onclick="adjust(${i})">تثبيت</button></td></tr>`;
  }).join("")||`<tr><td colspan="5">لا توجد أصناف.</td></tr>`;
  const totalQty=S.products.reduce((a,p)=>a+Number(p.qty||0),0);
  const totalValue=S.products.reduce((a,p)=>a+(Number(p.buy||0)*Number(p.qty||0)),0);
@@ -1358,9 +1370,9 @@ if(document.getElementById('cashStats')){
  const available=cashAvailable(),stockValue=buffetStockValue(),officersDue=totalDue(),hdue=hospitalityDueOnGeneral(),assets=buffetAssetsValue(),debt=cashDebtOutstanding(),netWorth=buffetNetWorth();
  cashMonth.textContent=new Date().toLocaleDateString('ar-EG',{month:'long',year:'numeric'});
  cashStats.innerHTML=`<div class="metric-card metric-wide metric-main ${netWorth>=0?"tone-green":"tone-red"}"><div class="metric-head"><span class="metric-icon">◆</span>صافي قيمة البوفيه</div><div class="metric-value">${money(netWorth)}</div><div class="metric-note">إجمالي الأصول ${money(assets)} − الدين القائم ${money(debt)}</div></div><div class="metric-card tone-green"><div class="metric-head"><span class="metric-icon">💵</span>الكاش المتاح</div><div class="metric-value">${money(available)}</div></div><div class="metric-card tone-blue"><div class="metric-head"><span class="metric-icon">□</span>قيمة المخزون</div><div class="metric-value">${money(stockValue)}</div></div><div class="metric-card tone-orange"><div class="metric-head"><span class="metric-icon">👥</span>مستحقات الضباط</div><div class="metric-value">${money(officersDue)}</div></div><div class="metric-card tone-purple"><div class="metric-head"><span class="metric-icon">★</span>مستحق على اللواء</div><div class="metric-value">${money(hdue)}</div></div><div class="metric-card metric-wide tone-cyan"><div class="metric-head"><span class="metric-icon">Σ</span>إجمالي أصول البوفيه</div><div class="metric-value">${money(assets)}</div></div><div class="metric-card metric-wide tone-red"><div class="metric-head"><span class="metric-icon">!</span>الدين القائم</div><div class="metric-value">${money(debt)}</div><div class="metric-note">إجمالي الالتزامات التي لم يتم سدادها بعد</div></div>`;
- cashRows.innerHTML=((S.cash?.movements)||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${x.type==='in'?'إيداع':(x.type==='debt'?'دين':(x.type==='debtPay'?'سداد دين':(x.type==='hospitalityCollect'?'تحصيل ضيافة من اللواء':'سحب')))} — ${x.note||'بدون بيان'}<div class="muted">${x.date}</div></span><b>${money(x.amount)}</b></div>`).join('')||`<div class="hint">لا توجد حركات مالية.</div>`;
+ cashRows.innerHTML=((S.cash?.movements)||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${x.type==='in'?'إيداع':(x.type==='debt'?'دين':(x.type==='debtPay'?'سداد دين':(x.type==='hospitalityCollect'?'تحصيل ضيافة من اللواء':'سحب')))} — ${esc(x.note||'بدون بيان')}<div class="muted">${esc(x.date||'')}</div></span><b>${money(x.amount)}</b></div>`).join('')||`<div class="hint">لا توجد حركات مالية.</div>`;
 }
-officerReport.innerHTML=S.people.map(n=>`<div class="person"><div><span class="name">${n}</span><div class="muted">مدفوع ${money(officerPaid(n))}</div></div><span class="amount">${money(officerDue(n))}</span></div>`).join("");
+officerReport.innerHTML=S.people.map(n=>`<div class="person"><div><span class="name">${esc(n)}</span><div class="muted">مدفوع ${money(officerPaid(n))}</div></div><span class="amount">${money(officerDue(n))}</span></div>`).join("");
 const paidAll=(S.payments||[]).reduce((a,x)=>a+x.amount,0);
 const currentDue=totalDue();
 if(document.getElementById("cashCollected")) cashCollected.textContent="المحصّل: "+money(paidAll);
@@ -1417,13 +1429,13 @@ function renderPaymentsView(){
  const sel=document.getElementById("paymentOfficerSelect");
  if(sel){
    const old=sel.value;
-   sel.innerHTML=`<option value="">كل الضباط</option>`+S.people.map(n=>`<option>${n}</option>`).join("");
+   sel.innerHTML=`<option value="">كل الضباط</option>`+S.people.map(n=>`<option>${esc(n)}</option>`).join("");
    if(S.people.includes(old))sel.value=old;
  }
  const balanceMap=buildOfficerBalanceMap();
  const debtors=Array.from(balanceMap.values()).filter(x=>x.due>0).sort((a,b)=>b.due-a.due);
  const debtorEl=document.getElementById("paymentDebtors");
- if(debtorEl) debtorEl.innerHTML=debtors.map(x=>{const safe=x.name.replace(/'/g,"\\'");return `<div class="person"><div><div class="name">${x.name}</div><div class="muted">المستحق الحالي</div></div><div style="text-align:left"><div class="amount">${money(x.due)}</div><button type="button" class="tab" onclick="openPayModal('${safe}')">تحصيل</button></div></div>`}).join("")||`<div class="hint">لا يوجد ضباط عليهم مستحقات حاليًا.</div>`;
+ if(debtorEl) debtorEl.innerHTML=debtors.map(x=>{const officerIndex=S.people.indexOf(x.name);return `<div class="person"><div><div class="name">${esc(x.name)}</div><div class="muted">المستحق الحالي</div></div><div style="text-align:left"><div class="amount">${money(x.due)}</div><button type="button" class="tab" onclick="openPayModal(S.people[${officerIndex}])">تحصيل</button></div></div>`}).join("")||`<div class="hint">لا يوجد ضباط عليهم مستحقات حاليًا.</div>`;
  const chosen=sel?.value||"";
  const detailEl=document.getElementById("paymentRows");
  const titleEl=document.getElementById("paymentDetailTitle");
@@ -1434,7 +1446,7 @@ function renderPaymentsView(){
  }
  const a=officerAccountBetween(chosen,from,to);
  if(titleEl)titleEl.textContent=`حساب ${chosen} من ${from} إلى ${to}`;
- if(detailEl)detailEl.innerHTML=`<div class="statgrid"><div class="stat">مبيعات الفترة<br><b>${money(a.total)}</b></div><div class="stat">تحصيلات الفترة<br><b>${money(a.paid)}</b></div><div class="stat" style="grid-column:1/-1">المستحق الحالي<br><b>${money(officerDue(chosen))}</b></div></div><div style="margin-top:12px">${a.sales.slice().reverse().map(x=>`<div class="rowtitle"><span>بيع — ${x.product||""}<div class="muted">${x.date||""}</div></span><b>${money(x.total)}</b></div>`).join("")}${a.pays.slice().reverse().map(x=>{const pi=S.payments.indexOf(x);return `<div class="rowtitle"><span>تحصيل<div class="muted">${x.date||""}</div></span><span><b>${money(x.amount)}</b> <button type="button" class="tab" onclick="editPayment(${pi})">تعديل</button></span></div>`}).join("")||`<div class="hint">لا توجد حركات لهذا الضابط خلال الفترة المحددة.</div>`}</div>`;
+ if(detailEl)detailEl.innerHTML=`<div class="statgrid"><div class="stat">مبيعات الفترة<br><b>${money(a.total)}</b></div><div class="stat">تحصيلات الفترة<br><b>${money(a.paid)}</b></div><div class="stat" style="grid-column:1/-1">المستحق الحالي<br><b>${money(officerDue(chosen))}</b></div></div><div style="margin-top:12px">${a.sales.slice().reverse().map(x=>`<div class="rowtitle"><span>بيع — ${esc(x.product||"")}<div class="muted">${esc(x.date||"")}</div></span><b>${money(x.total)}</b></div>`).join("")}${a.pays.slice().reverse().map(x=>{const pi=S.payments.indexOf(x);return `<div class="rowtitle"><span>تحصيل<div class="muted">${esc(x.date||"")}</div></span><span><b>${money(x.amount)}</b> <button type="button" class="tab" onclick="editPayment(${pi})">تعديل</button></span></div>`}).join("")||`<div class="hint">لا توجد حركات لهذا الضابط خلال الفترة المحددة.</div>`}</div>`;
 }
 function renderOfficers(){
  const q=(document.getElementById("officerSearch")?.value||"").trim().toLowerCase();
@@ -1444,9 +1456,8 @@ function renderOfficers(){
  people.innerHTML=list.map(n=>{
    const b=balanceMap.get(n)||{opening:0,sales:0,paid:0,due:0};
    const due=b.due, done=(b.opening+b.sales)>0 && due<=0;
-   const safe=n.replace(/\\/g,"\\\\").replace(/'/g,"\\'");
    const personIndex=peopleIndex.get(n);
-   return `<div class="person" style="${done?"background:#5a4a00;border-color:#a88b00":""}" onclick="personSale('${safe}')"><div><div class="name">${n}</div><div class="muted">${done?"الحساب مسدد":"المستحق الحالي"}</div></div><div style="text-align:left"><div class="amount">${money(due)}</div><button type="button" class="tab" onclick="event.stopPropagation();openPayModal('${safe}')">${done?"مدفوع":"تحصيل"}</button> <button type="button" class="tab share-btn" onclick="event.stopPropagation();shareOfficerAccountByIndex(${personIndex})">مشاركة الحساب</button> <button type="button" class="tab" onclick="event.stopPropagation();editOfficer('${safe}')">تعديل الاسم</button></div></div>`;
+   return `<div class="person" style="${done?"background:#5a4a00;border-color:#a88b00":""}" onclick="personSale(S.people[${personIndex}])"><div><div class="name">${esc(n)}</div><div class="muted">${done?"الحساب مسدد":"المستحق الحالي"}</div></div><div style="text-align:left"><div class="amount">${money(due)}</div><button type="button" class="tab" onclick="event.stopPropagation();openPayModal(S.people[${personIndex}])">${done?"مدفوع":"تحصيل"}</button> <button type="button" class="tab share-btn" onclick="event.stopPropagation();shareOfficerAccountByIndex(${personIndex})">مشاركة الحساب</button> <button type="button" class="tab" onclick="event.stopPropagation();editOfficer(S.people[${personIndex}])">تعديل الاسم</button></div></div>`;
  }).join("") || `<div class="hint">لا يوجد ضابط بهذا الاسم.</div>`;
 }
 function openPayModal(name){
