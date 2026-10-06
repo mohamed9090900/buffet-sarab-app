@@ -15,8 +15,8 @@ const CFG={
   pollMs:10000
 };
 const O={
-  session:null,user:null,buffetId:null,buffetName:null,role:null,permissions:{},isPrimary:false,memberships:[],deviceId:null,dataEpoch:1,periodEpoch:1,
-  ready:false,suppress:false,lastState:null,lastArchive:[],legacyCandidate:null,legacyArchive:[],syncing:false,lastServerEventAt:null,
+  session:null,user:null,buffetId:null,buffetName:null,deviceId:null,dataEpoch:1,periodEpoch:1,
+  ready:false,suppress:false,lastState:null,lastArchive:[],syncing:false,lastServerEventAt:null,
   pollTimer:null,online:navigator.onLine,queuePromise:Promise.resolve()
 };
 window.BUFFET_ONLINE=O;
@@ -24,7 +24,6 @@ window.BUFFET_ONLINE=O;
 function clone(v){return JSON.parse(JSON.stringify(v));}
 function nowIso(){return new Date().toISOString();}
 function uid(prefix='X'){return prefix+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));}
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function dateKey(v){
   if(!v)return new Date().toISOString().slice(0,10);
   let s=String(v).replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/[‎‏‪-‮]/g,'');
@@ -33,12 +32,10 @@ function dateKey(v){
   if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
   return new Date().toISOString().slice(0,10);
 }
-const LEGACY_IMPORT_DONE_KEY='buffet_v9_legacy_import_done';
 function dataKeyFor(bid){return `buffet_v9_online_state:${bid}`;}
 function archiveKeyFor(bid){return `buffet_v9_online_archive:${bid}`;}
 function epochKeyFor(bid){return `buffet_v9_data_epoch:${bid}`;}
 function periodKeyFor(bid){return `buffet_v9_period_epoch:${bid}`;}
-function meaningfulCount(st){return (st?.people?.length||0)+(st?.products?.length||0)+(st?.sales?.length||0)+(st?.purchases?.length||0)+(st?.payments?.length||0)+(st?.expenses?.length||0)+(st?.recipes?.length||0)+(st?.hospitality?.length||0);}
 function blankState(){return window.resetFreshState?window.resetFreshState():{cash:{opening:0,movements:[]},openingDue:{},cats:[],people:[],suppliers:[''],expenseTypes:['كهرباء','مياه','صيانة','نقل','ضيافة على البوفيه','أخرى'],products:[],sales:[],payments:[],purchases:[],expenses:[],recipes:[],hospitality:[],audit:[],accountLedger:[],accountLedgerVersion:1};}
 function persistBuffetCache(){
   if(!O.buffetId||!window.S)return;
@@ -59,11 +56,21 @@ function restoreBuffetCache(bid){
   }finally{O.suppress=false;}
   return !!data;
 }
-function rememberSelectedMembership(m){
-  if(!m)return;
-  O.buffetId=m.buffet_id;O.buffetName=m.buffet_name||'';O.role=m.role;O.permissions=m.permissions||{};O.isPrimary=!!m.is_primary;
-  try{localStorage.setItem(CFG.memberKey,JSON.stringify(m));}catch(e){}
+function rememberOwnedBuffet(m){
+  if(!m?.buffet_id||m.is_primary!==true)return false;
+  const cached={...m,user_id:O.user?.id||m.user_id||null,is_primary:true};
+  O.buffetId=cached.buffet_id;O.buffetName=cached.buffet_name||'البوفيه';
+  try{localStorage.setItem(CFG.memberKey,JSON.stringify(cached));}catch(e){}
   O.dataEpoch=Number(localStorage.getItem(epochKeyFor(O.buffetId))||1);O.periodEpoch=Number(localStorage.getItem(periodKeyFor(O.buffetId))||1);
+  return true;
+}
+function cachedOwnedBuffet(){
+  let m=null;try{m=JSON.parse(localStorage.getItem(CFG.memberKey)||'null')}catch(e){}
+  if(!m?.buffet_id||m.is_primary!==true)return null;
+  const uid=O.user?.id||O.session?.user?.id||null;
+  if(m.user_id&&uid&&m.user_id!==uid)return null;
+  if(uid&&!m.user_id){m.user_id=uid;try{localStorage.setItem(CFG.memberKey,JSON.stringify(m));}catch(e){}}
+  return m;
 }
 function ensureIds(st){
   if(!st||typeof st!=='object')return st;
@@ -78,9 +85,6 @@ function ensureIds(st){
 }
 window.ensureOnlineIds=ensureIds;
 
-function isPrimaryAdmin(){return O.role==='admin'&&O.isPrimary===true;}
-function isAdminLike(){return O.role==='admin';}
-function roleLabel(){return isPrimaryAdmin()?'Admin رئيسي':(O.role==='admin'?'Admin':'User');}
 function clearOperationalAutofill(){
   const email=String(O.user?.email||'').trim().toLowerCase();
   for(const id of ['newOfficerName','officerSearch']){
@@ -121,14 +125,12 @@ function injectUI(){
   #onlineAuth{position:fixed;inset:0;z-index:30000;background:#0d1117;display:none;align-items:center;justify-content:center;padding:20px;direction:rtl;font-family:inherit;overflow:auto}
   #onlineAuth.show{display:flex}.oa-box{width:min(430px,100%);background:#151a21;border:1px solid #30363d;border-radius:24px;padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.55)}
   .oa-logo{width:92px;height:92px;display:block;margin:0 auto 12px;border-radius:22px}.oa-box h2{text-align:center;margin:4px 0 6px;color:#fff}.oa-sub{text-align:center;color:#9da7b3;margin-bottom:18px;line-height:1.7}
-  .oa-field{display:grid;gap:7px;margin:10px 0}.oa-field label{color:#cbd5e1;font-size:14px}.oa-field input,.oa-field select{width:100%;box-sizing:border-box;background:#0d1117;border:1px solid #39424e;color:#fff;border-radius:13px;padding:13px;font-size:16px}.oa-field input{direction:ltr;text-align:left}
+  .oa-field{display:grid;gap:7px;margin:10px 0}.oa-field label{color:#cbd5e1;font-size:14px}.oa-field input{width:100%;box-sizing:border-box;background:#0d1117;border:1px solid #39424e;color:#fff;border-radius:13px;padding:13px;font-size:16px;direction:ltr;text-align:left}
   .oa-actions{display:grid;gap:9px;margin-top:14px}.oa-btn{border:0;border-radius:13px;padding:13px 15px;font-size:16px;font-weight:800;cursor:pointer}.oa-primary{background:#1f6feb;color:#fff}.oa-secondary{background:#21262d;color:#fff;border:1px solid #3a424d}.oa-msg{min-height:24px;margin-top:12px;color:#d1d5db;text-align:center;line-height:1.6}.oa-msg.err{color:#ff8b8b}.oa-msg.ok{color:#7ee787}
   #onlineStatus{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:18000;border:1px solid #3b4654;background:rgba(17,24,39,.94);color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;align-items:center;gap:7px;direction:rtl;cursor:pointer;user-select:none}
   #onlineStatus.show{display:flex}.os-dot{width:8px;height:8px;border-radius:50%;background:#22c55e}.offline .os-dot{background:#f59e0b}.syncing .os-dot{background:#60a5fa}.error .os-dot{background:#ef4444}
   #onlineLogoutBtn{display:none;align-items:center;justify-content:center;background:#111;color:#eee;border:1px solid #3a3a3a;border-radius:12px;padding:9px 12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
-  #onlineLogoutBtn:hover{border-color:#5a5a5a}
-  .header-spacer{display:flex;align-items:center;justify-content:flex-end}
-  #oaForgot{width:100%;margin-top:2px}
+  #onlineLogoutBtn:hover{border-color:#5a5a5a}.header-spacer{display:flex;align-items:center;justify-content:flex-end}#oaForgot{width:100%;margin-top:2px}
   @media(max-width:520px){#onlineLogoutBtn{padding:8px 9px;font-size:11px;border-radius:10px}}
   .public-view #onlineStatus,.public-view #onlineAuth,.public-view #onlineLogoutBtn{display:none!important}
   `;
@@ -136,7 +138,7 @@ function injectUI(){
   const auth=document.createElement('div');auth.id='onlineAuth';auth.innerHTML=`<div class="oa-box">
     <img class="oa-logo" src="icon-192.png" alt="البوفيه"><h2>البوفيه</h2>
     <div id="oaLoginPanel">
-      <div class="oa-sub">تسجيل الدخول للنسخة Online</div>
+      <div class="oa-sub">سجّل الدخول للوصول إلى بوفيهك من أي جهاز</div>
       <div class="oa-field"><label>البريد الإلكتروني</label><input id="oaEmail" type="email" autocomplete="email" placeholder="name@example.com"></div>
       <div class="oa-field"><label>كلمة المرور</label><input id="oaPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
       <div class="oa-actions"><button id="oaLogin" class="oa-btn oa-primary" type="button">تسجيل الدخول</button><button id="oaSignup" class="oa-btn oa-secondary" type="button">إنشاء حساب</button></div>
@@ -148,22 +150,6 @@ function injectUI(){
       <div class="oa-field"><label>تأكيد كلمة المرور</label><input id="oaNewPass2" type="password" autocomplete="new-password" placeholder="••••••••"></div>
       <button id="oaSetPassword" class="oa-btn oa-primary" type="button" style="width:100%">حفظ كلمة المرور الجديدة</button>
     </div>
-    <div id="oaBuffetChooser" style="display:none;margin-top:8px">
-      <div class="oa-sub" style="margin-bottom:12px">اختار البوفيه اللي عايز تفتحه.</div>
-      <div id="oaBuffetChoices" class="oa-actions"></div>
-      <button id="oaAddBuffet" class="oa-btn oa-secondary" type="button" style="width:100%;margin-top:10px">إنشاء بوفيه جديد أو الانضمام بكود</button>
-      <button id="oaChooserLogout" class="oa-btn oa-secondary" type="button" style="width:100%;margin-top:9px">تسجيل الخروج</button>
-    </div>
-    <div id="oaOnboarding" style="display:none;margin-top:8px">
-      <div class="oa-sub" style="margin-bottom:12px">أنشئ بوفيه جديد أو انضم لبوفيه موجود.</div>
-      <div class="oa-field"><label>اسم البوفيه الجديد</label><input id="oaBuffetName" type="text" maxlength="80" placeholder="مثال: البوفيه" style="direction:rtl;text-align:right"></div>
-      <button id="oaCreateBuffet" class="oa-btn oa-primary" type="button" style="width:100%">إنشاء بوفيه جديد</button>
-      <div style="height:1px;background:#30363d;margin:18px 0"></div>
-      <div class="oa-field"><label>كود الانضمام</label><input id="oaInviteCode" type="text" autocomplete="off" placeholder="ADM-... أو USR-..."></div>
-      <button id="oaJoinBuffet" class="oa-btn oa-secondary" type="button" style="width:100%">الانضمام لبوفيه موجود</button>
-      <button id="oaBackToBuffets" class="oa-btn oa-secondary" type="button" style="width:100%;margin-top:9px;display:none">رجوع لقائمة البوفيهات</button>
-      <button id="oaOnboardingLogout" class="oa-btn oa-secondary" type="button" style="width:100%;margin-top:9px">تسجيل الخروج</button>
-    </div>
     <div id="oaMsg" class="oa-msg"></div>
   </div>`;
   document.body.appendChild(auth);
@@ -174,13 +160,10 @@ function injectUI(){
   document.getElementById('oaSignup').addEventListener('click',()=>authLogin(true));
   document.getElementById('oaForgot').addEventListener('click',requestPasswordReset);
   document.getElementById('oaSetPassword').addEventListener('click',updateRecoveredPassword);
-  document.getElementById('oaCreateBuffet').addEventListener('click',createBuffetOnline);
-  document.getElementById('oaJoinBuffet').addEventListener('click',joinBuffetOnline);
-  document.getElementById('oaOnboardingLogout').addEventListener('click',logoutOnline);
-  document.getElementById('oaChooserLogout').addEventListener('click',logoutOnline);
-  document.getElementById('oaAddBuffet').addEventListener('click',()=>showOnboarding(true));
-  document.getElementById('oaBackToBuffets').addEventListener('click',()=>showBuffetChooser(O.memberships));
-  status.addEventListener('click',()=>{if(!O.session?.access_token)return;const who=O.user?.email||'الحساب الحالي';const buffet=O.buffetName?`\n${O.buffetName}`:'';if(O.memberships.length>1){if(confirm(`${who}${buffet}\n${roleLabel()}\n\nاختيار بوفيه آخر؟`)){showAuth(true);showBuffetChooser(O.memberships);}}else if(confirm(`${who}${buffet}\n${roleLabel()}\n\nتسجيل الخروج؟`))logoutOnline();});
+  status.addEventListener('click',()=>{if(!O.session?.access_token)return;const who=O.user?.email||'الحساب الحالي';const buffet=O.buffetName?`
+${O.buffetName}`:'';if(confirm(`${who}${buffet}
+
+تسجيل الخروج؟`))logoutOnline();});
 }
 function authMsg(t,kind=''){const e=document.getElementById('oaMsg');if(e){e.textContent=t;e.className='oa-msg '+kind;}}
 function syncLogoutButton(){
@@ -191,36 +174,6 @@ function syncLogoutButton(){
 function showAuth(show=true){
   const e=document.getElementById('onlineAuth');if(e)e.classList.toggle('show',show);
   syncLogoutButton();
-}
-function showOnboarding(show=true){
-  const o=document.getElementById('oaOnboarding'),l=document.getElementById('oaLoginPanel'),c=document.getElementById('oaBuffetChooser'),r=document.getElementById('oaRecoveryPanel'),back=document.getElementById('oaBackToBuffets');
-  if(o)o.style.display=show?'block':'none';if(l)l.style.display=show?'none':'block';if(c)c.style.display='none';if(r)r.style.display='none';
-  if(back)back.style.display=show&&O.memberships.length?'block':'none';
-}
-function showBuffetChooser(rows){
-  const list=Array.isArray(rows)?rows:[];O.memberships=list;
-  const o=document.getElementById('oaOnboarding'),l=document.getElementById('oaLoginPanel'),c=document.getElementById('oaBuffetChooser'),r=document.getElementById('oaRecoveryPanel'),box=document.getElementById('oaBuffetChoices');
-  if(o)o.style.display='none';if(l)l.style.display='none';if(c)c.style.display='block';if(r)r.style.display='none';
-  if(box){box.innerHTML=list.map(m=>`<button type="button" class="oa-btn ${m.is_primary?'oa-primary':'oa-secondary'} oa-buffet-choice" data-bid="${m.buffet_id}">${esc(m.buffet_name||'البوفيه')} · ${m.is_primary?'Admin رئيسي':(m.role==='admin'?'Admin':'User')}</button>`).join('');box.querySelectorAll('.oa-buffet-choice').forEach(b=>b.addEventListener('click',()=>activateBuffet(b.dataset.bid)));}
-  authMsg('');
-}
-async function createBuffetOnline(){
-  const name=document.getElementById('oaBuffetName')?.value.trim()||'';
-  if(name.length<2)return authMsg('اكتب اسم البوفيه.','err');
-  authMsg('جاري إنشاء البوفيه...');
-  try{
-    const bid=await api('/rest/v1/rpc/create_buffet',{method:'POST',body:JSON.stringify({p_name:name})});
-    authMsg('تم إنشاء البوفيه.','ok');await afterAuth(bid);
-  }catch(e){authMsg(e.message||'تعذر إنشاء البوفيه.','err');}
-}
-async function joinBuffetOnline(){
-  const code=document.getElementById('oaInviteCode')?.value.trim()||'';
-  if(!code)return authMsg('اكتب كود الانضمام.','err');
-  authMsg('جاري الانضمام للبوفيه...');
-  try{
-    const bid=await api('/rest/v1/rpc/claim_buffet_by_code',{method:'POST',body:JSON.stringify({p_code:code})});
-    authMsg('تم الانضمام للبوفيه.','ok');await afterAuth(bid);
-  }catch(e){authMsg('كود الانضمام غير صحيح أو غير مفعّل.','err');}
 }
 function journalRead(){try{const x=JSON.parse(localStorage.getItem(CFG.journalKey)||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
 function journalWrite(rows){try{if(rows?.length)localStorage.setItem(CFG.journalKey,JSON.stringify(rows));else localStorage.removeItem(CFG.journalKey)}catch(e){console.error('sync journal',e)}}
@@ -245,8 +198,8 @@ function isInvalidRefreshError(e){
 function expireLocalSession(message='انتهت جلسة الدخول. سجّل الدخول مرة أخرى.'){
   try{persistBuffetCache();}catch(e){}
   clearInterval(O.pollTimer);O.pollTimer=null;
-  saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;O.role=null;O.permissions={};O.isPrimary=false;O.memberships=[];
-  showOnboarding(false);showAuth(true);authMsg(message,'err');
+  saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;
+  showAuth(true);authMsg(message,'err');
 }
 async function refreshToken(){
   if(!O.session?.refresh_token){expireLocalSession();throw new Error('SESSION_EXPIRED');}
@@ -283,10 +236,9 @@ function isRecoveryPage(){
   try{return new URLSearchParams(location.search||'').get('recovery')==='1';}catch(e){return false;}
 }
 function showRecoveryPanel(){
-  const l=document.getElementById('oaLoginPanel'),o=document.getElementById('oaOnboarding'),c=document.getElementById('oaBuffetChooser'),r=document.getElementById('oaRecoveryPanel');
-  if(l)l.style.display='none';if(o)o.style.display='none';if(c)c.style.display='none';if(r)r.style.display='block';
-  showAuth(true);
-  authMsg('اختار كلمة مرور جديدة للحساب.','');
+  const l=document.getElementById('oaLoginPanel'),r=document.getElementById('oaRecoveryPanel');
+  if(l)l.style.display='none';if(r)r.style.display='block';
+  showAuth(true);authMsg('اختار كلمة مرور جديدة للحساب.','');
 }
 async function requestPasswordReset(){
   const email=document.getElementById('oaEmail')?.value.trim()||'';
@@ -345,49 +297,29 @@ async function authLogin(signup){
 async function api(path,opt={}){
   const token=await accessToken();if(!token){const err=new Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');err.status=401;throw err;}
   const headers=Object.assign({'apikey':CFG.key,'Authorization':'Bearer '+token,'Content-Type':'application/json'},opt.headers||{});const r=await fetch(CFG.url+path,Object.assign({},opt,{headers}));
-  if(r.status===401&&O.session?.refresh_token&&!opt._retried){try{await refreshToken();}catch(e){if(e?.message==='SESSION_EXPIRED'){const err=new Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');err.status=401;throw err;}throw e;}return api(path,Object.assign({},opt,{_retried:true}));}
+  if(r.status===401&&!opt._retried){
+    if(O.session?.refresh_token){
+      try{await refreshToken();return api(path,Object.assign({},opt,{_retried:true}));}
+      catch(e){if(e?.message!=='SESSION_EXPIRED')throw e;}
+    }else expireLocalSession();
+    const err=new Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');err.status=401;throw err;
+  }
   if(!r.ok){const j=await r.json().catch(()=>({}));const err=new Error(j.message||j.error||j.code||('HTTP '+r.status));err.status=r.status;throw err;}if(r.status===204)return null;const txt=await r.text();return txt?JSON.parse(txt):null;
 }
-async function loadMemberships(){
-  if(!O.user?.id)return [];
+async function loadOwnedBuffet(){
+  if(!O.user?.id)return null;
   const rows=await api('/rest/v1/rpc/list_my_buffets_v2',{method:'POST',body:'{}'});
-  O.memberships=Array.isArray(rows)?rows:[];
-  return O.memberships;
+  const m=(Array.isArray(rows)?rows:[]).find(x=>x.is_primary===true)||null;
+  return m?{...m,user_id:O.user.id,is_primary:true}:null;
 }
-function applyStateObject(data,archive=[]){
-  if(!window.S)return;
-  O.suppress=true;
-  try{
-    const src=data&&typeof data==='object'?data:blankState();
-    Object.keys(window.S).forEach(k=>delete window.S[k]);Object.assign(window.S,clone(src));ensureIds(window.S);window.normalizeState?.();
-    localStorage.setItem(window.DATA_KEY||'buffet_v9_online_state',JSON.stringify(window.S));
-    localStorage.setItem(window.ARCHIVE_KEY||'buffet_v9_online_archive',JSON.stringify(Array.isArray(archive)?archive:[]));
-    O.lastState=clone(window.S);O.lastArchive=archiveNow();window.render?.();
-  }finally{O.suppress=false;}
-}
-async function activateBuffet(bid){
-  const m=O.memberships.find(x=>x.buffet_id===bid);if(!m)return null;
-  if(O.buffetId&&O.buffetId!==bid){
-    clearInterval(O.pollTimer);O.pollTimer=null;
-    try{await O.queuePromise;}catch(e){}
-    if(navigator.onLine&&O.ready){try{await syncPending();}catch(e){}}
-    persistBuffetCache();
-  }
-  rememberSelectedMembership(m);restoreBuffetCache(bid);showOnboarding(false);showAuth(false);O.ready=false;
-  if(!navigator.onLine){O.ready=true;ensureUsersPage();applyPermissionsUI();await refreshStatus();return m;}
-  const initialized=await cloudInitialized();
-  if(!initialized){
-    if(!isPrimaryAdmin()){showAuth(true);authMsg('البوفيه لسه ما اتجهزش. الـAdmin الرئيسي يفتحه أول مرة عشان يكمّل التهيئة.','err');return null;}
-    const canImport=!localStorage.getItem(LEGACY_IMPORT_DONE_KEY)&&meaningfulCount(O.legacyCandidate)>0;
-    if(canImport){applyStateObject(O.legacyCandidate,O.legacyArchive);await importLocal();localStorage.setItem(LEGACY_IMPORT_DONE_KEY,'1');}
-    else{applyStateObject(blankState(),[]);await importLocal();}
-  }
-  await pullCloud();persistBuffetCache();O.ready=true;O.lastServerEventAt=await latestEventAt();ensureUsersPage();applyPermissionsUI();await touchDevice();await refreshStatus();scheduleSync(100);
+async function activateOwnedBuffet(m){
+  if(!rememberOwnedBuffet(m))return null;
+  restoreBuffetCache(O.buffetId);showAuth(false);O.ready=false;
+  if(!navigator.onLine){O.ready=true;clearOperationalAutofill();await refreshStatus();return m;}
+  await pullCloud();persistBuffetCache();O.ready=true;O.lastServerEventAt=await latestEventAt();clearOperationalAutofill();await touchDevice();await refreshStatus();scheduleSync(100);
   clearInterval(O.pollTimer);O.pollTimer=setInterval(poll,CFG.pollMs);
   return m;
 }
-function hasPerm(p){return isAdminLike()||O.permissions?.[p]===true;}
-window.buffetHasPermission=hasPerm;
 
 function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(CFG.dbName,1);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains(CFG.store))db.createObjectStore(CFG.store,{keyPath:'eventId'});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
 async function qPut(op){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(CFG.store,'readwrite');tx.objectStore(CFG.store).put(op);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
@@ -395,8 +327,6 @@ async function qAll(){const db=await openDB();return new Promise((res,rej)=>{con
 async function qDel(id){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(CFG.store,'readwrite');tx.objectStore(CFG.store).delete(id);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
 async function qClear(){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(CFG.store,'readwrite'),store=tx.objectStore(CFG.store),r=store.openCursor();r.onsuccess=()=>{const c=r.result;if(!c)return;if(c.value?.buffetId===O.buffetId)c.delete();c.continue();};tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
 let __qSeq=0;function op(kind,table,id,row,extra={}){return {eventId:uid('EVT'),buffetId:O.buffetId,kind,table,id,row,createdAt:nowIso(),order:(Date.now()*1000)+(++__qSeq%1000),epoch:Number(O.dataEpoch||1),periodEpoch:Number(O.periodEpoch||1),...extra};}
-async function enqueue(x){journalAddMany([x]);await qPut(x);journalRemove(x.eventId);refreshStatus();if(navigator.onLine)scheduleSync(80);}
-
 function jEq(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 function arrMap(arr,idf){const m=new Map();for(const x of arr||[]){const id=idf(x);if(id!=null)m.set(String(id),x);}return m;}
 function productMeta(p){const x=clone(p||{});delete x.qty;delete x.buy;return x;}
@@ -523,22 +453,9 @@ async function syncPending(){
 async function fetchAll(table,select='*'){
   const out=[];for(let from=0;;from+=1000){const to=from+999;const rows=await api('/rest/v1/'+table+'?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select='+encodeURIComponent(select),{headers:{'Range':`${from}-${to}`,'Range-Unit':'items'}});if(Array.isArray(rows))out.push(...rows);if(!rows||rows.length<1000)break;}return out;
 }
-async function cloudHasData(){const rows=await api('/rest/v1/products?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=id&limit=1');if(rows?.length)return true;const o=await api('/rest/v1/officers?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=id&limit=1');if(o?.length)return true;const s=await api('/rest/v1/sales?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=id&limit=1');return !!s?.length;}
 async function serverEpochs(){const r=await api('/rest/v1/buffet_settings?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=data_epoch,period_epoch&limit=1');return {data:Number(r?.[0]?.data_epoch||1),period:Number(r?.[0]?.period_epoch||1)};}
-async function serverDataEpoch(){return (await serverEpochs()).data;}
-async function cloudInitialized(){const r=await api('/rest/v1/buffet_settings?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=cloud_initialized&limit=1');return !!r?.[0]?.cloud_initialized;}
 async function fetchRecentAudit(){
-  if(!isAdminLike())return null;
   return await api('/rest/v1/audit_logs?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=id,payload,action,detail,client_created_at,server_created_at&order=server_created_at.desc&limit=500');
-}
-async function importLocal(){
-  if(!window.S)return;ensureIds(window.S);const st=window.S;
-  const rows={};for(const d of defs)rows[d.table]=d.get(st).map(x=>rowFor(d.table,x));
-  for(const p of rows.products||[]){const src=(st.products||[]).find(x=>x._id===p.id);p.stock_qty=Number(src?.qty||0);p.buy_price=Number(src?.buy||0);p.stock_value=Number(src?.qty||0)*Number(src?.buy||0);}
-  for(const d of defs)await insertRowsIgnore(d.table,rows[d.table]||[]);
-  const p=settingsPayload(st);await upsertRows('buffet_settings',[{buffet_id:O.buffetId,opening_due:p.openingDue,cash_opening:p.cashOpening,account_ledger_version:p.accountLedgerVersion,payload:p,cloud_initialized:true}],'buffet_id');
-  const ar=archiveNow();for(let i=0;i<ar.length;i++){if(!ar[i]._cloudId)ar[i]._cloudId='ARC'+String(i+1)+'-'+String(ar[i].month||uid('M'));}localStorage.setItem(window.ARCHIVE_KEY||'buffet_v9_online_archive',JSON.stringify(ar));await upsertRows('month_archives',ar.map(x=>({buffet_id:O.buffetId,id:x._cloudId,month_key:String(x.month||x._cloudId),payload:x})));
-  const ev=op('initial_import','sync_events','import',{});await recordEvent(ev);O.lastState=clone(st);O.lastArchive=clone(ar);persistBuffetCache();
 }
 async function pullCloud(){
   if(!window.S||!O.buffetId)return;
@@ -563,135 +480,14 @@ async function poll(){if(!O.ready||!navigator.onLine||O.syncing)return;try{const
 async function touchDevice(){try{await upsertRows('sync_devices',[{buffet_id:O.buffetId,device_id:O.deviceId,user_id:O.user?.id||null,device_name:navigator.platform||navigator.userAgent,last_seen_at:nowIso(),last_sync_at:nowIso(),pending_count:await queueCount()}],'buffet_id,device_id');}catch(e){}}
 
 
-const PERMS=[
- ['sell','تسجيل البيع'],['collect','التحصيل من الضباط'],['purchase','تسجيل المشتريات'],['expense','تسجيل المصروفات'],
- ['hospitality','الضيافة'],['cash','الإيداع والسحب والدين'],['manage_catalog','إدارة المنتجات والفئات والريسبي'],['manage_officers','إدارة الضباط'],
- ['edit_sales','تعديل ومرتجع المبيعات'],['edit_payments','تعديل التحصيلات'],['edit_purchases','تعديل المشتريات'],['edit_expenses','تعديل المصروفات'],['delete_data','حذف البيانات']
-];
-function ensureUsersPage(){
-  const existingNav=document.querySelector('#nav [data-page="onlineUsers"]'),existingPage=document.getElementById('onlineUsers');if(!isPrimaryAdmin()){existingNav?.remove();existingPage?.remove();return;}let b=existingNav;
-  if(!b){b=document.createElement('button');b.type='button';b.className='nav-card';b.dataset.page='onlineUsers';b.innerHTML='<span class="nav-icon">👤</span><span class="nav-label">المستخدمون</span>';document.getElementById('nav')?.appendChild(b);}b.onclick=()=>{window.show?.('onlineUsers',b);setTimeout(()=>renderUsersPage(),0);};
-  if(!document.getElementById('onlineUsers')){const sec=document.createElement('section');sec.id='onlineUsers';sec.innerHTML=`<div class="rowtitle"><h2>المستخدمون والصلاحيات</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="ouRefresh" class="tab">تحديث القائمة</button><button type="button" id="ouLogout" class="tab">تسجيل الخروج</button></div></div><div class="card" style="margin-bottom:14px"><h3>أكواد الانضمام</h3><div class="hint">الـ Admin الرئيسي فقط يقدر يولّد الأكواد. كود Admin صالح لاستخدام واحد فقط، وكود User يظل صالحًا إلى أن تغيّره.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" id="ouGenAdminCode" class="primary">توليد كود Admin لمرة واحدة</button><button type="button" id="ouGenUserCode" class="tab">إنشاء / تغيير كود User</button></div><div id="ouCodeResult" class="hint" style="margin-top:12px"></div></div><div class="card" id="ouEditor" style="display:none;margin-bottom:14px"><h3>تعديل مستخدم</h3><div id="ouEditEmail" class="hint" style="margin-bottom:8px"></div><input id="ouEditUid" type="hidden"><div class="grid"><select id="ouRole"><option value="user">User</option><option value="admin">Admin</option></select></div><div class="hint" style="margin-top:10px">اختر الصلاحيات المسموح بها للـ User. الـ Admin لديه صلاحيات العمليات كاملة.</div><div id="ouPerms" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:12px"></div><button type="button" id="ouSave" class="primary" style="margin-top:12px">حفظ التعديل</button><div id="ouMsg" class="hint" style="margin-top:8px"></div></div><div class="card"><div class="rowtitle"><h3 style="margin:0">المستخدمون الحاليون</h3><span id="ouCount" class="pill"></span></div><div id="ouList"><div class="hint">جاري تحميل المستخدمين...</div></div></div>`;document.querySelector('main')?.appendChild(sec);const box=sec.querySelector('#ouPerms');box.innerHTML=PERMS.map(([k,l])=>`<label class="pill" style="display:flex;gap:7px;align-items:center;justify-content:flex-start"><input type="checkbox" data-perm="${k}"> ${l}</label>`).join('');sec.querySelector('#ouRole').addEventListener('change',()=>{box.style.opacity=sec.querySelector('#ouRole').value==='admin'?'.45':'1';});sec.querySelector('#ouSave').addEventListener('click',saveEditedMember);sec.querySelector('#ouGenAdminCode').addEventListener('click',()=>generateInviteCode('admin'));sec.querySelector('#ouGenUserCode').addEventListener('click',()=>generateInviteCode('user'));sec.querySelector('#ouRefresh').addEventListener('click',renderUsersPage);sec.querySelector('#ouLogout').addEventListener('click',logoutOnline);}
+async function logoutOnline(){
+  persistBuffetCache();
+  try{if(navigator.onLine&&O.session?.access_token)await api('/auth/v1/logout',{method:'POST'});}catch(e){}
+  saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;showAuth(true);authMsg('تم تسجيل الخروج.','ok');
 }
-async function generateInviteCode(role){
-  if(!isPrimaryAdmin())return;
-  const warning=role==='admin'?'توليد كود Admin جديد هيلغي أي كود Admin قديم لم يُستخدم. متابعة؟':'تغيير كود User هيوقف الكود القديم فورًا. متابعة؟';
-  if(!confirm(warning))return;
-  const out=document.getElementById('ouCodeResult');if(out)out.textContent='جاري إنشاء الكود...';
-  try{
-    const code=await api('/rest/v1/rpc/rotate_buffet_invite_code',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId,p_role:role})});
-    if(out){
-      out.innerHTML=`<div style="font-weight:900;margin-bottom:5px">${role==='admin'?'كود Admin — استخدام واحد فقط':'كود User'}</div><div id="ouGeneratedCode" style="direction:ltr;text-align:center;font-size:18px;word-break:break-all;background:#0d1117;padding:10px;border-radius:10px">${esc(code||'')}</div><button type="button" id="ouCopyCode" class="tab" style="margin-top:8px">نسخ الكود</button><div style="margin-top:7px">${role==='admin'?'ابعته للشخص المقصود فقط. أول استخدام ناجح يلغيه تلقائيًا.':'الكود يظل صالحًا إلى أن تغيّره.'}</div>`;
-      document.getElementById('ouCopyCode')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(String(code||''));out.querySelector('#ouCopyCode').textContent='تم النسخ';}catch(e){alert('اضغط مطولًا على الكود وانسخه يدويًا.');}});
-    }
-  }catch(e){if(out)out.textContent=e.message||'تعذر إنشاء الكود.';}
-}
-async function renderUsersPage(){if(!isPrimaryAdmin())return;ensureUsersPage();const list=document.getElementById('ouList'),count=document.getElementById('ouCount');if(!list)return;if(!navigator.onLine){list.innerHTML='<div class="hint">عرض المستخدمين يحتاج اتصال بالإنترنت.</div>';if(count)count.textContent='';return;}list.innerHTML='<div class="hint">جاري تحميل المستخدمين...</div>';if(count)count.textContent='';try{const members=await api('/rest/v1/rpc/list_buffet_members',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId})});const rows=Array.isArray(members)?members:[];if(count)count.textContent=String(rows.length);list.innerHTML=rows.map(m=>{const me=m.user_id===O.user?.id,primary=!!m.is_primary;const granted=PERMS.filter(([k])=>m.permissions?.[k]===true).map(([,l])=>l);const permLine=primary?'صلاحيات Admin الرئيسي':(m.role==='admin'?'صلاحيات Admin كاملة':(granted.length?'الصلاحيات: '+granted.join('، '):'لا توجد صلاحيات عمليات مفعّلة'));return `<div class="person" style="align-items:flex-start"><div><div class="name">${esc(m.email||m.display_name||m.user_id)}</div><div class="muted">${primary?'Admin رئيسي':(m.role==='admin'?'Admin':'User')} · ${m.enabled?'مفعّل':'موقوف'}${me?' · حسابك':''}</div><div class="muted" style="margin-top:5px">${esc(permLine)}</div></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${primary?'':`<button type="button" class="tab ou-edit" data-uid="${m.user_id}">تعديل الصلاحيات</button><button type="button" class="tab ou-toggle" data-uid="${m.user_id}" data-enabled="${m.enabled?'1':'0'}">${m.enabled?'إيقاف':'تفعيل'}</button><button type="button" class="tab ou-delete" data-uid="${m.user_id}">حذف</button>`}</div></div>`;}).join('')||'<div class="hint">لا يوجد مستخدمون مرتبطون بهذا البوفيه.</div>';list.querySelectorAll('.ou-edit').forEach(b=>b.addEventListener('click',()=>editMember(b.dataset.uid,rows)));list.querySelectorAll('.ou-toggle').forEach(b=>b.addEventListener('click',()=>toggleMember(b.dataset.uid,b.dataset.enabled==='1')));list.querySelectorAll('.ou-delete').forEach(b=>b.addEventListener('click',()=>deleteMember(b.dataset.uid,rows)));}catch(e){console.error('renderUsersPage',e);list.innerHTML='<div class="hint">تعذر تحميل المستخدمين. اضغط «تحديث القائمة» وحاول مرة أخرى.</div>';if(count)count.textContent='';}}
-function editMember(uid,members){
-  const m=(members||[]).find(x=>x.user_id===uid);if(!m||m.is_primary)return;
-  document.getElementById('ouEditor').style.display='block';
-  document.getElementById('ouEditUid').value=uid;
-  document.getElementById('ouEditEmail').textContent=m.email||m.display_name||uid;
-  document.getElementById('ouRole').value=m.role==='admin'?'admin':'user';
-  for(const cb of document.querySelectorAll('#ouPerms [data-perm]'))cb.checked=!!m.permissions?.[cb.dataset.perm];
-  document.getElementById('ouRole').dispatchEvent(new Event('change'));
-}
-async function saveEditedMember(){
-  if(!isPrimaryAdmin())return;
-  const uid=document.getElementById('ouEditUid')?.value||'',msg=document.getElementById('ouMsg');if(!uid)return;
-  try{
-    const role=document.getElementById('ouRole').value;const permissions={};
-    for(const cb of document.querySelectorAll('#ouPerms [data-perm]'))permissions[cb.dataset.perm]=!!cb.checked;
-    await api('/rest/v1/buffet_members?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&user_id=eq.'+encodeURIComponent(uid),{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({role,permissions,enabled:true,updated_at:nowIso()})});
-    if(msg)msg.textContent='تم حفظ التعديل.';document.getElementById('ouEditor').style.display='none';await renderUsersPage();
-  }catch(e){if(msg)msg.textContent=e.message||'تعذر حفظ التعديل.';}
-}
-async function toggleMember(uid,enabled){
-  if(!isPrimaryAdmin())return;
-  try{await api('/rest/v1/buffet_members?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&user_id=eq.'+encodeURIComponent(uid),{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({enabled:!enabled,updated_at:nowIso()})});await renderUsersPage();}catch(e){alert(e.message||'تعذر تعديل المستخدم');}
-}
-async function deleteMember(uid,members){
-  if(!isPrimaryAdmin())return;
-  const m=(members||[]).find(x=>x.user_id===uid);if(!m||m.is_primary)return;
-  if(!confirm(`حذف ${m.email||m.display_name||'المستخدم'} من البوفيه؟`))return;
-  try{await api('/rest/v1/rpc/remove_buffet_member',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId,p_user_id:uid})});await renderUsersPage();}catch(e){alert(e.message||'تعذر حذف المستخدم');}
-}
-async function logoutOnline(){persistBuffetCache();try{if(navigator.onLine&&O.session?.access_token)await api('/auth/v1/logout',{method:'POST'});}catch(e){}saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;O.role=null;O.permissions={};O.isPrimary=false;O.memberships=[];showOnboarding(false);showAuth(true);authMsg('تم تسجيل الخروج.','ok');}
-function applyPermissionsUI(){
-  syncLogoutButton();clearOperationalAutofill();
-  if(!O.ready)return;
-  const admin=isAdminLike();
-  const navPerm={paymentsPage:'collect',purchases:'purchase',expenses:'expense',products:'manage_catalog',categories:'manage_catalog',recipes:'manage_catalog',cashPage:'cash'};
-  for(const [page,p] of Object.entries(navPerm)){const b=document.querySelector(`#nav [data-page="${page}"]`);if(b)b.style.display=admin||hasPerm(p)?'':'none';}
-  const show=(sel,ok)=>document.querySelectorAll(sel).forEach(e=>e.style.display=ok?'':'none');
-  show('[onclick*="openResetModal"],[onclick*="closeMonth"],[onclick*="newMonth"],[onclick*="setCashOpening"]',admin);
-  show('[onclick*="addOfficer"]',admin||hasPerm('manage_officers'));
-  const officerName=document.getElementById('newOfficerName');if(officerName)officerName.style.display=admin||hasPerm('manage_officers')?'':'none';
-  show('[onclick*="editOfficer"]',admin);
-  show('[onclick*="openPayModal"]',admin||hasPerm('collect'));
-  show('[onclick^="editPayment"]',admin||hasPerm('edit_payments'));
-  show('.sale-edit-btn,.sale-return-btn',admin||hasPerm('edit_sales'));
-  show('[onclick^="editPurchase"]',admin||hasPerm('edit_purchases'));
-  show('.purchase-delete-btn',admin||hasPerm('delete_data'));
-  show('[onclick^="editExpense"]',admin||hasPerm('edit_expenses'));
-  show('.product-edit-btn',admin||hasPerm('manage_catalog'));
-  show('.product-delete-btn,.recipe-delete-btn',admin||hasPerm('delete_data'));
-  show('[onclick^="setHospitalityStatus"],.hospitality-collect-btn',admin||hasPerm('hospitality'));
-  show('[onclick*="openHospitality"]',admin||hasPerm('hospitality'));
-  show('[onclick*="openCashSale"]',admin||hasPerm('sell'));
-  document.querySelectorAll('.sale-product-card,.sale-recipe-card').forEach(e=>{if(!(admin||hasPerm('sell')||hasPerm('hospitality')))e.style.display='none';});
-  show('[onclick^="adjust"]',admin||hasPerm('manage_catalog'));
-}
-
-function guardFunction(name,allowed,message){
-  const orig=window[name];if(typeof orig!=='function'||orig.__onlineGuarded)return;
-  const wrapped=function(){if(O.ready&&!allowed())return alert(message||'ليس لديك صلاحية لتنفيذ العملية.');return orig.apply(this,arguments);};
-  wrapped.__onlineGuarded=true;window[name]=wrapped;
-}
-function installPermissionGuards(){
-  const p=x=>()=>isAdminLike()||hasPerm(x),admin=()=>isAdminLike();
-  guardFunction('openOfficer',p('sell'),'ليس لديك صلاحية تسجيل مبيعات.');
-  guardFunction('personSale',p('sell'),'ليس لديك صلاحية تسجيل مبيعات.');
-  guardFunction('openCashSale',p('sell'),'ليس لديك صلاحية تسجيل بيع كاش.');
-  guardFunction('sellRecipe',p('sell'),'ليس لديك صلاحية تسجيل مبيعات.');
-  guardFunction('openHospitality',p('hospitality'),'ليس لديك صلاحية تسجيل الضيافة.');
-  guardFunction('setHospitalityStatus',p('hospitality'),'ليس لديك صلاحية تعديل الضيافة.');
-  guardFunction('collectHospitality',p('hospitality'),'ليس لديك صلاحية تحصيل الضيافة.');
-  guardFunction('openPayModal',p('collect'),'ليس لديك صلاحية التحصيل.');
-  guardFunction('confirmPayment',p('collect'),'ليس لديك صلاحية التحصيل.');
-  guardFunction('editPayment',p('edit_payments'),'ليس لديك صلاحية تعديل التحصيلات.');
-  guardFunction('purchase',p('purchase'),'ليس لديك صلاحية تسجيل المشتريات.');
-  guardFunction('addSupplier',p('purchase'),'ليس لديك صلاحية إدارة الموردين.');
-  guardFunction('editPurchase',p('edit_purchases'),'ليس لديك صلاحية تعديل المشتريات.');
-  guardFunction('deletePurchase',p('delete_data'),'ليس لديك صلاحية حذف المشتريات.');
-  guardFunction('expense',p('expense'),'ليس لديك صلاحية تسجيل المصروفات.');
-  guardFunction('addExpenseType',p('expense'),'ليس لديك صلاحية إدارة أنواع المصروفات.');
-  guardFunction('editExpense',p('edit_expenses'),'ليس لديك صلاحية تعديل المصروفات.');
-  guardFunction('addCashMove',p('cash'),'ليس لديك صلاحية الحركات المالية.');
-  guardFunction('addDebt',p('cash'),'ليس لديك صلاحية تسجيل الدين.');
-  guardFunction('payDebt',p('cash'),'ليس لديك صلاحية سداد الدين.');
-  guardFunction('addCategory',p('manage_catalog'),'ليس لديك صلاحية إدارة الفئات.');
-  guardFunction('saveRecipe',p('manage_catalog'),'ليس لديك صلاحية إدارة الريسبي.');
-  guardFunction('setRecipeCategory',p('manage_catalog'),'ليس لديك صلاحية إدارة الريسبي.');
-  guardFunction('saveProductEdit',p('manage_catalog'),'ليس لديك صلاحية تعديل المنتجات.');
-  guardFunction('setPurchasedProductSale',p('manage_catalog'),'ليس لديك صلاحية تعديل المنتجات.');
-  guardFunction('adjust',p('manage_catalog'),'ليس لديك صلاحية تعديل المخزون يدويًا.');
-  guardFunction('deleteProduct',p('delete_data'),'ليس لديك صلاحية حذف البيانات.');
-  guardFunction('deleteRecipe',p('delete_data'),'ليس لديك صلاحية حذف البيانات.');
-  guardFunction('deleteCategory',()=>isAdminLike()||(hasPerm('manage_catalog')&&hasPerm('delete_data')),'حذف الفئة يحتاج صلاحية إدارة الفئات والحذف.');
-  guardFunction('editSale',p('edit_sales'),'ليس لديك صلاحية تعديل المبيعات.');
-  guardFunction('deleteSale',p('edit_sales'),'ليس لديك صلاحية تنفيذ مرتجع.');
-  guardFunction('addOfficer',p('manage_officers'),'ليس لديك صلاحية إضافة الضباط.');
-  guardFunction('editOfficer',admin,'تعديل اسم الضابط متاح للـ Admin فقط لأنه يغيّر السجل المرتبط به.');
-  guardFunction('setCashOpening',admin,'رصيد بداية الخزنة متاح للـ Admin فقط.');
-}
-
-
 
 async function executeOnlineReset(){
-  const input=document.getElementById('resetConfirmInput');if(!input||input.value.trim().toUpperCase()!=='RESET')return;
   if(!navigator.onLine)return alert('إعادة ضبط النسخة Online تحتاج اتصال بالإنترنت.');
-  if(!isAdminLike())return alert('إعادة ضبط البرنامج متاحة للـ Admin فقط.');
   const btn=document.getElementById('resetExecuteBtn');if(btn)btn.disabled=true;
   try{
     await api('/rest/v1/rpc/reset_buffet_data',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId,p_device_id:O.deviceId})});
@@ -707,11 +503,9 @@ async function executeOnlineReset(){
 }
 function installSensitiveGuards(){
   if(window.__onlineSensitiveWrapped)return;window.__onlineSensitiveWrapped=true;
-  installPermissionGuards();
   if(window.executeResetAll)window.executeResetAll=executeOnlineReset;
   if(window.closeMonth){const orig=window.closeMonth;window.closeMonth=async function(){
     if(!navigator.onLine)return alert('إغلاق الشهر في النسخة Online يحتاج اتصال بالإنترنت.');
-    if(!isAdminLike())return alert('إغلاق الشهر متاح للـ Admin فقط.');
     try{
       await O.queuePromise;await syncPending();
       if((await queueCount())>0)return alert('يوجد عمليات لم تتم مزامنتها بعد. انتظر المزامنة ثم أعد إغلاق الشهر.');
@@ -724,25 +518,27 @@ function installSensitiveGuards(){
       }
     }catch(e){console.error(e);alert('تعذر إغلاق الشهر Online: '+(e.message||e));}
   };}
-  if(window.restore){const origRestore=window.restore;window.restore=function(e){if(!navigator.onLine){if(e?.target)e.target.value='';return alert('استرجاع Backup في النسخة Online يحتاج اتصال بالإنترنت.');}if(!isAdminLike()){if(e?.target)e.target.value='';return alert('استرجاع Backup متاح للـ Admin فقط.');}return origRestore.apply(this,arguments);};}
+  if(window.restore)window.restore=function(){alert('استرجاع النسخة الاحتياطية متوقف مؤقتًا في النسخة Online لحين اعتماده بشكل آمن.');};
 }
 
-async function afterAuth(preferredBuffetId=null){
+async function afterAuth(){
   O.user=O.session?.user||O.user;clearOperationalAutofill();setTimeout(clearOperationalAutofill,300);setTimeout(clearOperationalAutofill,1200);
-  const rows=await loadMemberships();
-  if(!rows.length){showAuth(true);showOnboarding(true);authMsg('تم تسجيل الدخول. اختار إنشاء بوفيه جديد أو الانضمام بكود.','ok');return;}
-  const preferred=preferredBuffetId||null;
-  const chosen=(preferred&&rows.find(x=>x.buffet_id===preferred))||(rows.length===1?rows[0]:null);
-  if(!chosen){showAuth(true);showBuffetChooser(rows);return;}
-  await activateBuffet(chosen.buffet_id);
+  let chosen=await loadOwnedBuffet();
+  if(!chosen){
+    if(!navigator.onLine){showAuth(true);authMsg('أول تشغيل للحساب يحتاج اتصال بالإنترنت.','err');return;}
+    authMsg('جاري تجهيز البوفيه لأول مرة...');
+    await api('/rest/v1/rpc/create_buffet',{method:'POST',body:JSON.stringify({p_name:'البوفيه'})});
+    chosen=await loadOwnedBuffet();
+  }
+  if(!chosen){showAuth(true);authMsg('تعذر تجهيز البوفيه للحساب. حاول تسجيل الدخول مرة أخرى.','err');return;}
+  await activateOwnedBuffet(chosen);
 }
 async function init(){
   if((location.hash||'').startsWith('#account='))return;
   if(isEmailVerifyCallback()){renderEmailVerifyResult();return;}
   injectUI();installSensitiveGuards();O.dataEpoch=1;O.periodEpoch=1;
-  if(window.S){ensureIds(window.S);O.lastState=clone(window.S);O.lastArchive=archiveNow();try{const legacy=JSON.parse(localStorage.getItem('buffet_sarab_v867_clean')||'null');O.legacyCandidate=legacy&&typeof legacy==='object'?clone(legacy):null;const la=JSON.parse(localStorage.getItem('buffet_archive_v867_clean')||'[]');O.legacyArchive=Array.isArray(la)?clone(la):[];}catch(e){O.legacyCandidate=null;O.legacyArchive=[];}}
+  if(window.S){ensureIds(window.S);O.lastState=clone(window.S);O.lastArchive=archiveNow();}
   try{await recoverJournal()}catch(e){console.error('recover sync journal',e)}
-  if(window.render&&!window.__onlineRenderWrapped){const __r=window.render;window.render=function(){const out=__r.apply(this,arguments);setTimeout(applyPermissionsUI,0);return out};window.__onlineRenderWrapped=true;}
   O.deviceId=localStorage.getItem(CFG.deviceKey)||uid('DEV');localStorage.setItem(CFG.deviceKey,O.deviceId);loadSession();
   const recoverySession=recoverySessionFromUrl();
   if(recoverySession)saveSession(recoverySession);
@@ -754,15 +550,15 @@ async function init(){
     try{
       if(navigator.onLine){await accessToken();const u=await api('/auth/v1/user',{method:'GET'});O.user=u;O.session.user=u;saveSession(O.session);await afterAuth();}
       else{
-        let m=null;try{m=JSON.parse(localStorage.getItem(CFG.memberKey)||'null')}catch(e){}
-        if(m&&window.S){rememberSelectedMembership(m);restoreBuffetCache(m.buffet_id);O.memberships=[m];O.ready=true;showAuth(false);ensureUsersPage();applyPermissionsUI();await refreshStatus();}
-        else showAuth(true);
+        const m=cachedOwnedBuffet();
+        if(m&&window.S){rememberOwnedBuffet(m);restoreBuffetCache(m.buffet_id);O.ready=true;showAuth(false);clearOperationalAutofill();await refreshStatus();}
+        else{showAuth(true);authMsg('أول تشغيل Offline يحتاج فتح الحساب مرة واحدة بالإنترنت.','err');}
       }
     }catch(e){
       console.error(e);
       if(e?.status===401){saveSession(null);O.ready=false;showAuth(true);authMsg('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.','err');return;}
-      let m=null;try{m=JSON.parse(localStorage.getItem(CFG.memberKey)||'null')}catch(_e){}
-      if(m&&window.S){rememberSelectedMembership(m);restoreBuffetCache(m.buffet_id);O.memberships=[m];O.ready=true;showAuth(false);ensureUsersPage();applyPermissionsUI();await setStatus('error','السيرفر غير متاح · العمل محفوظ محليًا');}
+      const m=cachedOwnedBuffet();
+      if(m&&window.S){rememberOwnedBuffet(m);restoreBuffetCache(m.buffet_id);O.ready=true;showAuth(false);clearOperationalAutofill();await setStatus('error','السيرفر غير متاح · العمل محفوظ محليًا');}
       else{showAuth(true);authMsg('تعذر الوصول للسيرفر. جرّب مرة أخرى عند رجوع الإنترنت.','err');}
     }
   }else showAuth(true);

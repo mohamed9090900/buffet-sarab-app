@@ -34,14 +34,14 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 .app-splash::before{content:"";position:absolute;width:min(76vw,520px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(54,111,160,.13),rgba(11,27,43,0) 68%);filter:blur(8px);animation:splashGlow 3s ease-in-out both}.splash-inner{position:relative;display:flex;align-items:center;justify-content:center;animation:splashLogoMotion 3s cubic-bezier(.22,.8,.24,1) both}.splash-logo-wrap{position:relative;width:168px;height:168px;border-radius:38px;overflow:hidden;box-shadow:0 26px 70px rgba(0,0,0,.52),0 0 0 1px rgba(255,255,255,.08),0 0 44px rgba(58,112,160,.12)}.splash-logo{width:100%;height:100%;display:block}.splash-logo-wrap::after{content:"";position:absolute;top:-32%;bottom:-32%;left:-75%;width:34%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),rgba(255,255,255,.30),rgba(255,255,255,.05),transparent);transform:skewX(-18deg);filter:blur(.5px);animation:splashSheen 3s ease-in-out both;pointer-events:none}.public-view .app-splash{display:none!important}@keyframes splashLogoMotion{0%{opacity:0;transform:scale(.84)}20%{opacity:1;transform:scale(1)}73%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.94)}}@keyframes splashSheen{0%,31%{left:-75%;opacity:0}38%{opacity:.8}60%{left:145%;opacity:.8}67%,100%{left:145%;opacity:0}}@keyframes splashBackdrop{0%,73%{opacity:1}100%{opacity:0}}@keyframes splashGlow{0%{opacity:0;transform:scale(.86)}24%,73%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.94)}}@media(max-width:420px){.splash-logo-wrap{width:158px;height:158px;border-radius:36px}}
 
 /* Reset all */
-.reset-modal{position:fixed;inset:0;z-index:24000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.82);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}.reset-modal.show{display:flex}.reset-box{width:min(500px,100%);max-height:calc(100dvh - 36px);overflow:auto;background:linear-gradient(160deg,#211b1b,#111);border:1px solid #553232;border-radius:26px;padding:23px;box-shadow:0 24px 80px rgba(0,0,0,.68)}.reset-icon{width:54px;height:54px;border-radius:17px;background:#3a1515;border:1px solid #703232;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px}.reset-box h3{margin:0 0 8px;font-size:25px}.reset-box p{color:#b9b9b9;line-height:1.7}.reset-warning{background:#271616;border:1px solid #5b2b2b;border-radius:15px;padding:13px 14px;color:#e7caca;line-height:1.7;margin:13px 0}.reset-actions{display:grid;gap:9px;margin-top:14px}.reset-actions button{width:100%;border-radius:14px;padding:14px 15px;font-size:16px;font-weight:800;cursor:pointer}.reset-backup{background:#10251b;color:#e9fff1;border:1px solid #2e6b49}.reset-continue{background:#251414;color:#ffeaea;border:1px solid #6e3030}.reset-cancel{background:#171717;color:#eee;border:1px solid #3a3a3a}.reset-confirm-input{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;text-transform:uppercase;letter-spacing:2px;text-align:center;font-weight:800;font-size:20px!important}.reset-execute{background:#8c2424;color:#fff;border:1px solid #be4444}.reset-execute:disabled{opacity:.38;cursor:not-allowed}.danger-zone{border-color:#542c2c!important;background:linear-gradient(145deg,#281a1a,#1d1717)!important}.danger-zone .hint{color:#bda8a8}body.reset-overlay-open{overflow:hidden}
+.reset-modal{position:fixed;inset:0;z-index:24000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.82);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}.reset-modal.show{display:flex}.reset-box{width:min(500px,100%);max-height:calc(100dvh - 36px);overflow:auto;background:linear-gradient(160deg,#211b1b,#111);border:1px solid #553232;border-radius:26px;padding:23px;box-shadow:0 24px 80px rgba(0,0,0,.68)}.reset-icon{width:54px;height:54px;border-radius:17px;background:#3a1515;border:1px solid #703232;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px}.reset-box h3{margin:0 0 8px;font-size:25px}.reset-box p{color:#b9b9b9;line-height:1.7}.reset-warning{background:#271616;border:1px solid #5b2b2b;border-radius:15px;padding:13px 14px;color:#e7caca;line-height:1.7;margin:13px 0}.reset-actions{display:grid;gap:9px;margin-top:14px}.reset-actions button{width:100%;border-radius:14px;padding:14px 15px;font-size:16px;font-weight:800;cursor:pointer}.reset-cancel{background:#171717;color:#eee;border:1px solid #3a3a3a}.reset-execute{background:#8c2424;color:#fff;border:1px solid #be4444}.danger-zone{border-color:#542c2c!important;background:linear-gradient(145deg,#281a1a,#1d1717)!important}.danger-zone .hint{color:#bda8a8}body.reset-overlay-open{overflow:hidden}
 @media(max-width:600px){header{padding:18px 14px 14px}main{padding:0 18px}.grid3{grid-template-columns:1fr}.grid{grid-template-columns:1fr}nav{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px 18px 16px}nav button.nav-card{min-height:76px;font-size:15px}.person{padding:18px}.amount{font-size:23px}}
 
 .pay-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999}.pay-modal.show{display:flex}.pay-box{width:min(520px,100%);background:#202020;border:1px solid #555;border-radius:24px;padding:24px;box-shadow:0 20px 60px #000}.pay-box h3{margin:0 0 8px;font-size:25px}.pay-box .due{font-size:18px;color:#bbb;margin-bottom:18px}.pay-box input{width:100%;font-size:24px;padding:16px;border-radius:14px;border:1px solid #555;background:#111;color:#fff}.pay-actions{display:flex;gap:10px;margin-top:16px}.pay-actions button{flex:1;padding:15px;border-radius:14px;font-size:18px}.pay-cancel{background:#111;color:#fff;border:1px solid #444}.pay-ok{background:#07111f;color:#fff;border:1px solid #0b4f9c}
 .product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v9.1.0-online-final">
+<body data-app-version="v9.2.0-online-single">
 <div id="appSplash" class="app-splash" aria-hidden="true">
   <div class="splash-inner">
     <div class="splash-logo-wrap"><img class="splash-logo" src="icon-512.png" alt=""></div>
@@ -63,22 +63,11 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
   <div class="reset-box">
     <div class="reset-icon">⚠️</div>
     <h3 id="resetTitle">إعادة ضبط البرنامج</h3>
-    <div id="resetChoiceStep">
-      <p>هترجع بيانات البوفيه كأن البرنامج اتفتح لأول مرة.</p>
-      <div class="reset-warning">هيتم مسح المنتجات والفئات والريسبي والضباط والمبيعات والمشتريات والمخزون والتحصيلات والضيافة والمصروفات وحركات الكاش والدين والأرشيف.</div>
-      <div class="reset-actions">
-        <button type="button" class="reset-backup" id="resetBackupBtn">إنشاء نسخة احتياطية أولًا</button>
-        <button type="button" class="reset-continue" id="resetWithoutBackupBtn">متابعة بدون نسخة احتياطية</button>
-        <button type="button" class="reset-cancel" id="resetCancelBtn">إلغاء</button>
-      </div>
-    </div>
-    <div id="resetConfirmStep" style="display:none">
-      <p>للتأكيد، اكتب <b dir="ltr">RESET</b> في الخانة. لا يمكن التراجع بعد تنفيذ المسح إلا من نسخة احتياطية محفوظة.</p>
-      <input id="resetConfirmInput" class="reset-confirm-input" dir="ltr" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="RESET">
-      <div class="reset-actions">
-        <button type="button" id="resetExecuteBtn" class="reset-execute" disabled>مسح جميع البيانات</button>
-        <button type="button" id="resetBackBtn" class="reset-cancel">رجوع</button>
-      </div>
+    <p>سيتم حذف جميع بيانات البوفيه والأرشيف نهائيًا وإرجاع البرنامج كأنه جديد.</p>
+    <div class="reset-warning">لن يمكن التراجع عن الحذف. لو محتاج نسخة احتياطية، صدّرها من قسم «النسخة الاحتياطية» قبل المتابعة.</div>
+    <div class="reset-actions">
+      <button type="button" id="resetExecuteBtn" class="reset-execute">تأكيد حذف جميع البيانات</button>
+      <button type="button" class="reset-cancel" id="resetCancelBtn">إلغاء</button>
     </div>
   </div>
 </div>
@@ -115,7 +104,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 <section id="officers" class="active">
 </div>
 <div id="quickStats" style="display:none"></div>
-<div id="lowStockBox" class="card" style="margin-bottom:14px"></div><div class="card" style="margin-bottom:14px"><div class="grid"><button type="button" class="primary" onclick="openCashSale()">بيع كاش</button><button type="button" class="primary" onclick="openHospitality()">ضيافة</button></div></div><div class="card" style="margin-bottom:14px"><input id="officerSearch" placeholder="بحث باسم الضابط" oninput="renderOfficers()"><div class="grid" style="margin-top:10px"><input id="newOfficerName" placeholder="اسم الضابط"><button class="primary" type="button" onclick="addOfficer()">إضافة الضابط</button></div></div><div id="people"></div>
+<div id="lowStockBox" class="card" style="margin-bottom:14px"></div><div class="card" style="margin-bottom:14px"><div class="grid"><button type="button" class="primary" onclick="openCashSale()">بيع كاش</button><button type="button" class="primary" onclick="openHospitality()">ضيافة</button></div></div><div class="card" style="margin-bottom:14px"><input id="officerSearch" name="buffet_officer_search" autocomplete="off" data-lpignore="true" data-form-type="other" placeholder="بحث باسم الضابط" oninput="renderOfficers()"><div class="grid" style="margin-top:10px"><input id="newOfficerName" name="buffet_officer_name" autocomplete="off" data-lpignore="true" data-form-type="other" placeholder="اسم الضابط"><button class="primary" type="button" onclick="addOfficer()">إضافة الضابط</button></div></div><div id="people"></div>
 <button type="button" class="tab" onclick="newMonth()">بدء شهر جديد</button>
 </section>
 
@@ -200,16 +189,12 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 </div>
 <div class="card" style="margin-top:14px">
   <div class="rowtitle"><h3 style="margin:0">النسخة الاحتياطية</h3><span class="pill">أمان البيانات</span></div>
-  <div class="hint">صدّر نسخة احتياطية من بيانات البوفيه وأرشيف الشهور واحفظها خارج المتصفح. الاسترجاع يستبدل البيانات الحالية بالنسخة المختارة.</div>
-  <div class="grid">
-    <button type="button" class="primary" onclick="backup()">تصدير نسخة احتياطية</button>
-    <button type="button" class="tab" onclick="document.getElementById('restoreFile').click()">استرجاع نسخة</button>
-  </div>
-  <input id="restoreFile" type="file" accept="application/json,.json" style="display:none" onchange="restore(event)">
+  <div class="hint">صدّر نسخة احتياطية من بيانات البوفيه وأرشيف الشهور واحفظها خارج المتصفح. الاسترجاع متوقف مؤقتًا في النسخة Online لحين اعتماده بشكل آمن.</div>
+  <button type="button" class="primary" style="width:100%" onclick="backup()">تصدير نسخة احتياطية</button>
 </div>
 <div class="card danger-zone" style="margin-top:14px">
   <div class="rowtitle"><h3 style="margin:0">إعادة ضبط البرنامج</h3><span class="pill">منطقة حساسة</span></div>
-  <div class="hint">يرجع البرنامج لصفر ويمسح كل بيانات التشغيل والأرشيف. إنشاء نسخة احتياطية قبل المسح اختياري.</div>
+  <div class="hint">يرجع البرنامج لصفر ويمسح كل بيانات التشغيل والأرشيف بعد رسالة تأكيد واضحة.</div>
   <button type="button" class="danger" style="width:100%;border-radius:14px;padding:14px 16px;font-size:17px;color:#fff;font-weight:800" onclick="openResetModal()">إعادة ضبط البرنامج</button>
 </div>
 </section>
@@ -226,17 +211,8 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 </main>
 <div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3><input id="editProductName" placeholder="اسم المنتج" readonly><input id="editProductBuy" type="number" step="0.01" placeholder="متوسط التكلفة — تلقائي" readonly><input id="editProductSell" type="number" step="0.01" placeholder="سعر البيع"><input id="editProductQty" type="number" step="0.01" placeholder="المخزون الحالي — تلقائي" readonly><input id="editProductMin" type="number" step="0.01" placeholder="حد التنبيه"><select id="editProductUnit" disabled><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select><select id="editProductCat"></select><div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div><div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
-<script src="online.js"></script>
+<script src="online.js?v=9.2.0-single"></script>
 <script>
-// Copy V8.7.8 local data once into the isolated V9 local store.
-(function(){
-  try{
-    const legacyData="buffet_sarab_v867_clean", legacyArchive="buffet_archive_v867_clean";
-    const v9Data="buffet_v9_online_state", v9Archive="buffet_v9_online_archive";
-    if(!localStorage.getItem(v9Data) && localStorage.getItem(legacyData)) localStorage.setItem(v9Data,localStorage.getItem(legacyData));
-    if(!localStorage.getItem(v9Archive) && localStorage.getItem(legacyArchive)) localStorage.setItem(v9Archive,localStorage.getItem(legacyArchive));
-  }catch(e){console.error("V9 local migration",e);}
-})();
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
 var audit=document.getElementById("audit");
@@ -488,29 +464,18 @@ async function backup(){
  return await shareOrDownload(JSON.stringify(payload,null,2),"buffet-backup-"+day+".json","application/json");
 }
 function openResetModal(){
- const modal=document.getElementById("resetModal"),choice=document.getElementById("resetChoiceStep"),confirmStep=document.getElementById("resetConfirmStep"),input=document.getElementById("resetConfirmInput"),execute=document.getElementById("resetExecuteBtn");
+ const modal=document.getElementById("resetModal");
  if(!modal)return;
- if(choice)choice.style.display="block";if(confirmStep)confirmStep.style.display="none";if(input)input.value="";if(execute)execute.disabled=true;
  modal.classList.add("show");modal.setAttribute("aria-hidden","false");document.body.classList.add("reset-overlay-open");
 }
 function closeResetModal(){
  const modal=document.getElementById("resetModal");if(modal){modal.classList.remove("show");modal.setAttribute("aria-hidden","true");}
  document.body.classList.remove("reset-overlay-open");
 }
-function showResetConfirmStep(){
- const choice=document.getElementById("resetChoiceStep"),confirmStep=document.getElementById("resetConfirmStep"),input=document.getElementById("resetConfirmInput"),execute=document.getElementById("resetExecuteBtn");
- if(choice)choice.style.display="none";if(confirmStep)confirmStep.style.display="block";if(input){input.value="";setTimeout(()=>input.focus(),80);}if(execute)execute.disabled=true;
-}
-async function backupBeforeReset(){
- const btn=document.getElementById("resetBackupBtn");if(btn)btn.disabled=true;
- try{const ok=await backup();if(ok!==false)showResetConfirmStep();}catch(err){console.error("Backup before reset failed",err);alert("تعذر إنشاء النسخة الاحتياطية. لم يتم مسح أي بيانات.");}
- finally{if(btn)btn.disabled=false;}
-}
 function resetFreshState(){
  return {cash:{opening:0,movements:[]},openingDue:{},cats:[],people:[],suppliers:[""],expenseTypes:["كهرباء","مياه","صيانة","نقل","ضيافة على البوفيه","أخرى"],products:[],sales:[],payments:[],purchases:[],expenses:[],recipes:[],hospitality:[],audit:[],accountLedger:[],accountLedgerVersion:1};
 }
 function executeResetAll(){
- const input=document.getElementById("resetConfirmInput");if(!input||input.value.trim().toUpperCase()!=="RESET")return;
  try{
    const fresh=resetFreshState();
    Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,fresh);normalizeState();
@@ -520,27 +485,7 @@ function executeResetAll(){
    location.reload();
  }catch(err){console.error("Reset all failed",err);alert("حصل خطأ أثناء إعادة الضبط. لم يتم إكمال العملية.");}
 }
-function restore(e){
- const f=e.target.files[0];if(!f)return;
- const input=e.target;
- const r=new FileReader();
- r.onload=()=>{
-   try{
-     const raw=JSON.parse(r.result);
-     const isFull=raw&&raw.backupVersion>=2&&raw.state&&typeof raw.state==="object";
-     const data=isFull?raw.state:raw;
-     if(!data||typeof data!=="object"||!Array.isArray(data.people))throw new Error("invalid");
-     if(!confirm("استرجاع النسخة سيستبدل بيانات البوفيه الحالية. هل تريد المتابعة؟")){input.value="";return;}
-     Object.assign(S,{cash:{opening:0,movements:[]},openingDue:{},cats:[],people:[],suppliers:[""],expenseTypes:[],products:[],sales:[],payments:[],purchases:[],expenses:[],recipes:[],hospitality:[],audit:[],accountLedger:[],accountLedgerVersion:0},data);
-     S.openingDue=S.openingDue||{};
-     S.hospitality=S.hospitality||[];
-     if(isFull) localStorage.setItem(ARCHIVE_KEY,JSON.stringify(Array.isArray(raw.archive)?raw.archive:[]));
-     normalizeState();save();render();alert(isFull?"تم استرجاع البيانات والأرشيف بنجاح":"تم استرجاع النسخة القديمة بنجاح. الأرشيف الحالي لم يتم تغييره.");
-   }catch(x){alert("الملف غير صالح أو تالف");}
-   input.value="";
- };
- r.readAsText(f);
-}
+function restore(){alert("استرجاع النسخة الاحتياطية متوقف مؤقتًا في النسخة Online لحين اعتماده بشكل آمن.");}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
 function toBase64Url(text){
  const bytes=new TextEncoder().encode(text);let bin="";const size=0x8000;
@@ -636,11 +581,17 @@ function currentPeriodKey(){const d=new Date();return `${d.getFullYear()}-${Stri
 
 function recipeAvailableQty(r){
  if(!r || !Array.isArray(r.ins) || !r.ins.length)return 0;
- let max=Infinity;
+ const needByProduct=new Map();
  for(const ing of r.ins){
-   const p=S.products.find(x=>x.name===ing.n);
+   const name=String(ing.n||"");
    const need=Number(ing.q||0);
-   if(!p || need<=0)return 0;
+   if(!name || need<=0)return 0;
+   needByProduct.set(name,(needByProduct.get(name)||0)+need);
+ }
+ let max=Infinity;
+ for(const [name,need] of needByProduct){
+   const p=S.products.find(x=>x.name===name);
+   if(!p)return 0;
    max=Math.min(max,Math.floor(Number(p.qty||0)/need));
  }
  return Number.isFinite(max)?Math.max(0,max):0;
@@ -1049,10 +1000,11 @@ function archiveCurrentMonth(){
  const carryDue={};S.people.forEach(n=>{const d=officerDue(n);if(d>0)carryDue[n]=d;});
  let ar=[];try{const parsed=JSON.parse(localStorage.getItem(ARCHIVE_KEY)||"[]");if(Array.isArray(parsed))ar=parsed;}catch(e){}
  const closingCash=cashAvailable(),debtCarry=cashDebtOutstanding();
- const hospitalityMonth=(S.hospitality||[]).filter(h=>h.period===currentPeriodKey());
+ const hospitalityMonth=(S.hospitality||[]).filter(h=>!h.archived&&h.period===currentPeriodKey());
  const hospitalityValue=hospitalityMonth.reduce((a,h)=>a+Number(h.total||0),0);
  ar.push({month,date:new Date().toISOString(),openingDue:JSON.parse(JSON.stringify(S.openingDue||{})),sales:JSON.parse(JSON.stringify(S.sales)),payments:JSON.parse(JSON.stringify(S.payments||[])),purchases:JSON.parse(JSON.stringify(S.purchases)),expenses:JSON.parse(JSON.stringify(S.expenses)),hospitality:JSON.parse(JSON.stringify(hospitalityMonth)),cash:JSON.parse(JSON.stringify(S.cash||{opening:0,movements:[]})),summary:{sales,cashSales:cashOnly,accountSales:accountOnly,cost,exp,pur,profit:sales-cost-exp,collections:(S.payments||[]).reduce((a,x)=>a+Number(x.amount||0),0),due:dueAtClose,closingCash,debtOutstanding:debtCarry,hospitalityValue,hospitalityDue:hospitalityDueOnGeneral(),hospitalityIncludedInSales:true}});
  localStorage.setItem(ARCHIVE_KEY,JSON.stringify(ar));
+ (S.hospitality||[]).forEach(h=>{if(!h.archived&&h.period===currentPeriodKey())h.archived=true;});
  const carryMoves=debtCarry>0?[{type:"debt",amount:debtCarry,note:"دين مرحل من "+month,date:new Date().toLocaleString("ar-EG")}]:[];
  S.sales=[];S.payments=[];S.purchases=[];S.expenses=[];S.openingDue=carryDue;S.cash={opening:closingCash,movements:carryMoves};logAction("إغلاق الشهر",month);save();render();
 }
@@ -1086,6 +1038,11 @@ function editSale(i){
  const oldQty=Number(x.qty||1),oldTotal=Number(x.total||0),oldCost=Number(x.cost||0);
  let q=Number(prompt("الكمية الجديدة",oldQty));if(!Number.isFinite(q)||q<=0)return;
  let unitPrice=Number(prompt("سعر بيع الوحدة",oldTotal/oldQty));if(!Number.isFinite(unitPrice)||unitPrice<0)return;
+ const newTotal=unitPrice*q;
+ if(!x.cash&&x.who){
+   const chargesAfter=officerOpening(x.who)+officerTotal(x.who)-oldTotal+newTotal;
+   if(chargesAfter+0.000001<officerPaid(x.who))return alert("لا يمكن تقليل حركة البيع لأن فيه تحصيلات مسجلة تغطي جزءًا منها. عدّل التحصيلات أولًا.");
+ }
  const delta=q-oldQty;
  if(delta>0){
    if(Array.isArray(x.recipeIns)){for(const ing of x.recipeIns){const p=S.products.find(z=>z.name===ing.n);if(!p||Number(p.qty||0)<Number(ing.q||0)*delta)return alert("المخزون غير كافٍ: "+ing.n);}}
@@ -1093,7 +1050,7 @@ function editSale(i){
  }
  if(Array.isArray(x.recipeIns)){for(const ing of x.recipeIns){const p=S.products.find(z=>z.name===ing.n);if(p)p.qty-=Number(ing.q||0)*delta;}}
  else {const p=S.products.find(z=>z.name===x.product);if(p)p.qty-=delta;}
- x.qty=q;x.total=unitPrice*q;
+ x.qty=q;x.total=newTotal;
  x.cost=saleUnitCost({cost:oldCost,qty:oldQty})*q;
  syncAccountSale(x);logAction("تعديل بيع",(x.who||"")+" — "+x.product+" | "+oldQty+" → "+q+" | "+money(oldTotal)+" → "+money(x.total));save();render();
 }
@@ -1119,6 +1076,10 @@ function deleteSale(i){
  const x=S.sales[i];
  if(!x||x.returned)return;
  if(!confirm("تأكيد مرتجع الحركة وإرجاعها للمخزون؟"))return;
+ if(!x.cash&&x.who){
+   const chargesAfter=officerOpening(x.who)+officerTotal(x.who)-Number(x.total||0);
+   if(chargesAfter+0.000001<officerPaid(x.who))return alert("لا يمكن تنفيذ المرتجع لأن فيه تحصيلات مسجلة تغطي جزءًا من الحركة. عدّل التحصيلات أولًا.");
+ }
  if(x.product){
    const recipeIns=Array.isArray(x.recipeIns)?x.recipeIns:null;
    const r=S.recipes.find(r=>r.name===x.product);
@@ -1138,11 +1099,11 @@ if(document.getElementById("expenseTypeList")){
 }
 function hospitalityStatusLabel(status){return status==="pending"?"معلّقة":status==="buffet"?"على البوفيه":status==="general"?"على اللواء":status==="paid"?"تم التحصيل من اللواء":"معلّقة"}
 function hospitalityDueOnGeneral(){return (S.hospitality||[]).filter(x=>x.status==="general").reduce((a,x)=>a+Number(x.total||0),0)}
-function hospitalityPendingDue(){return (S.hospitality||[]).filter(x=>x.status==="pending"&&(!x.period||x.period===currentPeriodKey())).reduce((a,x)=>a+Number(x.total||0),0)}
+function hospitalityPendingDue(){return (S.hospitality||[]).filter(x=>x.status==="pending").reduce((a,x)=>a+Number(x.total||0),0)}
 function hospitalityCollectedCash(){return ((S.cash?.movements)||[]).filter(x=>x.type==="hospitalityCollect").reduce((a,x)=>a+Number(x.amount||0),0)}
 function hospitalityItemsText(h){return (h.items||[]).map(x=>x.name+" × "+x.qty).join("، ")||"بدون تفاصيل"}
 function hospitalitySalesRows(rows){
- const hs=rows||((S.hospitality||[]).filter(h=>!h.period||h.period===currentPeriodKey()));
+ const hs=rows||((S.hospitality||[]).filter(h=>!h.archived&&(!h.period||h.period===currentPeriodKey())));
  const out=[];
  hs.forEach(h=>(h.items||[]).forEach(item=>out.push({who:"ضيافة",product:item.name||"ضيافة",qty:Number(item.qty||1),total:Number(item.total||0),cost:Number(item.cost||0),date:h.date||"",cash:false,type:item.type||"ضيافة",hospitality:true,hospitalityId:h.id||"",hospitalityStatus:h.status||"pending"})));
  return out;
@@ -1172,7 +1133,7 @@ function migrateHospitalityBuffetExpenses(){
  const period=(typeof currentPeriodKey==="function")?currentPeriodKey():"";
  (S.hospitality||[]).forEach((h,i)=>{
    if(!h.id){h.id="HLEGACY"+i+"-"+Date.now();changed=true;}
-   if(h.status==="buffet"&&(!h.period||h.period===period))changed=addHospitalityBuffetExpense(h)||changed;
+   if(!h.archived&&h.status==="buffet"&&(!h.period||h.period===period))changed=addHospitalityBuffetExpense(h)||changed;
  });
  if(changed)save();
 }
@@ -1286,14 +1247,14 @@ if(document.getElementById("salesSummary")){
  const cashOnly=cashSales(), accountOnly=Math.max(0,sales-cashOnly); salesSummary.innerHTML=`<div class="summary-list"><div class="summary-row tone-blue"><span>إجمالي المبيعات</span><b>${money(sales)}</b></div><div class="summary-row tone-green"><span>مبيعات الكاش خلال الشهر</span><b>${money(cashOnly)}</b></div><div class="summary-row tone-amber"><span>مبيعات على الحساب</span><b>${money(accountOnly)}</b></div><div class="summary-row tone-amber"><span>المستحقات المتبقية</span><b>${money(due)}</b></div><div class="summary-row tone-orange"><span>تكلفة البضاعة المباعة</span><b>${money(cost)}</b></div><div class="summary-row tone-green"><span>مجمل الربح</span><b>${money(gross)}</b></div><div class="summary-row tone-red"><span>المصروفات</span><b>${money(exp)}</b></div><div class="summary-row ${gross-exp>=0?"tone-green":"tone-red"}"><span>صافي الربح</span><b>${money(gross-exp)}</b></div></div>`;
 }
 if(document.getElementById("hospitalityStats")){
- const all=S.hospitality||[],period=currentPeriodKey(),monthRows=all.filter(h=>h.period===period);
+ const all=S.hospitality||[],period=currentPeriodKey(),monthRows=all.filter(h=>!h.archived&&h.period===period);
  const totalMonth=monthRows.reduce((a,h)=>a+Number(h.total||0),0);
  const pending=all.filter(h=>h.status==="pending").reduce((a,h)=>a+Number(h.total||0),0);
  const buffet=monthRows.filter(h=>h.status==="buffet").reduce((a,h)=>a+Number(h.total||0),0);
  const generalDue=hospitalityDueOnGeneral();
- const paidMonth=all.filter(h=>h.status==="paid"&&((h.paidPeriod||String(h.paidAt||"").slice(0,7))===period)).reduce((a,h)=>a+Number(h.total||0),0);
+ const paidMonth=all.filter(h=>!h.archived&&h.status==="paid"&&((h.paidPeriod||String(h.paidAt||"").slice(0,7))===period)).reduce((a,h)=>a+Number(h.total||0),0);
  hospitalityStats.innerHTML=`<div class="metric-card tone-blue"><div class="metric-head">إجمالي ضيافة الشهر</div><div class="metric-value">${money(totalMonth)}</div></div><div class="metric-card tone-amber"><div class="metric-head">ضيافة معلّقة</div><div class="metric-value">${money(pending)}</div></div><div class="metric-card tone-red"><div class="metric-head">على البوفيه</div><div class="metric-value">${money(buffet)}</div></div><div class="metric-card tone-purple"><div class="metric-head">مستحق على اللواء</div><div class="metric-value">${money(generalDue)}</div></div><div class="metric-card tone-green metric-wide"><div class="metric-head">تم تحصيله من اللواء هذا الشهر</div><div class="metric-value">${money(paidMonth)}</div></div>`;
- const visibleHospitality=all.map((h,i)=>({h,i})).filter(x=>x.h.period===period||x.h.status==="pending"||x.h.status==="general").reverse().slice(0,40);hospitalityRows.innerHTML=visibleHospitality.length?visibleHospitality.map(({h,i})=>{let actions="";if(h.status==="pending")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'buffet')">على البوفيه</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'general')">على اللواء</button>`;else if(h.status==="buffet")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;else if(h.status==="general")actions=`<button type="button" class="primary hospitality-collect-btn" data-hospitality-index="${i}">تحصيل من اللواء</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;return `<div class="card" style="margin:10px 0"><div class="rowtitle"><span><b>${hospitalityStatusLabel(h.status)}</b><div class="muted">${esc(h.date||"")} — ${esc(hospitalityItemsText(h))}</div></span><b>${money(h.total)}</b></div>${actions?`<div class="public-actions">${actions}</div>`:""}</div>`}).join(""):`<div class="hint">لا توجد ضيافة مسجلة.</div>`;
+ const visibleHospitality=all.map((h,i)=>({h,i})).filter(x=>(!x.h.archived&&x.h.period===period)||x.h.status==="pending"||x.h.status==="general").reverse().slice(0,40);hospitalityRows.innerHTML=visibleHospitality.length?visibleHospitality.map(({h,i})=>{let actions="";if(h.status==="pending")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'buffet')">على البوفيه</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'general')">على اللواء</button>`;else if(h.status==="buffet")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;else if(h.status==="general")actions=`<button type="button" class="primary hospitality-collect-btn" data-hospitality-index="${i}">تحصيل من اللواء</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;return `<div class="card" style="margin:10px 0"><div class="rowtitle"><span><b>${hospitalityStatusLabel(h.status)}</b><div class="muted">${esc(h.date||"")} — ${esc(hospitalityItemsText(h))}</div></span><b>${money(h.total)}</b></div>${actions?`<div class="public-actions">${actions}</div>`:""}</div>`}).join(""):`<div class="hint">لا توجد ضيافة مسجلة.</div>`;
 }
 if(document.getElementById("productSalesReport")){
  const by={};
@@ -1575,13 +1536,9 @@ document.addEventListener("click",function(e){
 },true);
 
 
-// إعادة ضبط البرنامج: حماية على مرحلتين + نسخة احتياطية اختيارية
-document.getElementById("resetBackupBtn")?.addEventListener("click",backupBeforeReset);
-document.getElementById("resetWithoutBackupBtn")?.addEventListener("click",showResetConfirmStep);
+// إعادة ضبط البرنامج: تأكيد واضح بدون كتابة كلمة RESET
 document.getElementById("resetCancelBtn")?.addEventListener("click",closeResetModal);
-document.getElementById("resetBackBtn")?.addEventListener("click",()=>{const c=document.getElementById("resetChoiceStep"),s=document.getElementById("resetConfirmStep");if(c)c.style.display="block";if(s)s.style.display="none";});
-document.getElementById("resetConfirmInput")?.addEventListener("input",function(){const b=document.getElementById("resetExecuteBtn");if(b)b.disabled=this.value.trim().toUpperCase()!=="RESET";});
-document.getElementById("resetExecuteBtn")?.addEventListener("click",executeResetAll);
+document.getElementById("resetExecuteBtn")?.addEventListener("click",()=>window.executeResetAll?.());
 document.getElementById("resetModal")?.addEventListener("click",function(e){if(e.target===this)closeResetModal();});
 
 // شاشة افتتاح احترافية: 3 ثوانٍ إجماليًا، ولا تظهر في رابط كشف الحساب العام
@@ -1593,7 +1550,6 @@ document.getElementById("resetModal")?.addEventListener("click",function(e){if(e
 
 // تجربة تثبيت الـPWA: اختيار واضح بين التثبيت والمتصفح، بدون إزعاج المستخدم لاحقًا
 let deferredInstallPrompt=null;
-const INSTALL_BROWSER_CHOICE_KEY="buffet_install_browser_choice_v1";
 function isStandaloneApp(){
   return (window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||window.navigator.standalone===true;
 }
@@ -1609,9 +1565,8 @@ function hideInstallModal(){
   document.body.classList.remove("install-overlay-open");
   const help=installHelpEl();if(help){help.classList.remove("show");help.innerHTML="";}
 }
-function showInstallModal(force=false){
+function showInstallModal(){
   if(isStandaloneApp()||isPublicAccountLink())return;
-  if(!force&&localStorage.getItem(INSTALL_BROWSER_CHOICE_KEY)==="browser")return;
   const modal=installModalEl();if(!modal)return;
   modal.classList.add("show");modal.setAttribute("aria-hidden","false");document.body.classList.add("install-overlay-open");
 }
@@ -1637,7 +1592,7 @@ async function requestAppInstall(){
       promptEvent.prompt();
       const choice=await promptEvent.userChoice;
       if(choice&&choice.outcome==="accepted"){
-        localStorage.removeItem(INSTALL_BROWSER_CHOICE_KEY);hideInstallModal();
+        hideInstallModal();
       }else{
         showInstallHelp();
       }
@@ -1647,22 +1602,19 @@ async function requestAppInstall(){
   }
   showInstallHelp();
 }
-function continueInBrowser(){
-  try{localStorage.setItem(INSTALL_BROWSER_CHOICE_KEY,"browser");}catch(e){}
-  hideInstallModal();updateInstallEntry();
-}
+function continueInBrowser(){hideInstallModal();updateInstallEntry();}
 window.addEventListener("beforeinstallprompt",function(e){
   e.preventDefault();deferredInstallPrompt=e;updateInstallEntry();
 });
 window.addEventListener("appinstalled",function(){
-  deferredInstallPrompt=null;try{localStorage.removeItem(INSTALL_BROWSER_CHOICE_KEY);}catch(e){}
+  deferredInstallPrompt=null;
   hideInstallModal();updateInstallEntry();
 });
 document.getElementById("installAppBtn")?.addEventListener("click",requestAppInstall);
 document.getElementById("continueBrowserBtn")?.addEventListener("click",continueInBrowser);
-document.getElementById("installFloatBtn")?.addEventListener("click",()=>showInstallModal(true));
+document.getElementById("installFloatBtn")?.addEventListener("click",showInstallModal);
 window.addEventListener("load",function(){
-  setTimeout(function(){updateInstallEntry();if(!isStandaloneApp()&&!isPublicAccountLink()&&localStorage.getItem(INSTALL_BROWSER_CHOICE_KEY)!=="browser")showInstallModal(false);},450);
+  setTimeout(function(){updateInstallEntry();},450);
 });
 
 const __publicPayload=readPublicAccountHash();
