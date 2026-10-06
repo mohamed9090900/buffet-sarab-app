@@ -81,6 +81,16 @@ window.ensureOnlineIds=ensureIds;
 function isPrimaryAdmin(){return O.role==='admin'&&O.isPrimary===true;}
 function isAdminLike(){return O.role==='admin';}
 function roleLabel(){return isPrimaryAdmin()?'Admin رئيسي':(O.role==='admin'?'Admin':'User');}
+function clearOperationalAutofill(){
+  const email=String(O.user?.email||'').trim().toLowerCase();
+  for(const id of ['newOfficerName','officerSearch']){
+    const el=document.getElementById(id);if(!el)continue;
+    el.setAttribute('name',id==='newOfficerName'?'buffet_officer_name':'buffet_officer_search');
+    el.setAttribute('autocomplete','off');el.setAttribute('data-lpignore','true');el.setAttribute('data-form-type','other');
+    if(email&&String(el.value||'').trim().toLowerCase()===email)el.value='';
+    if(!el.dataset.onlineAutofillGuard){el.dataset.onlineAutofillGuard='1';el.addEventListener('focus',()=>{if(email&&String(el.value||'').trim().toLowerCase()===email)el.value='';});}
+  }
+}
 function isEmailVerifyCallback(){
   try{
     const q=new URLSearchParams(location.search||'');
@@ -115,7 +125,12 @@ function injectUI(){
   .oa-actions{display:grid;gap:9px;margin-top:14px}.oa-btn{border:0;border-radius:13px;padding:13px 15px;font-size:16px;font-weight:800;cursor:pointer}.oa-primary{background:#1f6feb;color:#fff}.oa-secondary{background:#21262d;color:#fff;border:1px solid #3a424d}.oa-msg{min-height:24px;margin-top:12px;color:#d1d5db;text-align:center;line-height:1.6}.oa-msg.err{color:#ff8b8b}.oa-msg.ok{color:#7ee787}
   #onlineStatus{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:18000;border:1px solid #3b4654;background:rgba(17,24,39,.94);color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;align-items:center;gap:7px;direction:rtl;cursor:pointer;user-select:none}
   #onlineStatus.show{display:flex}.os-dot{width:8px;height:8px;border-radius:50%;background:#22c55e}.offline .os-dot{background:#f59e0b}.syncing .os-dot{background:#60a5fa}.error .os-dot{background:#ef4444}
-  .public-view #onlineStatus,.public-view #onlineAuth{display:none!important}
+  #onlineLogoutBtn{display:none;align-items:center;justify-content:center;background:#111;color:#eee;border:1px solid #3a3a3a;border-radius:12px;padding:9px 12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+  #onlineLogoutBtn:hover{border-color:#5a5a5a}
+  .header-spacer{display:flex;align-items:center;justify-content:flex-end}
+  #oaForgot{width:100%;margin-top:2px}
+  @media(max-width:520px){#onlineLogoutBtn{padding:8px 9px;font-size:11px;border-radius:10px}}
+  .public-view #onlineStatus,.public-view #onlineAuth,.public-view #onlineLogoutBtn{display:none!important}
   `;
   document.head.appendChild(style);
   const auth=document.createElement('div');auth.id='onlineAuth';auth.innerHTML=`<div class="oa-box">
@@ -124,7 +139,8 @@ function injectUI(){
       <div class="oa-sub">تسجيل الدخول للنسخة Online</div>
       <div class="oa-field"><label>البريد الإلكتروني</label><input id="oaEmail" type="email" autocomplete="email" placeholder="name@example.com"></div>
       <div class="oa-field"><label>كلمة المرور</label><input id="oaPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
-      <div class="oa-actions"><button id="oaLogin" class="oa-btn oa-primary" type="button">تسجيل الدخول</button><button id="oaSignup" class="oa-btn oa-secondary" type="button">إنشاء حساب</button><button id="oaForgot" class="oa-btn oa-secondary" type="button">نسيت كلمة المرور؟</button></div>
+      <div class="oa-actions"><button id="oaLogin" class="oa-btn oa-primary" type="button">تسجيل الدخول</button><button id="oaSignup" class="oa-btn oa-secondary" type="button">إنشاء حساب</button></div>
+      <button id="oaForgot" class="oa-btn oa-secondary" type="button">نسيت كلمة المرور؟</button>
     </div>
     <div id="oaRecoveryPanel" style="display:none;margin-top:8px">
       <div class="oa-sub" style="margin-bottom:12px">اكتب كلمة مرور جديدة للحساب.</div>
@@ -152,6 +168,8 @@ function injectUI(){
   </div>`;
   document.body.appendChild(auth);
   const status=document.createElement('div');status.id='onlineStatus';status.innerHTML='<span class="os-dot"></span><span id="onlineStatusText">Online</span>';document.body.appendChild(status);
+  const logoutBtn=document.createElement('button');logoutBtn.id='onlineLogoutBtn';logoutBtn.type='button';logoutBtn.textContent='تسجيل الخروج';logoutBtn.addEventListener('click',logoutOnline);
+  const headerSlot=document.querySelector('.header-spacer');if(headerSlot){headerSlot.removeAttribute('aria-hidden');headerSlot.appendChild(logoutBtn);}else document.body.appendChild(logoutBtn);
   document.getElementById('oaLogin').addEventListener('click',()=>authLogin(false));
   document.getElementById('oaSignup').addEventListener('click',()=>authLogin(true));
   document.getElementById('oaForgot').addEventListener('click',requestPasswordReset);
@@ -165,7 +183,15 @@ function injectUI(){
   status.addEventListener('click',()=>{if(!O.session?.access_token)return;const who=O.user?.email||'الحساب الحالي';const buffet=O.buffetName?`\n${O.buffetName}`:'';if(O.memberships.length>1){if(confirm(`${who}${buffet}\n${roleLabel()}\n\nاختيار بوفيه آخر؟`)){showAuth(true);showBuffetChooser(O.memberships);}}else if(confirm(`${who}${buffet}\n${roleLabel()}\n\nتسجيل الخروج؟`))logoutOnline();});
 }
 function authMsg(t,kind=''){const e=document.getElementById('oaMsg');if(e){e.textContent=t;e.className='oa-msg '+kind;}}
-function showAuth(show=true){const e=document.getElementById('onlineAuth');if(e)e.classList.toggle('show',show);}
+function syncLogoutButton(){
+  const b=document.getElementById('onlineLogoutBtn');if(!b)return;
+  const auth=document.getElementById('onlineAuth'),authVisible=!!auth?.classList.contains('show');
+  b.style.display=O.session?.access_token&&!authVisible?'inline-flex':'none';
+}
+function showAuth(show=true){
+  const e=document.getElementById('onlineAuth');if(e)e.classList.toggle('show',show);
+  syncLogoutButton();
+}
 function showOnboarding(show=true){
   const o=document.getElementById('oaOnboarding'),l=document.getElementById('oaLoginPanel'),c=document.getElementById('oaBuffetChooser'),r=document.getElementById('oaRecoveryPanel'),back=document.getElementById('oaBackToBuffets');
   if(o)o.style.display=show?'block':'none';if(l)l.style.display=show?'none':'block';if(c)c.style.display='none';if(r)r.style.display='none';
@@ -212,14 +238,26 @@ async function authRequest(path,body){
   const r=await fetch(CFG.url+path,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.key},body:JSON.stringify(body)});
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.msg||j.message||j.error_description||j.error||'تعذر الاتصال');return j;
 }
+function isInvalidRefreshError(e){
+  const m=String(e?.message||e||'').toLowerCase();
+  return m.includes('invalid refresh token')||m.includes('refresh token not found')||m.includes('refresh_token_not_found')||m.includes('invalid refresh');
+}
+function expireLocalSession(message='انتهت جلسة الدخول. سجّل الدخول مرة أخرى.'){
+  try{persistBuffetCache();}catch(e){}
+  clearInterval(O.pollTimer);O.pollTimer=null;
+  saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;O.role=null;O.permissions={};O.isPrimary=false;O.memberships=[];
+  showOnboarding(false);showAuth(true);authMsg(message,'err');
+}
 async function refreshToken(){
-  if(!O.session?.refresh_token)throw new Error('NO_REFRESH');
-  const j=await authRequest('/auth/v1/token?grant_type=refresh_token',{refresh_token:O.session.refresh_token});saveSession(j);return j.access_token;
+  if(!O.session?.refresh_token){expireLocalSession();throw new Error('SESSION_EXPIRED');}
+  try{const j=await authRequest('/auth/v1/token?grant_type=refresh_token',{refresh_token:O.session.refresh_token});saveSession(j);return j.access_token;}
+  catch(e){if(isInvalidRefreshError(e)){expireLocalSession();throw new Error('SESSION_EXPIRED');}throw e;}
 }
 async function accessToken(){
   if(!O.session?.access_token)return null;
-  const exp=sessionExpiry(O.session);if(exp&&exp-Date.now()<90000&&navigator.onLine){try{return await refreshToken()}catch(e){}}
-  return O.session.access_token;
+  const exp=sessionExpiry(O.session);
+  if(exp&&exp-Date.now()<90000&&navigator.onLine){try{return await refreshToken();}catch(e){if(e?.message==='SESSION_EXPIRED')return null;}}
+  return O.session?.access_token||null;
 }
 function recoveryReturnUrl(){
   return new URL('./',location.href).href;
@@ -305,12 +343,10 @@ async function authLogin(signup){
   }catch(e){authMsg(e.message||'تعذر تسجيل الدخول','err');}
 }
 async function api(path,opt={}){
-  const token=await accessToken();if(!token)throw new Error('AUTH_REQUIRED');
-  const headers=Object.assign({'apikey':CFG.key,'Authorization':'Bearer '+token,'Content-Type':'application/json'},opt.headers||{});
-  const r=await fetch(CFG.url+path,Object.assign({},opt,{headers}));
-  if(r.status===401&&O.session?.refresh_token&&!opt._retried){await refreshToken();return api(path,Object.assign({},opt,{_retried:true}));}
-  if(!r.ok){const j=await r.json().catch(()=>({}));const err=new Error(j.message||j.error||j.code||('HTTP '+r.status));err.status=r.status;throw err;}
-  if(r.status===204)return null;const txt=await r.text();return txt?JSON.parse(txt):null;
+  const token=await accessToken();if(!token){const err=new Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');err.status=401;throw err;}
+  const headers=Object.assign({'apikey':CFG.key,'Authorization':'Bearer '+token,'Content-Type':'application/json'},opt.headers||{});const r=await fetch(CFG.url+path,Object.assign({},opt,{headers}));
+  if(r.status===401&&O.session?.refresh_token&&!opt._retried){try{await refreshToken();}catch(e){if(e?.message==='SESSION_EXPIRED'){const err=new Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');err.status=401;throw err;}throw e;}return api(path,Object.assign({},opt,{_retried:true}));}
+  if(!r.ok){const j=await r.json().catch(()=>({}));const err=new Error(j.message||j.error||j.code||('HTTP '+r.status));err.status=r.status;throw err;}if(r.status===204)return null;const txt=await r.text();return txt?JSON.parse(txt):null;
 }
 async function loadMemberships(){
   if(!O.user?.id)return [];
@@ -533,40 +569,9 @@ const PERMS=[
  ['edit_sales','تعديل ومرتجع المبيعات'],['edit_payments','تعديل التحصيلات'],['edit_purchases','تعديل المشتريات'],['edit_expenses','تعديل المصروفات'],['delete_data','حذف البيانات']
 ];
 function ensureUsersPage(){
-  const existingNav=document.querySelector('#nav [data-page="onlineUsers"]'),existingPage=document.getElementById('onlineUsers');
-  if(!isPrimaryAdmin()){existingNav?.remove();existingPage?.remove();return;}
-  if(!existingNav){
-    const b=document.createElement('button');b.type='button';b.className='nav-card';b.dataset.page='onlineUsers';b.innerHTML='<span class="nav-icon">👤</span><span class="nav-label">المستخدمون</span>';b.addEventListener('click',()=>{window.show?.('onlineUsers',b);renderUsersPage();});document.getElementById('nav')?.appendChild(b);
-  }
-  if(!document.getElementById('onlineUsers')){
-    const sec=document.createElement('section');sec.id='onlineUsers';sec.innerHTML=`<div class="rowtitle"><h2>المستخدمون والصلاحيات</h2><button type="button" id="ouLogout" class="tab">تسجيل الخروج</button></div>
-      <div class="card" style="margin-bottom:14px">
-        <h3>أكواد الانضمام</h3>
-        <div class="hint">الـ Admin الرئيسي فقط يقدر يولّد الأكواد. كود Admin صالح لاستخدام واحد فقط، وكود User يظل صالحًا إلى أن تغيّره.</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-          <button type="button" id="ouGenAdminCode" class="primary">توليد كود Admin لمرة واحدة</button>
-          <button type="button" id="ouGenUserCode" class="tab">إنشاء / تغيير كود User</button>
-        </div>
-        <div id="ouCodeResult" class="hint" style="margin-top:12px"></div>
-      </div>
-      <div class="card" id="ouEditor" style="display:none;margin-bottom:14px">
-        <h3>تعديل مستخدم</h3>
-        <div id="ouEditEmail" class="hint" style="margin-bottom:8px"></div>
-        <input id="ouEditUid" type="hidden">
-        <div class="grid"><select id="ouRole"><option value="user">User</option><option value="admin">Admin</option></select></div>
-        <div id="ouPerms" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:12px"></div>
-        <button type="button" id="ouSave" class="primary" style="margin-top:12px">حفظ التعديل</button>
-        <div id="ouMsg" class="hint" style="margin-top:8px"></div>
-      </div>
-      <div class="card"><h3>المستخدمون الحاليون</h3><div id="ouList"></div></div>`;
-    document.querySelector('main')?.appendChild(sec);
-    const box=sec.querySelector('#ouPerms');box.innerHTML=PERMS.map(([k,l])=>`<label class="pill" style="display:flex;gap:7px;align-items:center;justify-content:flex-start"><input type="checkbox" data-perm="${k}"> ${l}</label>`).join('');
-    sec.querySelector('#ouRole').addEventListener('change',()=>{box.style.opacity=sec.querySelector('#ouRole').value==='admin'?'.45':'1';});
-    sec.querySelector('#ouSave').addEventListener('click',saveEditedMember);
-    sec.querySelector('#ouGenAdminCode').addEventListener('click',()=>generateInviteCode('admin'));
-    sec.querySelector('#ouGenUserCode').addEventListener('click',()=>generateInviteCode('user'));
-    sec.querySelector('#ouLogout').addEventListener('click',logoutOnline);
-  }
+  const existingNav=document.querySelector('#nav [data-page="onlineUsers"]'),existingPage=document.getElementById('onlineUsers');if(!isPrimaryAdmin()){existingNav?.remove();existingPage?.remove();return;}let b=existingNav;
+  if(!b){b=document.createElement('button');b.type='button';b.className='nav-card';b.dataset.page='onlineUsers';b.innerHTML='<span class="nav-icon">👤</span><span class="nav-label">المستخدمون</span>';document.getElementById('nav')?.appendChild(b);}b.onclick=()=>{window.show?.('onlineUsers',b);setTimeout(()=>renderUsersPage(),0);};
+  if(!document.getElementById('onlineUsers')){const sec=document.createElement('section');sec.id='onlineUsers';sec.innerHTML=`<div class="rowtitle"><h2>المستخدمون والصلاحيات</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="ouRefresh" class="tab">تحديث القائمة</button><button type="button" id="ouLogout" class="tab">تسجيل الخروج</button></div></div><div class="card" style="margin-bottom:14px"><h3>أكواد الانضمام</h3><div class="hint">الـ Admin الرئيسي فقط يقدر يولّد الأكواد. كود Admin صالح لاستخدام واحد فقط، وكود User يظل صالحًا إلى أن تغيّره.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" id="ouGenAdminCode" class="primary">توليد كود Admin لمرة واحدة</button><button type="button" id="ouGenUserCode" class="tab">إنشاء / تغيير كود User</button></div><div id="ouCodeResult" class="hint" style="margin-top:12px"></div></div><div class="card" id="ouEditor" style="display:none;margin-bottom:14px"><h3>تعديل مستخدم</h3><div id="ouEditEmail" class="hint" style="margin-bottom:8px"></div><input id="ouEditUid" type="hidden"><div class="grid"><select id="ouRole"><option value="user">User</option><option value="admin">Admin</option></select></div><div class="hint" style="margin-top:10px">اختر الصلاحيات المسموح بها للـ User. الـ Admin لديه صلاحيات العمليات كاملة.</div><div id="ouPerms" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:12px"></div><button type="button" id="ouSave" class="primary" style="margin-top:12px">حفظ التعديل</button><div id="ouMsg" class="hint" style="margin-top:8px"></div></div><div class="card"><div class="rowtitle"><h3 style="margin:0">المستخدمون الحاليون</h3><span id="ouCount" class="pill"></span></div><div id="ouList"><div class="hint">جاري تحميل المستخدمين...</div></div></div>`;document.querySelector('main')?.appendChild(sec);const box=sec.querySelector('#ouPerms');box.innerHTML=PERMS.map(([k,l])=>`<label class="pill" style="display:flex;gap:7px;align-items:center;justify-content:flex-start"><input type="checkbox" data-perm="${k}"> ${l}</label>`).join('');sec.querySelector('#ouRole').addEventListener('change',()=>{box.style.opacity=sec.querySelector('#ouRole').value==='admin'?'.45':'1';});sec.querySelector('#ouSave').addEventListener('click',saveEditedMember);sec.querySelector('#ouGenAdminCode').addEventListener('click',()=>generateInviteCode('admin'));sec.querySelector('#ouGenUserCode').addEventListener('click',()=>generateInviteCode('user'));sec.querySelector('#ouRefresh').addEventListener('click',renderUsersPage);sec.querySelector('#ouLogout').addEventListener('click',logoutOnline);}
 }
 async function generateInviteCode(role){
   if(!isPrimaryAdmin())return;
@@ -581,17 +586,7 @@ async function generateInviteCode(role){
     }
   }catch(e){if(out)out.textContent=e.message||'تعذر إنشاء الكود.';}
 }
-async function renderUsersPage(){
-  if(!isPrimaryAdmin())return;
-  ensureUsersPage();const list=document.getElementById('ouList');if(!list)return;list.innerHTML='<div class="hint">جاري التحميل...</div>';
-  try{
-    const members=await api('/rest/v1/rpc/list_buffet_members',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId})});
-    list.innerHTML=(members||[]).map(m=>{const me=m.user_id===O.user?.id;const primary=!!m.is_primary;return `<div class="person" style="align-items:flex-start"><div><div class="name">${esc(m.email||m.display_name||m.user_id)}</div><div class="muted">${primary?'Admin رئيسي':(m.role==='admin'?'Admin':'User')} · ${m.enabled?'مفعّل':'موقوف'}${me?' · حسابك':''}</div></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${primary?'':`<button type="button" class="tab ou-edit" data-uid="${m.user_id}">تعديل</button><button type="button" class="tab ou-toggle" data-uid="${m.user_id}" data-enabled="${m.enabled?'1':'0'}">${m.enabled?'إيقاف':'تفعيل'}</button><button type="button" class="tab ou-delete" data-uid="${m.user_id}">حذف</button>`}</div></div>`}).join('')||'<div class="hint">لا يوجد مستخدمون.</div>';
-    list.querySelectorAll('.ou-edit').forEach(b=>b.addEventListener('click',()=>editMember(b.dataset.uid,members)));
-    list.querySelectorAll('.ou-toggle').forEach(b=>b.addEventListener('click',()=>toggleMember(b.dataset.uid,b.dataset.enabled==='1')));
-    list.querySelectorAll('.ou-delete').forEach(b=>b.addEventListener('click',()=>deleteMember(b.dataset.uid,members)));
-  }catch(e){list.innerHTML='<div class="hint">تعذر تحميل المستخدمين.</div>';}
-}
+async function renderUsersPage(){if(!isPrimaryAdmin())return;ensureUsersPage();const list=document.getElementById('ouList'),count=document.getElementById('ouCount');if(!list)return;if(!navigator.onLine){list.innerHTML='<div class="hint">عرض المستخدمين يحتاج اتصال بالإنترنت.</div>';if(count)count.textContent='';return;}list.innerHTML='<div class="hint">جاري تحميل المستخدمين...</div>';if(count)count.textContent='';try{const members=await api('/rest/v1/rpc/list_buffet_members',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId})});const rows=Array.isArray(members)?members:[];if(count)count.textContent=String(rows.length);list.innerHTML=rows.map(m=>{const me=m.user_id===O.user?.id,primary=!!m.is_primary;const granted=PERMS.filter(([k])=>m.permissions?.[k]===true).map(([,l])=>l);const permLine=primary?'صلاحيات Admin الرئيسي':(m.role==='admin'?'صلاحيات Admin كاملة':(granted.length?'الصلاحيات: '+granted.join('، '):'لا توجد صلاحيات عمليات مفعّلة'));return `<div class="person" style="align-items:flex-start"><div><div class="name">${esc(m.email||m.display_name||m.user_id)}</div><div class="muted">${primary?'Admin رئيسي':(m.role==='admin'?'Admin':'User')} · ${m.enabled?'مفعّل':'موقوف'}${me?' · حسابك':''}</div><div class="muted" style="margin-top:5px">${esc(permLine)}</div></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${primary?'':`<button type="button" class="tab ou-edit" data-uid="${m.user_id}">تعديل الصلاحيات</button><button type="button" class="tab ou-toggle" data-uid="${m.user_id}" data-enabled="${m.enabled?'1':'0'}">${m.enabled?'إيقاف':'تفعيل'}</button><button type="button" class="tab ou-delete" data-uid="${m.user_id}">حذف</button>`}</div></div>`;}).join('')||'<div class="hint">لا يوجد مستخدمون مرتبطون بهذا البوفيه.</div>';list.querySelectorAll('.ou-edit').forEach(b=>b.addEventListener('click',()=>editMember(b.dataset.uid,rows)));list.querySelectorAll('.ou-toggle').forEach(b=>b.addEventListener('click',()=>toggleMember(b.dataset.uid,b.dataset.enabled==='1')));list.querySelectorAll('.ou-delete').forEach(b=>b.addEventListener('click',()=>deleteMember(b.dataset.uid,rows)));}catch(e){console.error('renderUsersPage',e);list.innerHTML='<div class="hint">تعذر تحميل المستخدمين. اضغط «تحديث القائمة» وحاول مرة أخرى.</div>';if(count)count.textContent='';}}
 function editMember(uid,members){
   const m=(members||[]).find(x=>x.user_id===uid);if(!m||m.is_primary)return;
   document.getElementById('ouEditor').style.display='block';
@@ -623,6 +618,7 @@ async function deleteMember(uid,members){
 }
 async function logoutOnline(){persistBuffetCache();try{if(navigator.onLine&&O.session?.access_token)await api('/auth/v1/logout',{method:'POST'});}catch(e){}saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;O.role=null;O.permissions={};O.isPrimary=false;O.memberships=[];showOnboarding(false);showAuth(true);authMsg('تم تسجيل الخروج.','ok');}
 function applyPermissionsUI(){
+  syncLogoutButton();clearOperationalAutofill();
   if(!O.ready)return;
   const admin=isAdminLike();
   const navPerm={paymentsPage:'collect',purchases:'purchase',expenses:'expense',products:'manage_catalog',categories:'manage_catalog',recipes:'manage_catalog',cashPage:'cash'};
@@ -732,7 +728,7 @@ function installSensitiveGuards(){
 }
 
 async function afterAuth(preferredBuffetId=null){
-  O.user=O.session?.user||O.user;
+  O.user=O.session?.user||O.user;clearOperationalAutofill();setTimeout(clearOperationalAutofill,300);setTimeout(clearOperationalAutofill,1200);
   const rows=await loadMemberships();
   if(!rows.length){showAuth(true);showOnboarding(true);authMsg('تم تسجيل الدخول. اختار إنشاء بوفيه جديد أو الانضمام بكود.','ok');return;}
   const preferred=preferredBuffetId||null;
