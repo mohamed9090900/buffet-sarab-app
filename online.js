@@ -15,7 +15,7 @@ const CFG={
   pollMs:10000
 };
 const O={
-  session:null,user:null,buffetId:null,buffetName:null,deviceId:null,dataEpoch:1,periodEpoch:1,
+  session:null,user:null,buffetId:null,buffetName:null,accessMode:null,deviceId:null,dataEpoch:1,periodEpoch:1,
   ready:false,suppress:false,lastState:null,lastArchive:[],syncing:false,lastServerEventAt:null,
   pollTimer:null,online:navigator.onLine,queuePromise:Promise.resolve()
 };
@@ -32,20 +32,21 @@ function dateKey(v){
   if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
   return new Date().toISOString().slice(0,10);
 }
-function dataKeyFor(bid){return `buffet_v9_online_state:${bid}`;}
-function archiveKeyFor(bid){return `buffet_v9_online_archive:${bid}`;}
+function workerCacheSuffix(){return O.accessMode==='worker'?`:worker:${O.user?.id||O.session?.user?.id||'unknown'}`:'';}
+function dataKeyFor(bid){return `buffet_v9_online_state:${bid}${workerCacheSuffix()}`;}
+function archiveKeyFor(bid){return O.accessMode==='worker'?`buffet_v9_online_archive:${bid}${workerCacheSuffix()}`:`buffet_v9_online_archive:${bid}`;}
 function epochKeyFor(bid){return `buffet_v9_data_epoch:${bid}`;}
 function periodKeyFor(bid){return `buffet_v9_period_epoch:${bid}`;}
 function blankState(){return window.resetFreshState?window.resetFreshState():{cash:{opening:0,movements:[]},openingDue:{},cats:[],people:[],suppliers:[''],expenseTypes:['كهرباء','مياه','صيانة','نقل','ضيافة على البوفيه','أخرى'],products:[],sales:[],payments:[],purchases:[],expenses:[],recipes:[],hospitality:[],audit:[],accountLedger:[],accountLedgerVersion:1};}
 function persistBuffetCache(){
   if(!O.buffetId||!window.S)return;
   try{localStorage.setItem(dataKeyFor(O.buffetId),JSON.stringify(window.S));}catch(e){}
-  try{localStorage.setItem(archiveKeyFor(O.buffetId),localStorage.getItem(window.ARCHIVE_KEY||'buffet_v9_online_archive')||'[]');}catch(e){}
+  if(O.accessMode!=='worker')try{localStorage.setItem(archiveKeyFor(O.buffetId),localStorage.getItem(window.ARCHIVE_KEY||'buffet_v9_online_archive')||'[]');}catch(e){}
 }
 function restoreBuffetCache(bid){
   if(!window.S||!bid)return false;
   let data=null,archive='[]';
-  try{data=JSON.parse(localStorage.getItem(dataKeyFor(bid))||'null');archive=localStorage.getItem(archiveKeyFor(bid))||'[]';}catch(e){data=null;archive='[]';}
+  try{data=JSON.parse(localStorage.getItem(dataKeyFor(bid))||'null');archive=O.accessMode==='worker'?'[]':(localStorage.getItem(archiveKeyFor(bid))||'[]');}catch(e){data=null;archive='[]';}
   O.suppress=true;
   try{
     const src=data&&typeof data==='object'?data:blankState();
@@ -56,20 +57,22 @@ function restoreBuffetCache(bid){
   }finally{O.suppress=false;}
   return !!data;
 }
-function rememberOwnedBuffet(m){
-  if(!m?.buffet_id||m.is_primary!==true)return false;
-  const cached={...m,user_id:O.user?.id||m.user_id||null,is_primary:true};
-  O.buffetId=cached.buffet_id;O.buffetName=cached.buffet_name||'البوفيه';
+function rememberBuffetAccess(m){
+  if(!m?.buffet_id)return false;
+  const mode=m.access_mode==='worker'?'worker':'owner';
+  const cached={...m,user_id:O.user?.id||m.user_id||null,access_mode:mode,is_primary:mode==='owner'};
+  O.accessMode=mode;O.buffetId=cached.buffet_id;O.buffetName=cached.buffet_name||'البوفيه';
   try{localStorage.setItem(CFG.memberKey,JSON.stringify(cached));}catch(e){}
   O.dataEpoch=Number(localStorage.getItem(epochKeyFor(O.buffetId))||1);O.periodEpoch=Number(localStorage.getItem(periodKeyFor(O.buffetId))||1);
   return true;
 }
-function cachedOwnedBuffet(){
+function cachedBuffetAccess(){
   let m=null;try{m=JSON.parse(localStorage.getItem(CFG.memberKey)||'null')}catch(e){}
-  if(!m?.buffet_id||m.is_primary!==true)return null;
+  if(!m?.buffet_id)return null;
   const uid=O.user?.id||O.session?.user?.id||null;
   if(m.user_id&&uid&&m.user_id!==uid)return null;
   if(uid&&!m.user_id){m.user_id=uid;try{localStorage.setItem(CFG.memberKey,JSON.stringify(m));}catch(e){}}
+  m.access_mode=m.access_mode==='worker'?'worker':'owner';m.is_primary=m.access_mode==='owner';
   return m;
 }
 function ensureIds(st){
@@ -129,9 +132,12 @@ function injectUI(){
   .oa-actions{display:grid;gap:9px;margin-top:14px}.oa-btn{border:0;border-radius:13px;padding:13px 15px;font-size:16px;font-weight:800;cursor:pointer}.oa-primary{background:#1f6feb;color:#fff}.oa-secondary{background:#21262d;color:#fff;border:1px solid #3a424d}.oa-msg{min-height:24px;margin-top:12px;color:#d1d5db;text-align:center;line-height:1.6}.oa-msg.err{color:#ff8b8b}.oa-msg.ok{color:#7ee787}
   #onlineStatus{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:18000;border:1px solid #3b4654;background:rgba(17,24,39,.94);color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;align-items:center;gap:7px;direction:rtl;cursor:pointer;user-select:none}
   #onlineStatus.show{display:flex}.os-dot{width:8px;height:8px;border-radius:50%;background:#22c55e}.offline .os-dot{background:#f59e0b}.syncing .os-dot{background:#60a5fa}.error .os-dot{background:#ef4444}
-  #onlineLogoutBtn{display:none;align-items:center;justify-content:center;background:#111;color:#eee;border:1px solid #3a3a3a;border-radius:12px;padding:9px 12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
-  #onlineLogoutBtn:hover{border-color:#5a5a5a}.header-spacer{display:flex;align-items:center;justify-content:flex-end}#oaForgot{width:100%;margin-top:2px}
-  @media(max-width:520px){#onlineLogoutBtn{padding:8px 9px;font-size:11px;border-radius:10px}}
+  #onlineLogoutBtn,#onlineWorkerBtn{display:none;align-items:center;justify-content:center;background:#111;color:#eee;border:1px solid #3a3a3a;border-radius:12px;padding:9px 12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+  #onlineLogoutBtn:hover,#onlineWorkerBtn:hover{border-color:#5a5a5a}.header-spacer{display:flex;align-items:center;justify-content:flex-end;gap:7px}#oaForgot{width:100%;margin-top:2px}
+  #workerModal{position:fixed;inset:0;z-index:32000;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:18px;direction:rtl}#workerModal.show{display:flex}
+  .worker-box{width:min(500px,100%);max-height:88vh;overflow:auto;background:#151a21;border:1px solid #30363d;border-radius:22px;padding:20px;color:#fff;box-shadow:0 22px 70px rgba(0,0,0,.55)}
+  .worker-row{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #2b313a}.worker-row:last-child{border-bottom:0}.worker-email{direction:ltr;text-align:left;overflow-wrap:anywhere}.worker-actions{display:flex;gap:7px;flex-wrap:wrap}.worker-note{color:#9da7b3;font-size:13px;line-height:1.7;margin:8px 0 14px}
+  @media(max-width:520px){#onlineLogoutBtn,#onlineWorkerBtn{padding:8px 9px;font-size:11px;border-radius:10px}}
   .public-view #onlineStatus,.public-view #onlineAuth,.public-view #onlineLogoutBtn{display:none!important}
   `;
   document.head.appendChild(style);
@@ -154,8 +160,13 @@ function injectUI(){
   </div>`;
   document.body.appendChild(auth);
   const status=document.createElement('div');status.id='onlineStatus';status.innerHTML='<span class="os-dot"></span><span id="onlineStatusText">Online</span>';document.body.appendChild(status);
+  const workerBtn=document.createElement('button');workerBtn.id='onlineWorkerBtn';workerBtn.type='button';workerBtn.textContent='الموظف';workerBtn.addEventListener('click',openWorkerModal);
   const logoutBtn=document.createElement('button');logoutBtn.id='onlineLogoutBtn';logoutBtn.type='button';logoutBtn.textContent='تسجيل الخروج';logoutBtn.addEventListener('click',logoutOnline);
-  const headerSlot=document.querySelector('.header-spacer');if(headerSlot){headerSlot.removeAttribute('aria-hidden');headerSlot.appendChild(logoutBtn);}else document.body.appendChild(logoutBtn);
+  const headerSlot=document.querySelector('.header-spacer');if(headerSlot){headerSlot.removeAttribute('aria-hidden');headerSlot.appendChild(workerBtn);headerSlot.appendChild(logoutBtn);}else{document.body.appendChild(workerBtn);document.body.appendChild(logoutBtn);}
+  const wm=document.createElement('div');wm.id='workerModal';wm.innerHTML=`<div class="worker-box"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h3 style="margin:0">موظف البوفيه</h3><button id="workerCloseBtn" class="oa-btn oa-secondary" type="button">إغلاق</button></div><div class="worker-note">سجّل بريد الموظف هنا أولًا، وبعدها الموظف ينشئ حساب أو يسجل دخول بنفس البريد. سيظهر له الضباط والتحصيلات فقط.</div><div style="display:grid;grid-template-columns:1fr auto;gap:8px"><input id="workerEmailInput" type="email" placeholder="worker@example.com" style="direction:ltr;background:#0d1117;border:1px solid #39424e;color:#fff;border-radius:12px;padding:12px"><button id="workerAddBtn" class="oa-btn oa-primary" type="button">إضافة / تفعيل</button></div><div id="workerMsg" class="oa-msg"></div><div id="workerRows"></div></div>`;document.body.appendChild(wm);
+  document.getElementById('workerCloseBtn').addEventListener('click',closeWorkerModal);
+  document.getElementById('workerAddBtn').addEventListener('click',addOrEnableWorker);
+  wm.addEventListener('click',e=>{if(e.target===wm)closeWorkerModal();});
   document.getElementById('oaLogin').addEventListener('click',()=>authLogin(false));
   document.getElementById('oaSignup').addEventListener('click',()=>authLogin(true));
   document.getElementById('oaForgot').addEventListener('click',requestPasswordReset);
@@ -166,14 +177,41 @@ ${O.buffetName}`:'';if(confirm(`${who}${buffet}
 تسجيل الخروج؟`))logoutOnline();});
 }
 function authMsg(t,kind=''){const e=document.getElementById('oaMsg');if(e){e.textContent=t;e.className='oa-msg '+kind;}}
-function syncLogoutButton(){
-  const b=document.getElementById('onlineLogoutBtn');if(!b)return;
-  const auth=document.getElementById('onlineAuth'),authVisible=!!auth?.classList.contains('show');
-  b.style.display=O.session?.access_token&&!authVisible?'inline-flex':'none';
+function syncAccessButtons(){
+  const b=document.getElementById('onlineLogoutBtn'),w=document.getElementById('onlineWorkerBtn');
+  const auth=document.getElementById('onlineAuth'),authVisible=!!auth?.classList.contains('show'),logged=!!O.session?.access_token&&!authVisible;
+  if(b)b.style.display=logged?'inline-flex':'none';
+  if(w)w.style.display=logged&&O.accessMode==='owner'?'inline-flex':'none';
 }
 function showAuth(show=true){
   const e=document.getElementById('onlineAuth');if(e)e.classList.toggle('show',show);
-  syncLogoutButton();
+  syncAccessButtons();
+}
+function workerMsg(t,kind=''){const e=document.getElementById('workerMsg');if(e){e.textContent=t||'';e.className='oa-msg '+kind;}}
+function closeWorkerModal(){document.getElementById('workerModal')?.classList.remove('show');workerMsg('');}
+async function openWorkerModal(){
+  if(O.accessMode!=='owner'||!O.buffetId)return;
+  document.getElementById('workerModal')?.classList.add('show');await refreshWorkerList();
+}
+async function refreshWorkerList(){
+  const rowsEl=document.getElementById('workerRows');if(!rowsEl)return;
+  workerMsg('جاري تحميل الموظفين...');
+  try{
+    const rows=await api('/rest/v1/rpc/list_buffet_workers_v1',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId})});
+    rowsEl.innerHTML=(Array.isArray(rows)?rows:[]).map(x=>`<div class="worker-row"><div><div class="worker-email">${String(x.email||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</div><div class="worker-note" style="margin:3px 0 0">${x.enabled?(x.claimed?'مفعّل والحساب مرتبط':'مفعّل — في انتظار تسجيل الموظف'):'متوقف'}</div></div><div class="worker-actions"><button type="button" class="oa-btn ${x.enabled?'oa-secondary':'oa-primary'} worker-toggle" data-email="${encodeURIComponent(x.email||'')}" data-enable="${x.enabled?'0':'1'}">${x.enabled?'إيقاف':'تفعيل'}</button></div></div>`).join('')||'<div class="worker-note">لا يوجد موظف مضاف حتى الآن.</div>';
+    rowsEl.querySelectorAll('.worker-toggle').forEach(btn=>btn.addEventListener('click',()=>setWorkerEnabled(decodeURIComponent(btn.dataset.email||''),btn.dataset.enable==='1')));
+    workerMsg('');
+  }catch(e){workerMsg(workerErrorText(e),'err');}
+}
+function workerErrorText(e){const m=String(e?.message||e||'');if(m.includes('WORKER_OWNS_BUFFET'))return 'الحساب ده عنده بوفيه مستقل بالفعل، فلا يمكن ربطه كموظف.';if(m.includes('WORKER_EMAIL_ALREADY_ASSIGNED')||m.includes('WORKER_ALREADY_ASSIGNED'))return 'البريد ده مرتبط ببوفيه آخر بالفعل.';if(m.includes('OWNER_EMAIL_NOT_ALLOWED'))return 'لا يمكن إضافة بريد صاحب البوفيه كموظف.';if(m.includes('INVALID_EMAIL'))return 'اكتب بريد إلكتروني صحيح.';return m||'تعذر تنفيذ العملية.';}
+async function setWorkerEnabled(email,enabled){
+  if(!email||O.accessMode!=='owner')return;
+  workerMsg(enabled?'جاري التفعيل...':'جاري الإيقاف...');
+  try{await api('/rest/v1/rpc/set_buffet_worker_v1',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId,p_email:email,p_enabled:!!enabled})});await refreshWorkerList();workerMsg(enabled?'تم تفعيل الموظف.':'تم إيقاف الموظف.','ok');}catch(e){workerMsg(workerErrorText(e),'err');}
+}
+async function addOrEnableWorker(){
+  const input=document.getElementById('workerEmailInput'),email=String(input?.value||'').trim();if(!email)return workerMsg('اكتب بريد الموظف.','err');
+  await setWorkerEnabled(email,true);if(document.getElementById('workerMsg')?.classList.contains('ok')&&input)input.value='';
 }
 function journalRead(){try{const x=JSON.parse(localStorage.getItem(CFG.journalKey)||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
 function journalWrite(rows){try{if(rows?.length)localStorage.setItem(CFG.journalKey,JSON.stringify(rows));else localStorage.removeItem(CFG.journalKey)}catch(e){console.error('sync journal',e)}}
@@ -198,7 +236,7 @@ function isInvalidRefreshError(e){
 function expireLocalSession(message='انتهت جلسة الدخول. سجّل الدخول مرة أخرى.'){
   try{persistBuffetCache();}catch(e){}
   clearInterval(O.pollTimer);O.pollTimer=null;
-  saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;
+  saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;O.accessMode=null;applyAccessUI();
   showAuth(true);authMsg(message,'err');
 }
 async function refreshToken(){
@@ -306,15 +344,54 @@ async function api(path,opt={}){
   }
   if(!r.ok){const j=await r.json().catch(()=>({}));const err=new Error(j.message||j.error||j.code||('HTTP '+r.status));err.status=r.status;throw err;}if(r.status===204)return null;const txt=await r.text();return txt?JSON.parse(txt):null;
 }
-async function loadOwnedBuffet(){
-  if(!O.user?.id)return null;
-  const rows=await api('/rest/v1/rpc/list_my_buffets_v2',{method:'POST',body:'{}'});
-  const m=(Array.isArray(rows)?rows:[]).find(x=>x.is_primary===true)||null;
-  return m?{...m,user_id:O.user.id,is_primary:true}:null;
+function installAccessGuards(){
+  if(window.__buffetWorkerAccessGuards)return;window.__buffetWorkerAccessGuards=true;
+  if(window.show){const orig=window.show;window.__ownerShow=orig;window.show=function(id,b){
+    if(O.accessMode==='worker'&&!new Set(['officers','paymentsPage','sale','officerDetail']).has(String(id||'')))return orig('officers',document.querySelector('#nav button[data-page="officers"]'));
+    return orig.apply(this,arguments);
+  };}
+  if(window.closeMonth){const orig=window.closeMonth;window.closeMonth=function(){if(O.accessMode==='worker')return alert('إغلاق الشهر متاح لصاحب البوفيه فقط.');return orig.apply(this,arguments);};}
+  if(window.newMonth){const orig=window.newMonth;window.newMonth=function(){if(O.accessMode==='worker')return alert('بدء شهر جديد متاح لصاحب البوفيه فقط.');return orig.apply(this,arguments);};}
+  if(window.editOfficer){const orig=window.editOfficer;window.editOfficer=async function(oldName){
+    if(O.accessMode!=='worker')return orig.apply(this,arguments);
+    const newName=prompt('تعديل اسم الضابط',oldName);if(newName===null)return;const n=String(newName||'').trim();
+    if(!n)return alert('اكتب اسم الضابط');if(n===oldName)return;if((window.S?.people||[]).includes(n))return alert('الاسم موجود بالفعل');
+    if(!navigator.onLine)return alert('تعديل اسم الضابط للموظف يحتاج اتصال بالإنترنت.');
+    try{
+      await O.queuePromise;await syncPending();if((await queueCount())>0)return alert('انتظر اكتمال المزامنة ثم جرّب تعديل الاسم مرة أخرى.');
+      await api('/rest/v1/rpc/worker_rename_officer_v1',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId,p_old_name:oldName,p_new_name:n,p_device_id:O.deviceId})});
+      await pullCloud();alert('تم تعديل اسم الضابط.');
+    }catch(e){const m=String(e?.message||e||'');if(m.includes('OFFICER_ALREADY_EXISTS'))return alert('الاسم موجود بالفعل');alert('تعذر تعديل الاسم: '+m);}
+  };}
 }
-async function activateOwnedBuffet(m){
-  if(!rememberOwnedBuffet(m))return null;
-  restoreBuffetCache(O.buffetId);showAuth(false);O.ready=false;
+function applyAccessUI(){
+  installAccessGuards();const worker=O.accessMode==='worker';
+  document.querySelectorAll('#nav button[data-page]').forEach(btn=>{const page=btn.dataset.page;btn.style.display=!worker||page==='officers'||page==='paymentsPage'?'flex':'none';});
+  document.querySelectorAll('button[onclick]').forEach(btn=>{const a=String(btn.getAttribute('onclick')||'');if(a.includes('newMonth()'))btn.style.display=worker?'none':'';});
+  if(worker){
+    const active=document.querySelector('main section.active')?.id;if(active&&!new Set(['officers','paymentsPage','sale','officerDetail']).has(active))window.show?.('officers');
+  }
+  syncAccessButtons();
+}
+
+async function loadBuffetAccess(){
+  if(!O.user?.id)return null;
+  try{
+    const rows=await api('/rest/v1/rpc/resolve_my_buffet_access_v1',{method:'POST',body:'{}'});
+    const m=(Array.isArray(rows)?rows[0]:rows)||null;
+    return m?.buffet_id?{...m,user_id:O.user.id,access_mode:m.access_mode==='worker'?'worker':'owner',is_primary:m.access_mode!=='worker'}:null;
+  }catch(e){
+    // Backward-compatible owner fallback while deploying V9.3 database changes.
+    const rows=await api('/rest/v1/rpc/list_my_buffets_v2',{method:'POST',body:'{}'});
+    const m=(Array.isArray(rows)?rows:[]).find(x=>x.is_primary===true)||null;
+    if(m)return {...m,user_id:O.user.id,access_mode:'owner',is_primary:true};
+    if(String(e?.message||'').includes('Could not find the function'))return null;
+    throw e;
+  }
+}
+async function activateBuffetAccess(m){
+  if(!rememberBuffetAccess(m))return null;
+  restoreBuffetCache(O.buffetId);showAuth(false);applyAccessUI();O.ready=false;
   if(!navigator.onLine){O.ready=true;clearOperationalAutofill();await refreshStatus();return m;}
   await pullCloud();persistBuffetCache();O.ready=true;O.lastServerEventAt=await latestEventAt();clearOperationalAutofill();await touchDevice();await refreshStatus();scheduleSync(100);
   clearInterval(O.pollTimer);O.pollTimer=setInterval(poll,CFG.pollMs);
@@ -369,7 +446,8 @@ function settingsPayload(s){return {openingDue:clone(s.openingDue||{}),cashOpeni
 async function diffAndQueue(prev,cur,prevArchive,curArchive){
   ensureIds(cur);ensureIds(prev);
   const pending=[];
-  for(const d of defs){
+  const activeDefs=O.accessMode==='worker'?defs.filter(d=>['people','sales','payments','hospitality','audit','ledger'].includes(d.key)):defs;
+  for(const d of activeDefs){
     const a=arrMap(d.get(prev),d.id),b=arrMap(d.get(cur),d.id);
     for(const [id,x] of b){
       const old=a.get(id);
@@ -380,10 +458,12 @@ async function diffAndQueue(prev,cur,prevArchive,curArchive){
   }
   const ap=arrMap(prev.products||[],x=>x._id),bp=arrMap(cur.products||[],x=>x._id);
   for(const [id,p] of bp){const old=ap.get(id);const oldQty=Number(old?.qty||0),newQty=Number(p.qty||0),delta=newQty-oldQty;const oldValue=oldQty*Number(old?.buy||0),newValue=newQty*Number(p.buy||0),valueDelta=newValue-oldValue;if(Math.abs(delta)>1e-9||Math.abs(valueDelta)>1e-7)pending.push(op('inventory_delta_v2','products',id,null,{delta,valueDelta}));}
-  if(!jEq(settingsPayload(prev),settingsPayload(cur)))pending.push(op('settings','buffet_settings',O.buffetId,settingsPayload(cur)));
-  const aa=arrMap(prevArchive||[],x=>x._cloudId||x.id||x.month||''),bb=arrMap(curArchive||[],x=>x._cloudId||x.id||x.month||'');
-  for(const [id,x] of bb)if((id&&!aa.has(id))||(id&&!jEq(aa.get(id),x)))pending.push(op('archive_upsert','month_archives',id,x));
-  for(const [id] of aa)if(id&&!bb.has(id))pending.push(op('delete','month_archives',id,null));
+  if(O.accessMode!=='worker'){
+    if(!jEq(settingsPayload(prev),settingsPayload(cur)))pending.push(op('settings','buffet_settings',O.buffetId,settingsPayload(cur)));
+    const aa=arrMap(prevArchive||[],x=>x._cloudId||x.id||x.month||''),bb=arrMap(curArchive||[],x=>x._cloudId||x.id||x.month||'');
+    for(const [id,x] of bb)if((id&&!aa.has(id))||(id&&!jEq(aa.get(id),x)))pending.push(op('archive_upsert','month_archives',id,x));
+    for(const [id] of aa)if(id&&!bb.has(id))pending.push(op('delete','month_archives',id,null));
+  }
   if(!pending.length)return;
   journalAddMany(pending);
   for(const x of pending){await qPut(x);journalRemove(x.eventId);}
@@ -453,12 +533,36 @@ async function syncPending(){
 async function fetchAll(table,select='*'){
   const out=[];for(let from=0;;from+=1000){const to=from+999;const rows=await api('/rest/v1/'+table+'?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select='+encodeURIComponent(select),{headers:{'Range':`${from}-${to}`,'Range-Unit':'items'}});if(Array.isArray(rows))out.push(...rows);if(!rows||rows.length<1000)break;}return out;
 }
-async function serverEpochs(){const r=await api('/rest/v1/buffet_settings?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=data_epoch,period_epoch&limit=1');return {data:Number(r?.[0]?.data_epoch||1),period:Number(r?.[0]?.period_epoch||1)};}
+async function serverEpochs(){
+  if(O.accessMode==='worker'){
+    const r=await api('/rest/v1/rpc/worker_epochs_v1',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId})});
+    const x=Array.isArray(r)?r[0]:r;return {data:Number(x?.data||1),period:Number(x?.period||1)};
+  }
+  const r=await api('/rest/v1/buffet_settings?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=data_epoch,period_epoch&limit=1');return {data:Number(r?.[0]?.data_epoch||1),period:Number(r?.[0]?.period_epoch||1)};
+}
 async function fetchRecentAudit(){
   return await api('/rest/v1/audit_logs?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=id,payload,action,detail,client_created_at,server_created_at&order=server_created_at.desc&limit=500');
 }
+async function pullWorkerCloud(){
+  if(!window.S||!O.buffetId)return;
+  const r=await api('/rest/v1/rpc/worker_state_v1',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId})});
+  const x=(Array.isArray(r)?r[0]:r)||{};
+  O.dataEpoch=Number(x.dataEpoch||1);O.periodEpoch=Number(x.periodEpoch||1);localStorage.setItem(epochKeyFor(O.buffetId),String(O.dataEpoch));localStorage.setItem(periodKeyFor(O.buffetId),String(O.periodEpoch));
+  const fresh={
+    cash:{opening:0,movements:[]},openingDue:clone(x.openingDue||{}),cats:Array.isArray(x.cats)?x.cats:[],people:Array.isArray(x.people)?x.people:[],suppliers:[''],expenseTypes:[],
+    products:Array.isArray(x.products)?x.products:[],recipes:Array.isArray(x.recipes)?x.recipes:[],sales:Array.isArray(x.sales)?x.sales:[],payments:Array.isArray(x.payments)?x.payments:[],
+    purchases:[],expenses:[],hospitality:[],audit:[],accountLedger:Array.isArray(x.accountLedger)?x.accountLedger:[],accountLedgerVersion:Number(x.accountLedgerVersion||1)
+  };
+  ensureIds(fresh);
+  O.suppress=true;try{
+    Object.keys(window.S).forEach(k=>delete window.S[k]);Object.assign(window.S,fresh);window.normalizeState?.();
+    localStorage.setItem(window.DATA_KEY||'buffet_v9_online_state',JSON.stringify(window.S));localStorage.setItem(window.ARCHIVE_KEY||'buffet_v9_online_archive','[]');
+    O.lastState=clone(window.S);O.lastArchive=[];persistBuffetCache();window.render?.();applyAccessUI();
+  }finally{O.suppress=false;}
+}
 async function pullCloud(){
   if(!window.S||!O.buffetId)return;
+  if(O.accessMode==='worker')return pullWorkerCloud();
   const [off,cats,sups,etypes,prods,recs,sales,pays,purs,exps,hosp,cash,ledger,settings,archives,audits]=await Promise.all([
     fetchAll('officers','name,payload'),fetchAll('categories','name,payload'),fetchAll('suppliers','name,payload'),fetchAll('expense_types','name,payload'),fetchAll('products','id,name,category_name,unit,buy_price,sell_price,min_qty,stock_qty,stock_value,payload'),fetchAll('recipes','id,payload'),fetchAll('sales','id,payload'),fetchAll('payments','id,payload'),fetchAll('purchases','id,payload'),fetchAll('expenses','id,payload'),fetchAll('hospitality','id,payload'),fetchAll('cash_movements','id,payload'),fetchAll('account_ledger_entries','id,client_seq,client_created_at,server_created_at,payload'),fetchAll('buffet_settings','opening_due,cash_opening,suppliers,expense_types,account_ledger_version,data_epoch,period_epoch,payload'),fetchAll('month_archives','id,month_key,payload'),fetchRecentAudit()
   ]);
@@ -475,7 +579,12 @@ async function pullCloud(){
   ensureIds(fresh);
   O.suppress=true;try{Object.keys(window.S).forEach(k=>delete window.S[k]);Object.assign(window.S,fresh);window.normalizeState?.();localStorage.setItem(window.DATA_KEY||'buffet_v9_online_state',JSON.stringify(window.S));const ar=archives.map(r=>Object.assign({},r.payload||{},{_cloudId:r.id}));localStorage.setItem(window.ARCHIVE_KEY||'buffet_v9_online_archive',JSON.stringify(ar));O.lastState=clone(window.S);O.lastArchive=clone(ar);persistBuffetCache();window.render?.();}finally{O.suppress=false;}
 }
-async function latestEventAt(){const r=await api('/rest/v1/sync_events?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=server_created_at&order=server_created_at.desc&limit=1');return r?.[0]?.server_created_at||null;}
+async function latestEventAt(){
+  if(O.accessMode==='worker'){
+    const r=await api('/rest/v1/rpc/worker_latest_event_v1',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId})});return Array.isArray(r)?(r[0]||null):(r||null);
+  }
+  const r=await api('/rest/v1/sync_events?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=server_created_at&order=server_created_at.desc&limit=1');return r?.[0]?.server_created_at||null;
+}
 async function poll(){if(!O.ready||!navigator.onLine||O.syncing)return;try{const x=await latestEventAt();if(x&&O.lastServerEventAt&&x!==O.lastServerEventAt){if((await queueCount())===0)await pullCloud();}O.lastServerEventAt=x||O.lastServerEventAt;}catch(e){}}
 async function touchDevice(){try{await upsertRows('sync_devices',[{buffet_id:O.buffetId,device_id:O.deviceId,user_id:O.user?.id||null,device_name:navigator.platform||navigator.userAgent,last_seen_at:nowIso(),last_sync_at:nowIso(),pending_count:await queueCount()}],'buffet_id,device_id');}catch(e){}}
 
@@ -483,7 +592,7 @@ async function touchDevice(){try{await upsertRows('sync_devices',[{buffet_id:O.b
 async function logoutOnline(){
   persistBuffetCache();
   try{if(navigator.onLine&&O.session?.access_token)await api('/auth/v1/logout',{method:'POST'});}catch(e){}
-  saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;showAuth(true);authMsg('تم تسجيل الخروج.','ok');
+  saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;O.accessMode=null;applyAccessUI();showAuth(true);authMsg('تم تسجيل الخروج.','ok');
 }
 
 async function executeOnlineReset(){
@@ -523,15 +632,15 @@ function installSensitiveGuards(){
 
 async function afterAuth(){
   O.user=O.session?.user||O.user;clearOperationalAutofill();setTimeout(clearOperationalAutofill,300);setTimeout(clearOperationalAutofill,1200);
-  let chosen=await loadOwnedBuffet();
+  let chosen=await loadBuffetAccess();
   if(!chosen){
     if(!navigator.onLine){showAuth(true);authMsg('أول تشغيل للحساب يحتاج اتصال بالإنترنت.','err');return;}
     authMsg('جاري تجهيز البوفيه لأول مرة...');
     await api('/rest/v1/rpc/create_buffet',{method:'POST',body:JSON.stringify({p_name:'البوفيه'})});
-    chosen=await loadOwnedBuffet();
+    chosen=await loadBuffetAccess();
   }
   if(!chosen){showAuth(true);authMsg('تعذر تجهيز البوفيه للحساب. حاول تسجيل الدخول مرة أخرى.','err');return;}
-  await activateOwnedBuffet(chosen);
+  await activateBuffetAccess(chosen);
 }
 async function init(){
   if((location.hash||'').startsWith('#account='))return;
@@ -550,15 +659,15 @@ async function init(){
     try{
       if(navigator.onLine){await accessToken();const u=await api('/auth/v1/user',{method:'GET'});O.user=u;O.session.user=u;saveSession(O.session);await afterAuth();}
       else{
-        const m=cachedOwnedBuffet();
-        if(m&&window.S){rememberOwnedBuffet(m);restoreBuffetCache(m.buffet_id);O.ready=true;showAuth(false);clearOperationalAutofill();await refreshStatus();}
+        const m=cachedBuffetAccess();
+        if(m&&window.S){rememberBuffetAccess(m);restoreBuffetCache(m.buffet_id);O.ready=true;showAuth(false);applyAccessUI();clearOperationalAutofill();await refreshStatus();}
         else{showAuth(true);authMsg('أول تشغيل Offline يحتاج فتح الحساب مرة واحدة بالإنترنت.','err');}
       }
     }catch(e){
       console.error(e);
       if(e?.status===401){saveSession(null);O.ready=false;showAuth(true);authMsg('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.','err');return;}
-      const m=cachedOwnedBuffet();
-      if(m&&window.S){rememberOwnedBuffet(m);restoreBuffetCache(m.buffet_id);O.ready=true;showAuth(false);clearOperationalAutofill();await setStatus('error','السيرفر غير متاح · العمل محفوظ محليًا');}
+      const m=cachedBuffetAccess();
+      if(m&&window.S){rememberBuffetAccess(m);restoreBuffetCache(m.buffet_id);O.ready=true;showAuth(false);applyAccessUI();clearOperationalAutofill();await setStatus('error','السيرفر غير متاح · العمل محفوظ محليًا');}
       else{showAuth(true);authMsg('تعذر الوصول للسيرفر. جرّب مرة أخرى عند رجوع الإنترنت.','err');}
     }
   }else showAuth(true);

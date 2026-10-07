@@ -41,7 +41,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 .product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v9.2.0-online-single">
+<body data-app-version="v9.3.0-worker-access">
 <div id="appSplash" class="app-splash" aria-hidden="true">
   <div class="splash-inner">
     <div class="splash-logo-wrap"><img class="splash-logo" src="icon-512.png" alt=""></div>
@@ -211,7 +211,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 </main>
 <div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3><input id="editProductName" placeholder="اسم المنتج" readonly><input id="editProductBuy" type="number" step="0.01" placeholder="متوسط التكلفة — تلقائي" readonly><input id="editProductSell" type="number" step="0.01" placeholder="سعر البيع"><input id="editProductQty" type="number" step="0.01" placeholder="المخزون الحالي — تلقائي" readonly><input id="editProductMin" type="number" step="0.01" placeholder="حد التنبيه"><select id="editProductUnit" disabled><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select><select id="editProductCat"></select><div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div><div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
-<script src="online.js?v=9.2.0-single"></script>
+<script src="online.js?v=9.3.0-worker"></script>
 <script>
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
