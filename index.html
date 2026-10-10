@@ -38,7 +38,80 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 @media(max-width:600px){header{padding:18px 14px 14px}main{padding:0 18px}.grid3{grid-template-columns:1fr}.grid{grid-template-columns:1fr}nav{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px 18px 16px}nav button.nav-card{min-height:76px;font-size:15px}.person{padding:18px}.amount{font-size:23px}}
 
 .pay-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999}.pay-modal.show{display:flex}.pay-box{width:min(520px,100%);background:#202020;border:1px solid #555;border-radius:24px;padding:24px;box-shadow:0 20px 60px #000}.pay-box h3{margin:0 0 8px;font-size:25px}.pay-box .due{font-size:18px;color:#bbb;margin-bottom:18px}.pay-box input{width:100%;font-size:24px;padding:16px;border-radius:14px;border:1px solid #555;background:#111;color:#fff}.pay-actions{display:flex;gap:10px;margin-top:16px}.pay-actions button{flex:1;padding:15px;border-radius:14px;font-size:18px}.pay-cancel{background:#111;color:#fff;border:1px solid #444}.pay-ok{background:#07111f;color:#fff;border:1px solid #0b4f9c}
-.product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
+.product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}
+
+/* === V9.3.1 Premium Midnight/Turquoise Theme (visual only) === */
+:root{
+  color-scheme:dark;
+  --bg:#04131c;
+  --bg2:#061a25;
+  --surface:#0a202c;
+  --surface2:#0d2633;
+  --surface3:#102d3a;
+  --line:#167f98;
+  --line-soft:rgba(34,211,238,.34);
+  --turq:#19e6d2;
+  --turq2:#0dc7c2;
+  --text:#f5fbff;
+  --muted:#9db0c2;
+  --shadow:0 12px 30px rgba(0,0,0,.32);
+}
+*{font-family:"SF Arabic","Noto Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif}
+body{background:var(--bg)!important;color:var(--text)!important;min-height:100vh;background-image:linear-gradient(180deg,#04131c 0%,#061925 52%,#04131c 100%)!important;background-attachment:fixed!important}
+header{padding-top:18px!important}.header-date{color:#d7e4ed!important;font-weight:750!important}.header-brand{position:relative}.header-brand::before{content:"";position:absolute;inset:-5px;border-radius:25px;border:1px solid rgba(25,230,210,.62);box-shadow:0 0 20px rgba(25,230,210,.20),inset 0 0 18px rgba(25,230,210,.08);pointer-events:none}.header-brand img{border-radius:20px!important;filter:drop-shadow(0 9px 18px rgba(0,0,0,.42))!important}
+.month{color:#b8c8d6!important}
+nav{gap:12px!important}
+nav button,.tab{background:linear-gradient(180deg,var(--surface2),var(--surface))!important;color:var(--text)!important;border:1px solid rgba(31,194,226,.58)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 8px 18px rgba(0,0,0,.20)!important}
+nav button.nav-card{min-height:105px!important;border-radius:20px!important;padding:12px 8px!important;gap:9px!important;background:linear-gradient(180deg,#0b2431 0%,#081b26 100%)!important;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease!important}
+nav button.nav-card:active{transform:scale(.98)}
+nav button.nav-card .nav-icon{width:54px;height:54px;border-radius:50%;display:flex!important;align-items:center;justify-content:center;font-size:30px!important;line-height:1!important;background:radial-gradient(circle at 35% 28%,#17384a 0%,#0a2431 58%,#071821 100%)!important;border:1px solid rgba(56,189,248,.24)!important;box-shadow:inset 0 0 20px rgba(0,0,0,.25),0 6px 14px rgba(0,0,0,.28)!important;filter:saturate(1.08) contrast(1.03);font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif!important}
+nav button.nav-card .nav-label{font-size:15.5px!important;font-weight:800!important;letter-spacing:.05px;color:#f7fbff!important;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+nav button.active{background:linear-gradient(180deg,rgba(8,112,114,.88),rgba(8,58,70,.96))!important;border-color:#62fff0!important;box-shadow:0 0 0 1px rgba(98,255,240,.6),0 0 22px rgba(25,230,210,.42),inset 0 0 22px rgba(25,230,210,.16)!important}
+nav button.active .nav-icon{border-color:#63fff1!important;background:radial-gradient(circle at 35% 28%,#147f81 0%,#0a525c 58%,#07313c 100%)!important;box-shadow:0 0 18px rgba(25,230,210,.5),inset 0 0 18px rgba(255,255,255,.06)!important;transform:scale(1.04)!important}
+
+nav button.nav-card:nth-child(1) .nav-icon{box-shadow:0 0 15px rgba(0,201,255,.14),inset 0 0 20px rgba(0,0,0,.24)!important}
+nav button.nav-card:nth-child(2) .nav-icon{box-shadow:0 0 15px rgba(49,116,255,.14),inset 0 0 20px rgba(0,0,0,.24)!important}
+nav button.nav-card:nth-child(3) .nav-icon{box-shadow:0 0 17px rgba(255,189,46,.14),inset 0 0 20px rgba(0,0,0,.24)!important}
+nav button.nav-card:nth-child(4) .nav-icon{box-shadow:0 0 15px rgba(67,174,255,.14),inset 0 0 20px rgba(0,0,0,.24)!important}
+nav button.nav-card:nth-child(5) .nav-icon{box-shadow:0 0 15px rgba(226,142,62,.14),inset 0 0 20px rgba(0,0,0,.24)!important}
+nav button.nav-card:nth-child(6) .nav-icon{box-shadow:0 0 15px rgba(65,157,255,.14),inset 0 0 20px rgba(0,0,0,.24)!important}
+nav button.nav-card:nth-child(7) .nav-icon{box-shadow:0 0 16px rgba(44,218,120,.14),inset 0 0 20px rgba(0,0,0,.24)!important}
+nav button.nav-card:nth-child(8) .nav-icon{box-shadow:0 0 15px rgba(35,194,238,.14),inset 0 0 20px rgba(0,0,0,.24)!important}
+nav button.nav-card:nth-child(9) .nav-icon{box-shadow:0 0 15px rgba(255,174,47,.14),inset 0 0 20px rgba(0,0,0,.24)!important}
+nav button.nav-card:nth-child(10) .nav-icon{box-shadow:0 0 15px rgba(25,230,210,.14),inset 0 0 20px rgba(0,0,0,.24)!important}
+
+main{color:var(--text)!important}
+h2,h3,.name,.amount{color:#fff!important;font-weight:800!important}
+.card,.person,.stat{background:linear-gradient(145deg,#0d2633 0%,#081b26 100%)!important;border:1px solid rgba(29,191,219,.48)!important;box-shadow:var(--shadow)!important}
+.card,.person{border-radius:22px!important}.stat{border-radius:18px!important}
+.muted,.hint,.section-label,th{color:var(--muted)!important}
+input,select{background:#071923!important;color:#fff!important;border:1px solid rgba(47,174,204,.68)!important;border-radius:14px!important;padding:13px 14px!important;outline:none!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)!important}
+input:focus,select:focus{border-color:var(--turq)!important;box-shadow:0 0 0 2px rgba(25,230,210,.12),0 0 16px rgba(25,230,210,.13)!important}
+input::placeholder{color:#8399ac!important}
+button.primary{background:linear-gradient(135deg,#06786f 0%,#12bdb4 52%,#19e6d2 100%)!important;color:#efffff!important;border:1px solid #63fff0!important;border-radius:14px!important;font-weight:800!important;box-shadow:0 8px 20px rgba(7,188,178,.18),inset 0 1px 0 rgba(255,255,255,.20)!important}
+button.primary:active{transform:translateY(1px)}
+button.danger{background:#401a20!important;border-color:#8d3a45!important}
+.sale-category-btn{background:linear-gradient(180deg,#0d2633,#081b26)!important;border:1px solid rgba(29,191,219,.48)!important;color:#fff!important;box-shadow:0 8px 18px rgba(0,0,0,.20)!important}
+table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!important;border-radius:16px!important;box-shadow:0 10px 22px rgba(0,0,0,.20)!important}th,td{border-bottom:1px solid rgba(53,123,145,.32)!important}thead{background:#0b2431!important}th{color:#c9d7e2!important;font-weight:750!important}
+.pill{background:#0d2c37!important;color:#b9d7df!important;border:1px solid rgba(36,177,197,.28)!important}
+.metric-card{background:linear-gradient(145deg,#0d2633,#081b26)!important;border:1px solid rgba(29,191,219,.44)!important;box-shadow:0 10px 24px rgba(0,0,0,.24)!important}.metric-head{color:#e8f6fb!important}.metric-note{color:#94aabd!important}.summary-row{background:#0a202c!important;border-color:rgba(29,191,219,.34)!important}
+.account-payment-note{background:#0d2d2a!important;border-color:#1f7369!important;color:#d9fff6!important}
+.public-view .public-readonly{background:#0d2d2a!important;border-color:#1f7369!important}.public-view .public-readonly .pill{background:#0e3d36!important;color:#d9fff6!important}
+.install-box,.pay-box,.product-modal-box,.worker-box{background:linear-gradient(160deg,#0d2633,#071923)!important;border-color:rgba(31,194,226,.46)!important}.install-secondary,.pay-cancel{background:#0a1f2a!important;border-color:rgba(31,194,226,.38)!important}.install-help{background:#071923!important;border-color:rgba(31,194,226,.30)!important}.install-primary,.pay-ok{background:linear-gradient(135deg,#06786f,#19e6d2)!important;border-color:#62fff0!important}
+.install-float{background:#08232e!important;border-color:#2cd9d1!important;box-shadow:0 0 18px rgba(25,230,210,.18)!important}
+#onlineLogoutBtn,#onlineWorkerBtn{background:#0a202c!important;border-color:rgba(31,194,226,.45)!important;color:#eafaff!important}
+
+@media(max-width:600px){
+  body{background:#04131c!important}
+  nav{gap:10px!important;padding:8px 14px 16px!important}
+  nav button.nav-card{min-height:98px!important;border-radius:18px!important}
+  nav button.nav-card .nav-icon{width:50px;height:50px;font-size:28px!important}
+  nav button.nav-card .nav-label{font-size:14.5px!important}
+  main{padding:0 14px 34px!important}
+  .card,.person{border-radius:20px!important}
+}
+
+</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
 <body data-app-version="v9.3.1-purchase-product-lock">
@@ -211,7 +284,7 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 </main>
 <div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3><input id="editProductName" placeholder="اسم المنتج" readonly><input id="editProductBuy" type="number" step="0.01" placeholder="متوسط التكلفة — تلقائي" readonly><input id="editProductSell" type="number" step="0.01" placeholder="سعر البيع"><input id="editProductQty" type="number" step="0.01" placeholder="المخزون الحالي — تلقائي" readonly><input id="editProductMin" type="number" step="0.01" placeholder="حد التنبيه"><select id="editProductUnit" disabled><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select><select id="editProductCat"></select><div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div><div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
-<script src="online.js?v=9.3.1-purchase-lock"></script>
+<script src="online.js?v=9.3.1-premium-turquoise"></script>
 <script>
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
