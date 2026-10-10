@@ -38,64 +38,10 @@ h2{font-size:24px;margin:10px 0 15px}.rowtitle{display:flex;justify-content:spac
 @media(max-width:600px){header{padding:18px 14px 14px}main{padding:0 18px}.grid3{grid-template-columns:1fr}.grid{grid-template-columns:1fr}nav{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px 18px 16px}nav button.nav-card{min-height:76px;font-size:15px}.person{padding:18px}.amount{font-size:23px}}
 
 .pay-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999}.pay-modal.show{display:flex}.pay-box{width:min(520px,100%);background:#202020;border:1px solid #555;border-radius:24px;padding:24px;box-shadow:0 20px 60px #000}.pay-box h3{margin:0 0 8px;font-size:25px}.pay-box .due{font-size:18px;color:#bbb;margin-bottom:18px}.pay-box input{width:100%;font-size:24px;padding:16px;border-radius:14px;border:1px solid #555;background:#111;color:#fff}.pay-actions{display:flex;gap:10px;margin-top:16px}.pay-actions button{flex:1;padding:15px;border-radius:14px;font-size:18px}.pay-cancel{background:#111;color:#fff;border:1px solid #444}.pay-ok{background:#07111f;color:#fff;border:1px solid #0b4f9c}
-.product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}/* === Original icon charcoal theme === */
-:root{
-  --final-bg:#30343B;
-  --final-surface:#3D424B;
-  --final-surface-soft:#464C56;
-  --final-border:#606875;
-  --final-border-soft:#737d8b;
-  --final-text:#F3F5F7;
-  --final-muted:#C8CDD4;
-  --final-active:#193552;
-  --final-active-border:#3E6B9B;
-}
-body{background:var(--final-bg)!important;color:var(--final-text)!important}
-header,.month,.header-date{color:var(--final-muted)!important}
-nav button,.tab{background:var(--final-bg)!important;color:var(--final-text)!important;border:1px solid var(--final-border)!important}
-nav button.nav-card{background:var(--final-surface)!important;border-color:var(--final-border)!important;box-shadow:0 4px 14px rgba(0,0,0,.28)!important}
-nav button.nav-card .nav-icon{
-  width:auto!important;height:auto!important;border:none!important;border-radius:0!important;
-  background:none!important;box-shadow:none!important;color:inherit!important;
-  font-size:23px!important;line-height:1!important;display:block!important
-}
-nav button.nav-card .nav-label{color:var(--final-text)!important}
-nav button.active{background:var(--final-active)!important;border-color:var(--final-active-border)!important;box-shadow:inset 0 0 0 1px var(--final-active-border),0 5px 16px rgba(0,0,0,.28)!important}
-nav button.active .nav-icon{transform:scale(1.06)!important}
-main{color:var(--final-text)!important}
-.person,.card{background:var(--final-surface)!important;border:1px solid var(--final-border)!important;box-shadow:0 3px 12px rgba(0,0,0,.36)!important}
-.muted,.hint,th,.section-label,.month,.header-date,.metric-note,.pill{color:var(--final-muted)!important}
-input,select{background:#2F343C!important;color:#fff!important;border:1px solid var(--final-border)!important}
-input::placeholder{color:#C1C7CF!important}
-button.primary{background:#0F2237!important;color:#fff!important;border:1px solid #2E5179!important}
-button.danger{background:#4B1D1D!important;border-color:#7A3434!important}
-share-btn{border-color:#2C6946!important;background:#153020!important}
-table{background:#2D3138!important;border:1px solid var(--final-border)!important}
-th,td{border-bottom:1px solid #555E6A!important}
-.stat{background:#353A43!important;border:1px solid var(--final-border)!important}
-.pill{background:#2C3138!important}
-.account-payment-note{background:#203127!important;border:1px solid #3E6A4A!important;color:#DBEFE0!important}
-.sale-category-btn{background:#343941!important;color:#fff!important;border:1px solid var(--final-border)!important}
-.metric-card{background:linear-gradient(145deg,#383D46,#2F343C)!important;border:1px solid #59626E!important;box-shadow:0 4px 14px rgba(0,0,0,.3)!important}
-.metric-head{color:#E6E9ED!important}
-.metric-note{color:#C8CDD4!important}
-.metric-icon{background:color-mix(in srgb,var(--accent) 18%,#2E333B)!important}
-.summary-row{background:#343941!important;border:1px solid #59626E!important}
-.install-box{background:linear-gradient(160deg,#2f343c,#262a31)!important;border:1px solid #5c6470!important}
-.install-secondary{background:#2d3138!important;border:1px solid #5c6470!important}
-.install-help{background:#2b3037!important;border:1px solid #5a616d!important}
-.reset-box{background:linear-gradient(160deg,#312729,#262122)!important}
-.pay-box{background:#343941!important;border:1px solid #606875!important}
-.pay-box .due{color:#d3d7dd!important}
-.pay-box input{background:#2c3037!important;border:1px solid #606875!important;color:#fff!important}
-.pay-cancel{background:#2c3037!important;border:1px solid #606875!important}
-.product-modal-box{background:#343941!important;border:1px solid #606875!important}
-/* keep splash and login visuals untouched as much as possible */
-
-</style>
+.product-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}.product-modal.show{display:flex}.product-modal-box{width:min(560px,100%);background:#202020;border:1px solid #555;border-radius:22px;padding:20px;box-shadow:0 20px 60px #000}.product-modal-box h3{margin:0 0 14px;font-size:24px}.product-modal-actions{display:flex;gap:10px;margin-top:14px}.product-modal-actions button{flex:1}</style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v9.3.0-worker-access">
+<body data-app-version="v9.3.1-purchase-product-lock">
 <div id="appSplash" class="app-splash" aria-hidden="true">
   <div class="splash-inner">
     <div class="splash-logo-wrap"><img class="splash-logo" src="icon-512.png" alt=""></div>
@@ -163,7 +109,7 @@ th,td{border-bottom:1px solid #555E6A!important}
 </section>
 
 <section id="products">
-<h2>المنتجات</h2><div class="hint">المنتجات بتتعرّف تلقائيًا أول مرة من المشتريات، وبعد كده تفضل موجودة كقائمة منتجات حتى بعد إغلاق الشهر. حدد سعر البيع وحد التنبيه والفئة هنا، والخامات ممكن تسيب سعر بيعها 0.</div>
+<h2>المنتجات</h2><div class="hint">المنتجات بتتعرّف من شاشة المشتريات عن طريق اختيار منتج موجود أو إضافة منتج جديد بشكل صريح، وبعد كده تفضل موجودة كقائمة منتجات حتى بعد إغلاق الشهر. حدد سعر البيع وحد التنبيه والفئة هنا، والخامات ممكن تسيب سعر بيعها 0.</div>
 <div class="card" style="margin-bottom:12px"><div class="rowtitle"><b>بيانات المنتج</b><span class="pill">مضاف من المشتريات</span></div><div class="grid3"><select id="productFromPurchases" onchange="loadPurchasedProduct()"><option value="">اختر منتجًا</option></select><input id="productSalePrice" type="number" min="0" step="0.01" placeholder="سعر البيع (0 للخامة)"><input id="productMinStock" type="number" min="0" step="0.01" placeholder="حد التنبيه"></div><div class="grid" style="margin-top:8px"><select id="productCategoryEdit"><option value="">بدون فئة</option></select><button type="button" class="primary" onclick="setPurchasedProductSale()">حفظ بيانات المنتج</button></div></div>
 <div class="card" style="margin-bottom:12px"><input id="productSearch" placeholder="بحث في المنتجات" oninput="renderProducts()"></div>
 <table><thead><tr><th>الصنف</th><th>متوسط التكلفة</th><th>بيع</th><th>المخزون</th><th>الوحدة</th><th>الفئة</th><th></th></tr></thead><tbody id="productRows"></tbody></table>
@@ -175,10 +121,10 @@ th,td{border-bottom:1px solid #555E6A!important}
 <div class="hint">أضف أي عدد من المكونات وحدد الفئة التي يظهر فيها الريسبي في شاشة البيع. مثال: ريسبي القهوة يمكن وضعه داخل فئة المشروبات الساخنة بجوار باقي الأصناف.</div><div class="grid3"><input id="rn" placeholder="اسم الريسبي"><input id="rs" type="number" placeholder="سعر البيع"><select id="rc"><option value="">بدون فئة</option></select></div><div id="ings"></div><button type="button" class="tab" onclick="addIng()">إضافة مكوّن +</button><button type="button" class="primary" onclick="saveRecipe()">حفظ الريسبي</button>
 <table><thead><tr><th>الريسبي</th><th>الفئة</th><th>البيع</th><th>التكلفة</th><th>الربح</th><th></th></tr></thead><tbody id="recipeRows"></tbody></table></section>
 
-<section id="purchases"><h2>المشتريات</h2><div class="hint">المنتج = تعريف الصنف. المشتريات = إضافة بضاعة فعلية للمخزون وتسجيل المورد وسعر الشراء.</div>
+<section id="purchases"><h2>المشتريات</h2><div class="hint">اختار المنتج من القائمة علشان كل مشترياته تتحسب على نفس الصنف ومتوسط التكلفة يفضل صحيح. لو الصنف جديد اضغط «إضافة منتج جديد» مرة واحدة.</div>
 <div class="card" style="margin-bottom:12px"><div class="rowtitle"><b>الموردين</b><span class="pill">إدارة الموردين</span></div>
 <div class="grid"><input id="newSupplier" placeholder="اسم المورد"><button type="button" class="primary" onclick="addSupplier(event)">إضافة مورد</button></div>
-<div id="supplierList" class="hint"></div></div><div class="grid3"><div><div class="hint">المورد</div><select id="sup"><option value="">اختر المورد</option></select></div><div><div class="hint">المنتج</div><input id="pp" list="purchaseProductList" placeholder="اكتب أو اختر اسم الصنف" autocomplete="off" oninput="syncPurchaseUnit()"><datalist id="purchaseProductList"></datalist></div><div><div class="hint">الكمية</div><input id="pqq" type="number" inputmode="decimal" step="0.01" min="0.01" placeholder="مثال: 0.25" oninput="updatePurchaseTotal()"></div><div><div class="hint">الوحدة</div><select id="punit"><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select></div><div><div class="hint">سعر الوحدة</div><input id="ppr" type="number" inputmode="decimal" step="0.01" min="0" placeholder="مثال: 600" oninput="updatePurchaseTotal()"></div><div><div class="hint">إجمالي المشتريات</div><input id="ptotal" type="text" readonly value="0.00 جنيه"></div></div><button id="purchaseBtn" type="button" class="primary" onclick="purchase(event)">تسجيل المشتريات</button><table><thead><tr><th>التاريخ</th><th>المورد</th><th>الصنف</th><th>الكمية</th><th>الإجمالي</th><th>إجراء</th></tr></thead><tbody id="purchaseRows"></tbody></table></section>
+<div id="supplierList" class="hint"></div></div><div class="grid3"><div><div class="hint">المورد</div><select id="sup"><option value="">اختر المورد</option></select></div><div><div class="hint">المنتج</div><div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px"><input id="pp" list="purchaseProductList" placeholder="ابحث واختر منتجًا موجودًا" autocomplete="off" oninput="syncPurchaseUnit()"><button type="button" class="tab" onclick="addNewPurchaseProduct()">+ إضافة منتج جديد</button></div><datalist id="purchaseProductList"></datalist><div class="hint" style="margin-top:5px">لن يتم إنشاء منتج جديد من الكتابة فقط.</div></div><div><div class="hint">الكمية</div><input id="pqq" type="number" inputmode="decimal" step="0.01" min="0.01" placeholder="مثال: 0.25" oninput="updatePurchaseTotal()"></div><div><div class="hint">الوحدة</div><select id="punit"><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select></div><div><div class="hint">سعر الوحدة</div><input id="ppr" type="number" inputmode="decimal" step="0.01" min="0" placeholder="مثال: 600" oninput="updatePurchaseTotal()"></div><div><div class="hint">إجمالي المشتريات</div><input id="ptotal" type="text" readonly value="0.00 جنيه"></div></div><button id="purchaseBtn" type="button" class="primary" onclick="purchase(event)">تسجيل المشتريات</button><table><thead><tr><th>التاريخ</th><th>المورد</th><th>الصنف</th><th>الكمية</th><th>الإجمالي</th><th>إجراء</th></tr></thead><tbody id="purchaseRows"></tbody></table></section>
 
 <section id="expenses"><h2>المصروفات</h2>
 <div class="card" style="margin-bottom:12px"><div class="rowtitle"><b>أنواع المصروفات</b><span class="pill">قابلة للتعديل</span></div>
@@ -265,7 +211,7 @@ th,td{border-bottom:1px solid #555E6A!important}
 </main>
 <div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3><input id="editProductName" placeholder="اسم المنتج" readonly><input id="editProductBuy" type="number" step="0.01" placeholder="متوسط التكلفة — تلقائي" readonly><input id="editProductSell" type="number" step="0.01" placeholder="سعر البيع"><input id="editProductQty" type="number" step="0.01" placeholder="المخزون الحالي — تلقائي" readonly><input id="editProductMin" type="number" step="0.01" placeholder="حد التنبيه"><select id="editProductUnit" disabled><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select><select id="editProductCat"></select><div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div><div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
-<script src="online.js?v=9.3.0-worker"></script>
+<script src="online.js?v=9.3.1-purchase-lock"></script>
 <script>
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
@@ -808,7 +754,7 @@ function confirmCart(forceCash){
 function sell(i){addToCart(i)}
 function editProduct(i){const p=S.products[i];if(!p)return;window._editingProductIndex=i;document.getElementById("editProductName").value=p.name||"";document.getElementById("editProductBuy").value=p.buy??0;document.getElementById("editProductSell").value=p.sell??0;document.getElementById("editProductQty").value=p.qty??0;document.getElementById("editProductMin").value=p.min??0;document.getElementById("editProductUnit").value=p.unit||"قطعة";const c=document.getElementById("editProductCat");c.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");c.value=p.cat||"";document.getElementById("productModal").classList.add("show");document.getElementById("productModal").setAttribute("aria-hidden","false");}
 function closeProductModal(){window._editingProductIndex=null;document.getElementById("productModal").classList.remove("show");document.getElementById("productModal").setAttribute("aria-hidden","true");}
-function saveProductEdit(){const i=window._editingProductIndex,p=S.products[i];if(!p)return;const n=document.getElementById("editProductName").value.trim();if(!n)return alert("اكتب اسم المنتج");if(S.products.some((x,j)=>j!==i&&String(x.name||"").trim()===n))return alert("اسم المنتج موجود بالفعل");const oldName=p.name;if(n!==oldName){p.name=n;(S.purchases||[]).forEach(x=>{if(x.p===oldName)x.p=n});(S.recipes||[]).forEach(r=>(r.ins||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n}));(S.sales||[]).forEach(x=>{if(x.product===oldName)x.product=n;(x.recipeIns||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n});});(S.accountLedger||[]).forEach(x=>{if(x.type==="sale"&&x.product===oldName)x.product=n;});}p.sell=Number(document.getElementById("editProductSell").value)||0;p.min=Number(document.getElementById("editProductMin").value)||0;p.cat=document.getElementById("editProductCat").value||"";logAction("تعديل منتج",oldName+" ← "+p.name);save();closeProductModal();render();}
+function saveProductEdit(){const i=window._editingProductIndex,p=S.products[i];if(!p)return;const n=document.getElementById("editProductName").value.trim();if(!n)return alert("اكتب اسم المنتج");if(S.products.some((x,j)=>j!==i&&normalizeProductLookup(x.name)===normalizeProductLookup(n)))return alert("اسم المنتج موجود بالفعل");const oldName=p.name;if(n!==oldName){p.name=n;(S.purchases||[]).forEach(x=>{if(x.p===oldName)x.p=n});(S.recipes||[]).forEach(r=>(r.ins||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n}));(S.sales||[]).forEach(x=>{if(x.product===oldName)x.product=n;(x.recipeIns||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n});});(S.accountLedger||[]).forEach(x=>{if(x.type==="sale"&&x.product===oldName)x.product=n;});}p.sell=Number(document.getElementById("editProductSell").value)||0;p.min=Number(document.getElementById("editProductMin").value)||0;p.cat=document.getElementById("editProductCat").value||"";logAction("تعديل منتج",oldName+" ← "+p.name);save();closeProductModal();render();}
 
 function purchasedProductNames(){return (S.products||[]).map(x=>x.name).filter(Boolean)}
 function renderProductPurchasePicker(){
@@ -939,8 +885,25 @@ function addExpenseType(){
  if(!S.expenseTypes.includes(x))S.expenseTypes.push(x);
  newExpenseType.value="";save();render();
 }
-function syncPurchasePrice(){const p=S.products.find(x=>x.name===pp.value.trim());if(p)ppr.value=Number(p.buy||0)}
-function syncPurchaseUnit(){let p=S.products.find(x=>x.name===pp.value.trim());if(p&&p.unit)punit.value=p.unit;let price=p?Number(p.buy||0):0;if(p&&!ppr.value)ppr.value=price||"";updatePurchaseTotal()}
+function normalizeProductLookup(value){return String(value||"").normalize("NFKC").replace(/[\u064B-\u065F\u0670]/g,"").replace(/\u0640/g,"").replace(/[أإآٱ]/g,"ا").replace(/ى/g,"ي").replace(/[\u200B-\u200D\uFEFF]/g,"").replace(/\s+/g," ").trim().toLowerCase()}
+function findProductByInput(value){const n=normalizeProductLookup(value);if(!n)return null;return (S.products||[]).find(x=>normalizeProductLookup(x.name)===n)||null}
+function productNameDistance(a,b){a=normalizeProductLookup(a);b=normalizeProductLookup(b);const m=a.length,n=b.length;if(!m)return n;if(!n)return m;const prev=Array.from({length:n+1},(_,i)=>i),cur=new Array(n+1);for(let i=1;i<=m;i++){cur[0]=i;for(let j=1;j<=n;j++)cur[j]=Math.min(cur[j-1]+1,prev[j]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));for(let j=0;j<=n;j++)prev[j]=cur[j]}return prev[n]}
+function closestExistingProduct(value){const n=normalizeProductLookup(value);if(!n)return null;let best=null,bestD=Infinity;for(const p of (S.products||[])){const d=productNameDistance(n,p.name);if(d<bestD){best=p;bestD=d}}const limit=n.length<=4?1:2;return best&&bestD<=limit?best:null}
+function addNewPurchaseProduct(){
+ const ppEl=document.getElementById("pp"),unitEl=document.getElementById("punit");
+ let raw=prompt("اكتب اسم المنتج الجديد");if(raw===null)return;
+ const name=String(raw||"").trim().replace(/\s+/g," ");if(!name)return alert("اكتب اسم المنتج");
+ const existing=findProductByInput(name);
+ if(existing){if(ppEl)ppEl.value=existing.name;syncPurchaseUnit();return alert("المنتج موجود بالفعل وتم اختياره من القائمة");}
+ const similar=closestExistingProduct(name);
+ if(similar&&!confirm("في منتج قريب اسمه «"+similar.name+"».\nلو تقصد نفس المنتج اضغط إلغاء، ولو ده منتج مختلف فعلًا اضغط موافق لإضافته.")){if(ppEl)ppEl.value=similar.name;syncPurchaseUnit();return;}
+ const unit=unitEl?.value||"قطعة";
+ const p={name,buy:0,sell:0,qty:0,cat:"",unit};S.products.push(p);
+ logAction("إضافة منتج جديد",name+" — "+unit);save();render();
+ if(ppEl)ppEl.value=p.name;if(unitEl)unitEl.value=p.unit;syncPurchaseUnit();
+}
+function syncPurchasePrice(){const p=findProductByInput(pp.value);if(p)ppr.value=Number(p.buy||0)}
+function syncPurchaseUnit(){let p=findProductByInput(pp.value);if(p&&pp.value!==p.name)pp.value=p.name;if(p&&p.unit)punit.value=p.unit;let price=p?Number(p.buy||0):0;if(p&&!ppr.value)ppr.value=price||"";updatePurchaseTotal()}
 function updatePurchaseTotal(){let q=Number(pqq.value||0),pr=Number(ppr.value||0);ptotal.value=(q*pr).toFixed(2)+" جنيه"}
 function purchase(ev){
  if(ev){ev.preventDefault();ev.stopPropagation();}
@@ -955,17 +918,16 @@ function purchase(ev){
   const q=Number(String(pqqEl?.value||"").replace(",","."));
   const pr=Number(String(pprEl?.value||"").replace(",","."));
   const unit=punitEl?.value||"قطعة";
-  if(!name){alert("اكتب اسم الصنف أولاً");return false;}
+  if(!name){alert("اختار المنتج أولاً");return false;}
   if(!Number.isFinite(q)||q<=0){alert("اكتب كمية صحيحة مثل 0.25");return false;}
   if(!Number.isFinite(pr)||pr<0){alert("اكتب سعر الوحدة صحيح");return false;}
   const total=q*pr;
   if(ptotalEl)ptotalEl.value=total.toFixed(2)+" جنيه";
-  let p=S.products.find(x=>String(x.name||"").trim()===name);
-  if(!p){p={name,buy:pr,sell:0,qty:0,cat:"",unit};S.products.push(p);}
-  else{
-   if(p.unit&&p.unit!==unit){alert("وحدة المنتج مختلفة: المنتج مسجل بوحدة "+p.unit+". اختار نفس الوحدة.");return false;}
-   p.unit=unit;
-  }
+  let p=findProductByInput(name);
+  if(!p){alert("المنتج غير موجود. اختاره من القائمة أو اضغط «إضافة منتج جديد» أولاً.");return false;}
+  if(ppEl&&ppEl.value!==p.name)ppEl.value=p.name;
+  if(p.unit&&p.unit!==unit){alert("وحدة المنتج مختلفة: المنتج مسجل بوحدة "+p.unit+". اختار نفس الوحدة.");return false;}
+  p.unit=unit;
   const oldQty=Number(p.qty||0), oldBuy=Number(p.buy||0), newQty=oldQty+q;
   p.buy=newQty>0?((oldQty*oldBuy)+(q*pr))/newQty:pr;
   p.qty=newQty;
