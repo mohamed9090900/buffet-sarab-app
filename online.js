@@ -17,7 +17,8 @@ const CFG={
 const O={
   session:null,user:null,buffetId:null,buffetName:null,accessMode:null,deviceId:null,dataEpoch:1,periodEpoch:1,
   ready:false,suppress:false,lastState:null,lastArchive:[],syncing:false,lastServerEventAt:null,
-  pollTimer:null,online:navigator.onLine,queuePromise:Promise.resolve()
+  pollTimer:null,online:navigator.onLine,queuePromise:Promise.resolve(),syncError:null,closing:false,storageFault:false,
+  retryAttempt:0,nextRetryAt:0,retryTimer:null,polling:false,lastSyncAt:0,syncProgress:null,needCloudRefresh:false
 };
 window.BUFFET_ONLINE=O;
 
@@ -37,6 +38,7 @@ function dataKeyFor(bid){return `buffet_v9_online_state:${bid}${workerCacheSuffi
 function archiveKeyFor(bid){return O.accessMode==='worker'?`buffet_v9_online_archive:${bid}${workerCacheSuffix()}`:`buffet_v9_online_archive:${bid}`;}
 function epochKeyFor(bid){return `buffet_v9_data_epoch:${bid}`;}
 function periodKeyFor(bid){return `buffet_v9_period_epoch:${bid}`;}
+function lastSyncKeyFor(bid){return `buffet_v9_last_confirmed_sync:${bid}${workerCacheSuffix()}`;}
 function blankState(){return window.resetFreshState?window.resetFreshState():{cash:{opening:0,movements:[]},openingDue:{},cats:[],people:[],suppliers:[''],expenseTypes:['كهرباء','مياه','صيانة','نقل','ضيافة على البوفيه','أخرى'],products:[],sales:[],payments:[],purchases:[],expenses:[],recipes:[],hospitality:[],audit:[],accountLedger:[],accountLedgerVersion:1};}
 function persistBuffetCache(){
   if(!O.buffetId||!window.S)return;
@@ -74,6 +76,11 @@ function cachedBuffetAccess(){
   if(uid&&!m.user_id){m.user_id=uid;try{localStorage.setItem(CFG.memberKey,JSON.stringify(m));}catch(e){}}
   m.access_mode=m.access_mode==='worker'?'worker':'owner';m.is_primary=m.access_mode==='owner';
   return m;
+}
+function hasBuffetCache(m){
+  if(!m?.buffet_id)return false;
+  const suffix=m.access_mode==='worker'?`:worker:${m.user_id||O.user?.id||O.session?.user?.id||'unknown'}`:'';
+  try{const v=JSON.parse(localStorage.getItem(`buffet_v9_online_state:${m.buffet_id}${suffix}`)||'null');return !!v&&typeof v==='object'&&Array.isArray(v.products)&&Array.isArray(v.sales);}catch(e){return false;}
 }
 function ensureIds(st){
   if(!st||typeof st!=='object')return st;
@@ -159,7 +166,8 @@ function injectUI(){
     <div id="oaMsg" class="oa-msg"></div>
   </div>`;
   document.body.appendChild(auth);
-  const status=document.createElement('div');status.id='onlineStatus';status.innerHTML='<span class="os-dot"></span><span id="onlineStatusText">Online</span>';document.body.appendChild(status);
+  const status=document.createElement('div');status.id='onlineStatus';status.innerHTML='<span class="os-dot"></span><span id="onlineStatusText">Online</span><button type="button" id="onlineSyncNowBtn" style="display:none;border:1px solid #6696a7;border-radius:8px;padding:3px 7px;background:#184352;color:#fff;font:inherit;cursor:pointer">مزامنة الآن</button>';document.body.appendChild(status);
+  document.getElementById('onlineSyncNowBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(O.syncing)return;clearRetryTimer();O.syncError=null;O.nextRetryAt=0;refreshStatus();scheduleSync(50);});
   const workerBtn=document.createElement('button');workerBtn.id='onlineWorkerBtn';workerBtn.type='button';workerBtn.textContent='الموظف';workerBtn.addEventListener('click',openWorkerModal);
   const logoutBtn=document.createElement('button');logoutBtn.id='onlineLogoutBtn';logoutBtn.type='button';logoutBtn.textContent='تسجيل الخروج';logoutBtn.addEventListener('click',logoutOnline);
   const headerSlot=document.querySelector('.header-spacer');if(headerSlot){headerSlot.removeAttribute('aria-hidden');headerSlot.appendChild(workerBtn);headerSlot.appendChild(logoutBtn);}else{document.body.appendChild(workerBtn);document.body.appendChild(logoutBtn);}
@@ -213,21 +221,54 @@ async function addOrEnableWorker(){
   const input=document.getElementById('workerEmailInput'),email=String(input?.value||'').trim();if(!email)return workerMsg('اكتب بريد الموظف.','err');
   await setWorkerEnabled(email,true);if(document.getElementById('workerMsg')?.classList.contains('ok')&&input)input.value='';
 }
-function journalRead(){try{const x=JSON.parse(localStorage.getItem(CFG.journalKey)||'[]');return Array.isArray(x)?x:[]}catch(e){return []}}
-function journalWrite(rows){try{if(rows?.length)localStorage.setItem(CFG.journalKey,JSON.stringify(rows));else localStorage.removeItem(CFG.journalKey)}catch(e){console.error('sync journal',e)}}
+function journalRead(){
+ const raw=localStorage.getItem(CFG.journalKey);
+ if(raw===null)return [];
+ const rows=JSON.parse(raw);
+ if(!Array.isArray(rows)||rows.some(x=>!x||!x.eventId||!x.buffetId))throw new Error('CORRUPT_OFFLINE_JOURNAL');
+ return rows;
+}
+function journalWrite(rows){
+ // A failure here must propagate; otherwise the UI could accept a sale without a durable event.
+ if(rows?.length)localStorage.setItem(CFG.journalKey,JSON.stringify(rows));
+ else localStorage.removeItem(CFG.journalKey);
+}
 function journalAddMany(rows){if(!rows?.length)return;const m=new Map(journalRead().map(x=>[x.eventId,x]));for(const x of rows)m.set(x.eventId,x);journalWrite([...m.values()]);}
 function journalRemove(id){const a=journalRead(),b=a.filter(x=>x.eventId!==id);if(b.length!==a.length)journalWrite(b);}
 async function recoverJournal(){const rows=journalRead();if(!rows.length)return;for(const x of rows)await qPut(x);journalWrite([]);}
-async function queueCount(){const j=journalRead().filter(x=>x.buffetId===O.buffetId).length;try{const db=await openDB();const k=await new Promise((res,rej)=>{const tx=db.transaction(CFG.store,'readonly'),r=tx.objectStore(CFG.store).getAll();r.onsuccess=()=>res((r.result||[]).filter(x=>x.buffetId===O.buffetId).length);r.onerror=()=>rej(r.error);});return Math.max(j,k)}catch(e){return j}}
+async function queueCount(){let ids;try{ids=new Set(journalRead().filter(x=>x.buffetId===O.buffetId).map(x=>x.eventId));const db=await openDB();const rows=await new Promise((res,rej)=>{const tx=db.transaction(CFG.store,'readonly'),r=tx.objectStore(CFG.store).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});for(const x of rows)if(x.buffetId===O.buffetId)ids.add(x.eventId);}catch(e){O.storageFault=true;O.syncError='تعذر قراءة العمليات المعلقة. ممنوع المزامنة';return ids?ids.size+1:1;}return ids.size;}
 async function setStatus(mode,text){const e=document.getElementById('onlineStatus'),t=document.getElementById('onlineStatusText');if(!e||!t)return;e.className='show '+mode;t.textContent=text;}
-async function refreshStatus(){const n=await queueCount();if(!navigator.onLine)return setStatus('offline',n?`بدون إنترنت · ${n} بانتظار المزامنة`:'بدون إنترنت');if(O.syncing)return setStatus('syncing',n?`مزامنة · ${n} عملية`:'جاري المزامنة');return setStatus('',n?`متصل · ${n} بانتظار المزامنة`:'متصل');}
+async function refreshStatus(){
+  const n=await queueCount(),button=document.getElementById('onlineSyncNowBtn');
+  if(button)button.style.display=O.ready&&navigator.onLine&&!O.syncing&&!O.storageFault&&(n>0||!!O.syncError||O.needCloudRefresh)?'inline-block':'none';
+  if(O.storageFault)return setStatus('error','تعذر قراءة العمليات المعلقة · المزامنة متوقفة');
+  if(O.syncing){const progress=O.syncProgress?` · ${O.syncProgress.done}/${O.syncProgress.total} حركة`:'';return setStatus('syncing',`جاري المزامنة${progress} · ${n} معلقة`);}
+  if(!navigator.onLine)return setStatus('offline',n?`بدون إنترنت · ${n} عملية معلقة`:'بدون إنترنت');
+  if(O.syncError)return setStatus('error',O.syncError+(n?` · ${n} معلقة`:''));
+  if(n)return setStatus('',`متصل · ${n} في انتظار المزامنة`);
+  const last=Number(O.lastSyncAt||localStorage.getItem(lastSyncKeyFor(O.buffetId))||0);
+  return setStatus('',last?`تمت المزامنة · ${new Date(last).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}`:'متصل · لم يتم تأكيد مزامنة بعد');
+}
+function markSyncConfirmed(){
+  if(!O.buffetId)return;
+  O.lastSyncAt=Date.now();
+  try{localStorage.setItem(lastSyncKeyFor(O.buffetId),String(O.lastSyncAt));}catch(e){}
+}
+
 
 function saveSession(s){O.session=s||null;O.user=s?.user||null;if(s)localStorage.setItem(CFG.sessionKey,JSON.stringify(s));else localStorage.removeItem(CFG.sessionKey);}
 function loadSession(){try{const x=JSON.parse(localStorage.getItem(CFG.sessionKey)||'null');if(x)saveSession(x);}catch(e){}}
 function sessionExpiry(s){if(!s)return 0;if(s.expires_at)return Number(s.expires_at)*1000;if(s.expires_in)return Date.now()+Number(s.expires_in)*1000;return 0;}
 async function authRequest(path,body){
-  const r=await fetch(CFG.url+path,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.key},body:JSON.stringify(body)});
-  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.msg||j.message||j.error_description||j.error||'تعذر الاتصال');return j;
+  const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),25000);
+  let r,j;
+  try{
+    r=await fetch(CFG.url+path,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.key},body:JSON.stringify(body),signal:ctrl.signal});
+    j=await r.json().catch(()=>({}));
+  }catch(e){if(e?.name==='AbortError'){const error=new Error('NETWORK_TIMEOUT');error.code='NETWORK_TIMEOUT';throw error;}throw e;}
+  finally{clearTimeout(timeout);}
+  if(!r.ok)throw new Error(j.msg||j.message||j.error_description||j.error||'تعذر الاتصال');
+  return j;
 }
 function isInvalidRefreshError(e){
   const m=String(e?.message||e||'').toLowerCase();
@@ -236,7 +277,7 @@ function isInvalidRefreshError(e){
 function expireLocalSession(message='انتهت جلسة الدخول. سجّل الدخول مرة أخرى.'){
   try{persistBuffetCache();}catch(e){}
   clearInterval(O.pollTimer);O.pollTimer=null;
-  saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;O.accessMode=null;applyAccessUI();
+  clearRetryTimer();saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;O.accessMode=null;applyAccessUI();
   showAuth(true);authMsg(message,'err');
 }
 async function refreshToken(){
@@ -334,7 +375,17 @@ async function authLogin(signup){
 }
 async function api(path,opt={}){
   const token=await accessToken();if(!token){const err=new Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');err.status=401;throw err;}
-  const headers=Object.assign({'apikey':CFG.key,'Authorization':'Bearer '+token,'Content-Type':'application/json'},opt.headers||{});const r=await fetch(CFG.url+path,Object.assign({},opt,{headers}));
+  const headers=Object.assign({'apikey':CFG.key,'Authorization':'Bearer '+token,'Content-Type':'application/json'},opt.headers||{});
+  // The deadline covers both the connection and response body.
+  // The original event ID remains in the local queue if a write times out.
+  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),25000);
+  let r,txt;
+  try{
+    r=await fetch(CFG.url+path,Object.assign({},opt,{headers,signal:controller.signal}));
+    txt=r.status===204?'':await r.text();
+  }catch(e){if(e?.name==='AbortError'){const error=new Error('NETWORK_TIMEOUT');error.code='NETWORK_TIMEOUT';throw error;}throw e;}
+  finally{clearTimeout(timeout);}
+  let body;try{body=txt?JSON.parse(txt):null;}catch(e){body=null;}
   if(r.status===401&&!opt._retried){
     if(O.session?.refresh_token){
       try{await refreshToken();return api(path,Object.assign({},opt,{_retried:true}));}
@@ -342,8 +393,12 @@ async function api(path,opt={}){
     }else expireLocalSession();
     const err=new Error('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');err.status=401;throw err;
   }
-  if(!r.ok){const j=await r.json().catch(()=>({}));const err=new Error(j.message||j.error||j.code||('HTTP '+r.status));err.status=r.status;throw err;}if(r.status===204)return null;const txt=await r.text();return txt?JSON.parse(txt):null;
+  if(!r.ok){const err=new Error(body?.message||body?.error||body?.code||('HTTP '+r.status));err.status=r.status;throw err;}
+  if(r.status===204||!txt)return null;
+  if(body===null)throw new Error('INVALID_SERVER_RESPONSE');
+  return body;
 }
+
 function installAccessGuards(){
   if(window.__buffetWorkerAccessGuards)return;window.__buffetWorkerAccessGuards=true;
   if(window.show){const orig=window.show;window.__ownerShow=orig;window.show=function(id,b){
@@ -391,9 +446,12 @@ async function loadBuffetAccess(){
 }
 async function activateBuffetAccess(m){
   if(!rememberBuffetAccess(m))return null;
-  restoreBuffetCache(O.buffetId);showAuth(false);applyAccessUI();O.ready=false;
+  const hasCache=restoreBuffetCache(O.buffetId);showAuth(false);applyAccessUI();O.ready=false;
+  if(!hasCache&&!navigator.onLine){showAuth(true);authMsg("لا توجد بيانات محفوظة على الجهاز. افتح البرنامج مرة بالإنترنت أولًا.","err");return null;}
   if(!navigator.onLine){O.ready=true;clearOperationalAutofill();await refreshStatus();return m;}
-  await pullCloud();persistBuffetCache();O.ready=true;O.lastServerEventAt=await latestEventAt();clearOperationalAutofill();await touchDevice();await refreshStatus();scheduleSync(100);
+  await O.queuePromise;O.ready=true;
+  if((await queueCount())>0)await syncPending();else await pullCloud();
+  persistBuffetCache();O.lastServerEventAt=await latestEventAt();clearOperationalAutofill();await touchDevice();await refreshStatus();scheduleSync(100);
   clearInterval(O.pollTimer);O.pollTimer=setInterval(poll,CFG.pollMs);
   return m;
 }
@@ -402,7 +460,7 @@ function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(CFG.dbNa
 async function qPut(op){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(CFG.store,'readwrite');tx.objectStore(CFG.store).put(op);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
 async function qAll(){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(CFG.store,'readonly'),r=tx.objectStore(CFG.store).getAll();r.onsuccess=()=>res((r.result||[]).filter(x=>x.buffetId===O.buffetId).sort((a,b)=>Number(a.order||0)-Number(b.order||0)||(a.createdAt||'').localeCompare(b.createdAt||'')));r.onerror=()=>rej(r.error);});}
 async function qDel(id){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(CFG.store,'readwrite');tx.objectStore(CFG.store).delete(id);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
-async function qClear(){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(CFG.store,'readwrite'),store=tx.objectStore(CFG.store),r=store.openCursor();r.onsuccess=()=>{const c=r.result;if(!c)return;if(c.value?.buffetId===O.buffetId)c.delete();c.continue();};tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
+async function qClear(){if((await queueCount())>0)throw new Error('PENDING_QUEUE_PROTECTED');const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(CFG.store,'readwrite'),store=tx.objectStore(CFG.store),r=store.openCursor();r.onsuccess=()=>{const c=r.result;if(!c)return;if(c.value?.buffetId===O.buffetId)c.delete();c.continue();};tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
 let __qSeq=0;function op(kind,table,id,row,extra={}){return {eventId:uid('EVT'),buffetId:O.buffetId,kind,table,id,row,createdAt:nowIso(),order:(Date.now()*1000)+(++__qSeq%1000),epoch:Number(O.dataEpoch||1),periodEpoch:Number(O.periodEpoch||1),...extra};}
 function jEq(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 function arrMap(arr,idf){const m=new Map();for(const x of arr||[]){const id=idf(x);if(id!=null)m.set(String(id),x);}return m;}
@@ -443,7 +501,7 @@ const defs=[
   {key:'ledger',table:'account_ledger_entries',get:s=>s.accountLedger||[],id:x=>x.id,cmp:x=>x}
 ];
 function settingsPayload(s){return {openingDue:clone(s.openingDue||{}),cashOpening:Number(s.cash?.opening||0),accountLedgerVersion:Number(s.accountLedgerVersion||1)};}
-async function diffAndQueue(prev,cur,prevArchive,curArchive){
+function diffAndQueue(prev,cur,prevArchive,curArchive){
   ensureIds(cur);ensureIds(prev);
   const pending=[];
   const activeDefs=O.accessMode==='worker'?defs.filter(d=>['people','sales','payments','hospitality','audit','ledger'].includes(d.key)):defs;
@@ -464,16 +522,43 @@ async function diffAndQueue(prev,cur,prevArchive,curArchive){
     for(const [id,x] of bb)if((id&&!aa.has(id))||(id&&!jEq(aa.get(id),x)))pending.push(op('archive_upsert','month_archives',id,x));
     for(const [id] of aa)if(id&&!bb.has(id))pending.push(op('delete','month_archives',id,null));
   }
-  if(!pending.length)return;
-  journalAddMany(pending);
+  // Persist the event journal synchronously before returning to the sale/collection UI.
+  // This closes the microtask gap between save() and the old Promise.then(diffAndQueue).
+  if(pending.length)journalAddMany(pending);
+  return pending;
+}
+async function writeQueuedDiff(pending){
   for(const x of pending){await qPut(x);journalRemove(x.eventId);}
-  refreshStatus();if(navigator.onLine)scheduleSync(80);
+  await refreshStatus();if(navigator.onLine&&pending.length)scheduleSync(80);
 }
 window.onlineAfterLocalSave=function(state){
-  try{ensureIds(state);localStorage.setItem(window.DATA_KEY||'buffet_v9_online_state',JSON.stringify(state));if(O.buffetId){localStorage.setItem(dataKeyFor(O.buffetId),JSON.stringify(state));persistBuffetCache();}}catch(e){}
-  if(!O.ready||O.suppress){O.lastState=clone(state);O.lastArchive=archiveNow();return;}
-  const prev=O.lastState?clone(O.lastState):clone(state),cur=clone(state),prevArchive=clone(O.lastArchive||[]),curArchive=archiveNow();O.lastState=clone(cur);O.lastArchive=clone(curArchive);
-  O.queuePromise=O.queuePromise.then(()=>diffAndQueue(prev,cur,prevArchive,curArchive)).catch(e=>{console.error('queue diff',e);setStatus('error','تعذر تجهيز المزامنة · البيانات محفوظة محليًا');});
+  ensureIds(state);
+  if(!O.ready||O.suppress){
+    ensureIds(state);
+    localStorage.setItem(window.DATA_KEY||'buffet_v9_online_state',JSON.stringify(state));
+    if(O.buffetId)persistBuffetCache();
+    O.lastState=clone(state);O.lastArchive=archiveNow();return;
+  }
+  const prev=O.lastState?clone(O.lastState):clone(state),cur=clone(state),prevArchive=clone(O.lastArchive||[]),curArchive=archiveNow();
+  let pending;
+  try{
+    pending=diffAndQueue(prev,cur,prevArchive,curArchive);
+    localStorage.setItem(dataKeyFor(O.buffetId),JSON.stringify(state));
+    localStorage.setItem(window.DATA_KEY||'buffet_v9_online_state',JSON.stringify(state));
+    persistBuffetCache();
+    O.lastState=clone(cur);O.lastArchive=clone(curArchive);
+  }catch(e){
+    O.storageFault=true;
+    O.syncError='فشل تخزين حركة محلية. توقف عن إدخال حركات جديدة واحتفظ بالصفحة مفتوحة';
+    setStatus('error',O.syncError);
+    throw e;
+  }
+  O.queuePromise=O.queuePromise.then(()=>writeQueuedDiff(pending)).catch(e=>{
+    console.error('queue diff',e);
+    O.storageFault=true;
+    O.syncError='فشل حفظ العمليات في قاعدة الجهاز. أوقف العمل واحتفظ بالصفحة مفتوحة';
+    setStatus('error',O.syncError);
+  });
 };
 
 async function upsertRows(table,rows,onConflict='buffet_id,id'){
@@ -511,23 +596,64 @@ async function processOp(x){
     const key=x.table==='buffet_settings'?'buffet_id':'id';let path='/rest/v1/'+x.table+'?buffet_id=eq.'+encodeURIComponent(O.buffetId);if(key==='id')path+='&id=eq.'+encodeURIComponent(x.id);await api(path,{method:'DELETE',headers:{'Prefer':'return=minimal'}});await recordEvent(x);return;
   }
 }
-let syncTimer=null;function scheduleSync(ms=400){clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncPending().catch(console.error),ms);}
+let syncTimer=null;
+function scheduleSync(ms=400){clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncPending().catch(console.error),ms);}
+function clearRetryTimer(){if(O.retryTimer){clearTimeout(O.retryTimer);O.retryTimer=null;}O.nextRetryAt=0;}
+function retryableSyncError(e){
+  if(O.storageFault||e?.status===401||e?.status===403)return false;
+  const status=Number(e?.status||0);
+  if(status)return [408,425,429,500,502,503,504].includes(status);
+  const code=String(e?.code||e?.name||'');
+  return code==='NETWORK_TIMEOUT'||code==='AbortError'||code==='TypeError'||/Failed to fetch|NetworkError|Load failed|fetch failed/i.test(String(e?.message||''));
+}
+function scheduleSyncRetry(){
+  if(!O.ready||!O.session||!O.buffetId||!navigator.onLine||O.storageFault)return;
+  clearRetryTimer();
+  O.retryAttempt=Math.min(O.retryAttempt+1,7);
+  const ms=Math.min(120000,Math.round(3000*Math.pow(2,O.retryAttempt-1)));
+  O.nextRetryAt=Date.now()+ms;
+  O.retryTimer=setTimeout(()=>{O.retryTimer=null;O.nextRetryAt=0;syncPending().catch(console.error);},ms);
+  O.syncError=`تعذر الاتصال بالسيرفر · إعادة محاولة خلال ${Math.ceil(ms/1000)} ثانية`;
+}
 async function syncPending(){
   if(O.syncing||!O.ready||!navigator.onLine||!O.session||!O.buffetId)return;
-  O.syncing=true;await refreshStatus();
+  O.syncing=true;O.syncProgress=null;
   try{
+    await O.queuePromise;await refreshStatus();
+    if(O.storageFault)throw new Error('QUEUE_STORAGE_UNAVAILABLE');
     const epochs=await serverEpochs(),serverEpoch=epochs.data,serverPeriod=epochs.period;
     if(Number(serverEpoch)!==Number(O.dataEpoch||1)){
-      await qClear();O.dataEpoch=serverEpoch;O.periodEpoch=serverPeriod;localStorage.setItem(epochKeyFor(O.buffetId),String(serverEpoch));localStorage.setItem(periodKeyFor(O.buffetId),String(serverPeriod));await pullCloud();await setStatus('','تم تحديث البيانات بعد إعادة الضبط');return;
+      if((await queueCount())>0){O.syncError='توقفت المزامنة: تغيّر إصدار السيرفر. العمليات محفوظة وتحتاج مراجعة';clearRetryTimer();return;}
+      O.dataEpoch=serverEpoch;O.periodEpoch=serverPeriod;localStorage.setItem(epochKeyFor(O.buffetId),String(serverEpoch));localStorage.setItem(periodKeyFor(O.buffetId),String(serverPeriod));await pullCloud();O.needCloudRefresh=false;O.syncError=null;markSyncConfirmed();O.retryAttempt=0;clearRetryTimer();return;
     }
     const ops=await qAll();
     if(Number(serverPeriod)!==Number(O.periodEpoch||1)){
-      if(ops.length){await setStatus('error',`في ${ops.length} عملية من فترة مقفولة تحتاج مراجعة`);return;}
-      O.periodEpoch=serverPeriod;localStorage.setItem(periodKeyFor(O.buffetId),String(serverPeriod));await pullCloud();return;
+      if(ops.length){O.syncError=`توقفت المزامنة: ${ops.length} عملية من فترة مقفولة تحتاج مراجعة`;clearRetryTimer();return;}
+      O.periodEpoch=serverPeriod;localStorage.setItem(periodKeyFor(O.buffetId),String(serverPeriod));await pullCloud();O.needCloudRefresh=false;O.syncError=null;markSyncConfirmed();O.retryAttempt=0;clearRetryTimer();return;
     }
-    for(const x of ops){if(Number(x.epoch||1)!==Number(serverEpoch)){await qDel(x.eventId);continue;}if(Number(x.periodEpoch||1)!==Number(serverPeriod)){await setStatus('error','في عمليات من فترة مقفولة تحتاج مراجعة');return;}await processOp(x);await qDel(x.eventId);}await touchDevice();await pullCloud();
-  }catch(e){console.error('sync',e);if(e?.status===401){O.ready=false;showAuth(true);authMsg('انتهت جلسة الدخول. سجّل الدخول مرة أخرى، والعمليات المعلقة محفوظة.','err');}setStatus('error','تعذر المزامنة · البيانات محفوظة على الجهاز');}
-  finally{O.syncing=false;await refreshStatus();}
+    O.syncProgress={done:0,total:ops.length};
+    for(const x of ops){
+      if(Number(x.epoch||1)!==Number(serverEpoch)){O.syncError='عملية من إصدار بيانات سابق تحتاج مراجعة';clearRetryTimer();return;}
+      if(Number(x.periodEpoch||1)!==Number(serverPeriod)){O.syncError='عملية من فترة مقفولة تحتاج مراجعة';clearRetryTimer();return;}
+      O.needCloudRefresh=true;
+      await processOp(x);
+      await qDel(x.eventId);
+      O.syncProgress.done++;
+      await refreshStatus();
+    }
+    if((await queueCount())!==0){O.syncError='في عمليات محلية لم يكتمل تجهيزها';scheduleSync(600);return;}
+    // Idle resume only needs an event check, not a 16-table cloud download.
+    const stamp=await latestEventAt();
+    if(O.needCloudRefresh||!O.lastServerEventAt||stamp!==O.lastServerEventAt)await pullCloud();
+    O.lastServerEventAt=stamp||O.lastServerEventAt;
+    O.needCloudRefresh=false;O.syncError=null;O.retryAttempt=0;clearRetryTimer();markSyncConfirmed();
+    if(ops.length)touchDevice().catch(()=>{});
+  }catch(e){
+    console.error('sync',e);
+    if(e?.status===401){clearRetryTimer();O.ready=false;O.syncError='انتهت جلسة الدخول. سجّل الدخول مرة أخرى';showAuth(true);authMsg('انتهت جلسة الدخول. سجّل الدخول مرة أخرى، والعمليات المعلقة محفوظة.','err');}
+    else if(retryableSyncError(e))scheduleSyncRetry();
+    else{clearRetryTimer();O.syncError=O.storageFault?'تعذر قراءة العمليات المعلقة · المزامنة متوقفة':`فشل المزامنة: ${String(e?.message||'تحقق من الاتصال').slice(0,110)} · راجع العملية`;} 
+  }finally{O.syncing=false;O.syncProgress=null;await refreshStatus();}
 }
 
 async function fetchAll(table,select='*'){
@@ -545,6 +671,7 @@ async function fetchRecentAudit(){
 }
 async function pullWorkerCloud(){
   if(!window.S||!O.buffetId)return;
+  if((await queueCount())>0)throw new Error('PENDING_QUEUE_PROTECTED');
   const r=await api('/rest/v1/rpc/worker_state_v1',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId})});
   const x=(Array.isArray(r)?r[0]:r)||{};
   O.dataEpoch=Number(x.dataEpoch||1);O.periodEpoch=Number(x.periodEpoch||1);localStorage.setItem(epochKeyFor(O.buffetId),String(O.dataEpoch));localStorage.setItem(periodKeyFor(O.buffetId),String(O.periodEpoch));
@@ -562,6 +689,7 @@ async function pullWorkerCloud(){
 }
 async function pullCloud(){
   if(!window.S||!O.buffetId)return;
+  if((await queueCount())>0){O.syncError=O.storageFault?'تعذر قراءة العمليات المعلقة: تم منع تنزيل بيانات السيرفر':'تم تأجيل تنزيل بيانات السيرفر لحماية العمليات المعلقة';return;}
   if(O.accessMode==='worker')return pullWorkerCloud();
   const [off,cats,sups,etypes,prods,recs,sales,pays,purs,exps,hosp,cash,ledger,settings,archives,audits]=await Promise.all([
     fetchAll('officers','name,payload'),fetchAll('categories','name,payload'),fetchAll('suppliers','name,payload'),fetchAll('expense_types','name,payload'),fetchAll('products','id,name,category_name,unit,buy_price,sell_price,min_qty,stock_qty,stock_value,payload'),fetchAll('recipes','id,payload'),fetchAll('sales','id,payload'),fetchAll('payments','id,payload'),fetchAll('purchases','id,payload'),fetchAll('expenses','id,payload'),fetchAll('hospitality','id,payload'),fetchAll('cash_movements','id,payload'),fetchAll('account_ledger_entries','id,client_seq,client_created_at,server_created_at,payload'),fetchAll('buffet_settings','opening_due,cash_opening,suppliers,expense_types,account_ledger_version,data_epoch,period_epoch,payload'),fetchAll('month_archives','id,month_key,payload'),fetchRecentAudit()
@@ -585,18 +713,40 @@ async function latestEventAt(){
   }
   const r=await api('/rest/v1/sync_events?buffet_id=eq.'+encodeURIComponent(O.buffetId)+'&select=server_created_at&order=server_created_at.desc&limit=1');return r?.[0]?.server_created_at||null;
 }
-async function poll(){if(!O.ready||!navigator.onLine||O.syncing)return;try{const x=await latestEventAt();if(x&&O.lastServerEventAt&&x!==O.lastServerEventAt){if((await queueCount())===0)await pullCloud();}O.lastServerEventAt=x||O.lastServerEventAt;}catch(e){}}
+async function poll(){
+  if(!O.ready||!navigator.onLine||O.syncing||O.polling)return;
+  O.polling=true;
+  try{
+    await O.queuePromise;
+    const n=await queueCount();
+    if(O.storageFault)return;
+    if(n||O.needCloudRefresh){if(!O.retryTimer&&Date.now()>=O.nextRetryAt)scheduleSync(70);return;}
+    const x=await latestEventAt();
+    if(x&&(!O.lastServerEventAt||x!==O.lastServerEventAt))await pullCloud();
+    O.lastServerEventAt=x||O.lastServerEventAt;
+    O.syncError=null;markSyncConfirmed();
+  }catch(e){if(retryableSyncError(e))O.syncError='تعذر فحص تحديثات السيرفر. سيتم إعادة المحاولة';}
+  finally{O.polling=false;await refreshStatus();}
+}
+
 async function touchDevice(){try{await upsertRows('sync_devices',[{buffet_id:O.buffetId,device_id:O.deviceId,user_id:O.user?.id||null,device_name:navigator.platform||navigator.userAgent,last_seen_at:nowIso(),last_sync_at:nowIso(),pending_count:await queueCount()}],'buffet_id,device_id');}catch(e){}}
 
 
 async function logoutOnline(){
   persistBuffetCache();
   try{if(navigator.onLine&&O.session?.access_token)await api('/auth/v1/logout',{method:'POST'});}catch(e){}
-  saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;O.accessMode=null;applyAccessUI();showAuth(true);authMsg('تم تسجيل الخروج.','ok');
+  clearRetryTimer();saveSession(null);O.ready=false;O.buffetId=null;O.buffetName=null;O.accessMode=null;applyAccessUI();showAuth(true);authMsg('تم تسجيل الخروج.','ok');
 }
 
 async function executeOnlineReset(){
   if(!navigator.onLine)return alert('إعادة ضبط النسخة Online تحتاج اتصال بالإنترنت.');
+  await O.queuePromise;await syncPending();
+  if((await queueCount())>0)return alert('إعادة الضبط ممنوعة لوجود عمليات معلقة.');
+  if(O.accessMode!=='owner')return alert('إعادة الضبط تتطلب صلاحية المسؤول.');
+  await pullCloud();
+  if(!(await window.backup?.()))return alert('تم إلغاء حفظ النسخة الاحتياطية.');
+  if(window.prompt('سيتم حذف كل المبيعات والمخزون والديون والأرشيف. اكتب حذف الكل للتأكيد:')!=='حذف الكل')return;
+  if(!navigator.onLine||(await queueCount())>0) return alert('تعذر المتابعة: الاتصال انقطع أو ظهرت عمليات معلقة.');
   const btn=document.getElementById('resetExecuteBtn');if(btn)btn.disabled=true;
   try{
     await api('/rest/v1/rpc/reset_buffet_data',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId,p_device_id:O.deviceId})});
@@ -610,11 +760,75 @@ async function executeOnlineReset(){
   }catch(e){alert('تعذر تنفيذ إعادة الضبط: '+(e.message||e));}
   finally{if(btn)btn.disabled=false;refreshStatus();}
 }
+// The SQL RPC performs the import in one transaction and enforces the active buffet admin.
+// This client NEVER imports local state into cloud via normal diff/queue.
+function checkRestoreBackup(b){
+  if(!b||b.backupVersion!==3||!b.createdAt||typeof b.state!=='object'||!b.state||!Array.isArray(b.archive))throw new Error('ملف النسخة الاحتياطية غير متوافق. مطلوب backupVersion 3.');
+  const st=b.state, names=['people','cats','products','recipes','sales','payments','purchases','expenses','hospitality','audit','accountLedger'];
+  for(const key of names)if(!Array.isArray(st[key]))throw new Error('بيانات ناقصة أو غير صحيحة: '+key);
+  if(!st.cash||!Array.isArray(st.cash.movements)||!st.openingDue||typeof st.openingDue!=='object')throw new Error('بيانات الكاش والديون غير صحيحة.');
+  if(!Number.isFinite(Number(st.cash.opening))||Number(st.cash.opening)<0)throw new Error('رصيد الكاش غير صحيح.');
+  const ids=[['products','_id'],['recipes','_id'],['sales','id'],['payments','id'],['purchases','_id'],['expenses','_id'],['hospitality','id'],['accountLedger','id']];
+  for(const [name,key] of ids){const seen=new Set();for(const x of st[name]){if(!x||typeof x!=='object')throw new Error('سجل غير صحيح: '+name);const id=x[key];if(!id||seen.has(String(id)))throw new Error('رقم مفقود أو مكرر: '+name);seen.add(String(id));}}
+  if(st.products.some(x=>![x.qty,x.buy,x.sell].every(v=>Number.isFinite(Number(v))&&Number(v)>=0)))throw new Error('بيانات مخزون أو أسعار غير صحيحة.');
+  if(st.payments.some(x=>!Number.isFinite(Number(x.amount))||Number(x.amount)<=0))throw new Error('قيمة تحصيل غير صحيحة.');
+  if(st.sales.some(x=>!Number.isFinite(Number(x.total))||Number(x.total)<0))throw new Error('إجمالي مبيعات غير صحيح.');
+  return st;
+}
+async function startRestoreBackup(){
+  // localhost is NOT a safe environment if the API still points at the production database.
+  // A real restore request is permitted only against an explicitly isolated localhost mock API.
+  const backend=new URL(CFG.url);
+  if(!['localhost','127.0.0.1'].includes(location.hostname)||
+     !['localhost','127.0.0.1'].includes(backend.hostname))
+     return alert('استرجاع النسخة مقفول لحماية البوفيه الحقيقي. لا يُسمح به إلا على سيرفر اختبار محلي منفصل.');
+  if(!O.ready||!O.buffetId||O.accessMode!=='owner')return alert('الاسترجاع متاح لمسؤول البوفيه فقط.');
+  if(!navigator.onLine)return alert('الاسترجاع يحتاج اتصالًا بالإنترنت.');
+  const fileInput=document.getElementById('restoreBackupFile');
+  if(!fileInput)return alert('خانة اختيار الملف غير موجودة.');
+  fileInput.value='';fileInput.onchange=async()=>{
+    const file=fileInput.files?.[0];if(!file)return;
+    if(file.size>20*1024*1024)return alert('حجم الملف أكبر من المسموح.');
+    try{
+      const b=JSON.parse(await file.text()),st=checkRestoreBackup(b);
+      if(b.sourceBuffetId&&b.sourceBuffetId!==O.buffetId)throw new Error('ملف النسخة يخص بوفيهًا آخر. تم منع استبدال البيانات.');
+      await O.queuePromise;await syncPending();
+      if(O.syncing||(await queueCount())>0||O.syncError)throw new Error('يوجد عمليات معلقة أو تعذر إتمام المزامنة.');
+      const devices=await fetchAll('sync_devices','device_id,pending_count,last_seen_at');
+      if(devices.some(d=>Number(d.pending_count||0)>0))throw new Error('هناك جهاز سجل عمليات لم تتم مزامنتها.');
+      const epochs=await serverEpochs(), lastEvent=await latestEventAt();await pullCloud();
+      if((await queueCount())>0)throw new Error('ظهرت عمليات معلقة أثناء المراجعة.');
+      const currentBackup={backupVersion:3,createdAt:nowIso(),state:clone(window.S),archive:archiveNow()};
+      const data=JSON.stringify(currentBackup,null,2);
+      const saved=await window.shareOrDownload?.(data,'buffet-pre-restore-'+new Date().toISOString().slice(0,10)+'.json','application/json');
+      if(saved!==true)throw new Error('تعذر حفظ نسخة من البيانات الحالية.');
+      const details='النسخة بتاريخ: '+b.createdAt+'\n'+
+        'ضباط: '+st.people.length+' | منتجات: '+st.products.length+' | مبيعات: '+st.sales.length+'\n'+
+        'مشتريات: '+st.purchases.length+' | تحصيلات: '+st.payments.length+' | أشهر أرشيف: '+b.archive.length+'\n\n'+
+        'سيتم استبدال جميع بيانات البوفيه المحدد على السيرفر.\nإلغاء: لن يتغير أي شيء.';
+      if(!window.confirm(details))return;
+      if(window.prompt('بعد التأكد أن كل الأجهزة متزامنة وأنك حفظت النسخة الحالية، اكتب استرجاع للتأكيد:')!=='استرجاع')return;
+      if(O.buffetId!==epochs.buffetId&&epochs.buffetId)throw new Error('تغير البوفيه النشط أثناء التجهيز.');
+      const newest=await serverEpochs();
+      if(newest.data!==epochs.data||newest.period!==epochs.period||(await latestEventAt())!==lastEvent)throw new Error('تغيرت بيانات السيرفر أثناء التجهيز. أعد المحاولة.');
+      if((await queueCount())>0)throw new Error('ظهرت عمليات معلقة أثناء التأكيد.');
+      const result=await api('/rest/v1/rpc/restore_buffet_backup_v1',{method:'POST',body:JSON.stringify({p_buffet_id:O.buffetId,p_backup:b,p_device_id:O.deviceId})});
+      if(!result?.ok)throw new Error('لم يتم تأكيد نجاح الاسترجاع من السيرفر.');
+      O.dataEpoch=Number(result.data_epoch);O.periodEpoch=Number(result.period_epoch);
+      localStorage.setItem(epochKeyFor(O.buffetId),String(O.dataEpoch));localStorage.setItem(periodKeyFor(O.buffetId),String(O.periodEpoch));
+      O.syncError=null;await pullCloud();
+      alert('تم الاسترجاع على السيرفر ثم إعادة تحميل البيانات.');
+    }catch(e){console.error('restore',e);alert('لم يتم استرجاع النسخة: '+(e?.message||e));}
+  };
+  fileInput.click();
+}
+
 function installSensitiveGuards(){
   if(window.__onlineSensitiveWrapped)return;window.__onlineSensitiveWrapped=true;
   if(window.executeResetAll)window.executeResetAll=executeOnlineReset;
   if(window.closeMonth){const orig=window.closeMonth;window.closeMonth=async function(){
     if(!navigator.onLine)return alert('إغلاق الشهر في النسخة Online يحتاج اتصال بالإنترنت.');
+    if(O.closing)return alert('إغلاق الشهر جاري بالفعل.');O.closing=true;
     try{
       await O.queuePromise;await syncPending();
       if((await queueCount())>0)return alert('يوجد عمليات لم تتم مزامنتها بعد. انتظر المزامنة ثم أعد إغلاق الشهر.');
@@ -626,8 +840,9 @@ function installSensitiveGuards(){
         O.periodEpoch=Number(r||O.periodEpoch+1);localStorage.setItem(periodKeyFor(O.buffetId),String(O.periodEpoch));await pullCloud();
       }
     }catch(e){console.error(e);alert('تعذر إغلاق الشهر Online: '+(e.message||e));}
+    finally{O.closing=false;}
   };}
-  if(window.restore)window.restore=function(){alert('استرجاع النسخة الاحتياطية متوقف مؤقتًا في النسخة Online لحين اعتماده بشكل آمن.');};
+  if(window.restore)window.restore=startRestoreBackup;
 }
 
 async function afterAuth(){
@@ -660,21 +875,21 @@ async function init(){
       if(navigator.onLine){await accessToken();const u=await api('/auth/v1/user',{method:'GET'});O.user=u;O.session.user=u;saveSession(O.session);await afterAuth();}
       else{
         const m=cachedBuffetAccess();
-        if(m&&window.S){rememberBuffetAccess(m);restoreBuffetCache(m.buffet_id);O.ready=true;showAuth(false);applyAccessUI();clearOperationalAutofill();await refreshStatus();}
+        if(m&&window.S&&hasBuffetCache(m)){rememberBuffetAccess(m);restoreBuffetCache(m.buffet_id);O.ready=true;showAuth(false);applyAccessUI();clearOperationalAutofill();await refreshStatus();}
         else{showAuth(true);authMsg('أول تشغيل Offline يحتاج فتح الحساب مرة واحدة بالإنترنت.','err');}
       }
     }catch(e){
       console.error(e);
       if(e?.status===401){saveSession(null);O.ready=false;showAuth(true);authMsg('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.','err');return;}
       const m=cachedBuffetAccess();
-      if(m&&window.S){rememberBuffetAccess(m);restoreBuffetCache(m.buffet_id);O.ready=true;showAuth(false);applyAccessUI();clearOperationalAutofill();await setStatus('error','السيرفر غير متاح · العمل محفوظ محليًا');}
+      if(m&&window.S&&hasBuffetCache(m)){rememberBuffetAccess(m);restoreBuffetCache(m.buffet_id);O.ready=true;showAuth(false);applyAccessUI();clearOperationalAutofill();O.syncError='تعذر الاتصال بالسيرفر · البيانات محفوظة على الجهاز';clearInterval(O.pollTimer);O.pollTimer=setInterval(poll,CFG.pollMs);scheduleSyncRetry();await refreshStatus();}
       else{showAuth(true);authMsg('تعذر الوصول للسيرفر. جرّب مرة أخرى عند رجوع الإنترنت.','err');}
     }
   }else showAuth(true);
 }
 window.onlineInit=init;
-window.addEventListener('online',()=>{O.online=true;refreshStatus();if(O.ready)scheduleSync(100);});
-window.addEventListener('offline',()=>{O.online=false;refreshStatus();});
+window.addEventListener('online',()=>{O.online=true;clearRetryTimer();refreshStatus();if(O.ready)scheduleSync(100);});
+window.addEventListener('offline',()=>{O.online=false;clearRetryTimer();refreshStatus();});
 window.addEventListener('focus',()=>{if(O.ready&&navigator.onLine){scheduleSync(100);poll();}});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&O.ready&&navigator.onLine){scheduleSync(100);poll();}});
 document.addEventListener('DOMContentLoaded',()=>setTimeout(init,50));

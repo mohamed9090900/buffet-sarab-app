@@ -262,8 +262,10 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 </div>
 <div class="card" style="margin-top:14px">
   <div class="rowtitle"><h3 style="margin:0">النسخة الاحتياطية</h3><span class="pill">أمان البيانات</span></div>
-  <div class="hint">صدّر نسخة احتياطية من بيانات البوفيه وأرشيف الشهور واحفظها خارج المتصفح. الاسترجاع متوقف مؤقتًا في النسخة Online لحين اعتماده بشكل آمن.</div>
+  <div class="hint">احتفظ بنسخة احتياطية خارج الجهاز قبل أي استرجاع. الاسترجاع يتطلب اتصالًا ومزامنة مكتملة وصلاحية المسؤول.</div>
   <button type="button" class="primary" style="width:100%" onclick="backup()">تصدير نسخة احتياطية</button>
+  <button type="button" class="tab" style="width:100%;margin-top:10px" onclick="restore()">استرجاع نسخة احتياطية</button>
+  <input id="restoreBackupFile" type="file" accept=".json,application/json" hidden>
 </div>
 <div class="card danger-zone" style="margin-top:14px">
   <div class="rowtitle"><h3 style="margin:0">إعادة ضبط البرنامج</h3><span class="pill">منطقة حساسة</span></div>
@@ -284,7 +286,7 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 </main>
 <div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3><input id="editProductName" placeholder="اسم المنتج" readonly><input id="editProductBuy" type="number" step="0.01" placeholder="متوسط التكلفة — تلقائي" readonly><input id="editProductSell" type="number" step="0.01" placeholder="سعر البيع"><input id="editProductQty" type="number" step="0.01" placeholder="المخزون الحالي — تلقائي" readonly><input id="editProductMin" type="number" step="0.01" placeholder="حد التنبيه"><select id="editProductUnit" disabled><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select><select id="editProductCat"></select><div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div><div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
-<script src="online.js?v=9.3.1-premium-turquoise"></script>
+<script src="online.js?v=9.3.1-offline-sync-retry-test-v3"></script>
 <script>
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
@@ -396,7 +398,17 @@ const S={cash:{opening:0,movements:[]},openingDue:{},cats:[],people:[],suppliers
 window.DATA_KEY=DATA_KEY;window.ARCHIVE_KEY=ARCHIVE_KEY;window.S=S;
 
 const money=x=>Number(x||0).toFixed(2)+" ج";
-function save(){localStorage.setItem(DATA_KEY,JSON.stringify(S));try{window.onlineAfterLocalSave?.(S)}catch(e){console.error("Online save hook",e)}}
+function save(){
+ try{
+  // The online hook records the pending event synchronously before claiming a saved sale.
+  if(window.onlineAfterLocalSave)window.onlineAfterLocalSave(S);
+  else localStorage.setItem(DATA_KEY,JSON.stringify(S));
+ }catch(e){
+  console.error('Local durable save failed',e);
+  alert('تعذر حفظ الحركة على الجهاز. لا تغلق البرنامج ولا تسجل حركة جديدة حتى يتم حل المشكلة.');
+  throw e;
+ }
+}
 function logAction(action,detail=""){S.audit=S.audit||[];S.audit.push({date:new Date().toLocaleString("ar-EG"),action,detail});if(S.audit.length>500)S.audit.shift();}
 function makeTxnId(prefix="T"){return prefix+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function nextAccountSeq(){return (S.accountLedger||[]).reduce((m,x)=>Math.max(m,Number(x.seq||0)),0)+1}
@@ -532,7 +544,7 @@ async function exportCSV(){
 }
 async function backup(){
  let archive=[];try{const a=JSON.parse(localStorage.getItem(ARCHIVE_KEY)||"[]");if(Array.isArray(a))archive=a;}catch(e){}
- const payload={backupVersion:3,createdAt:new Date().toISOString(),state:JSON.parse(JSON.stringify(S)),archive};
+ const payload={backupVersion:3,sourceBuffetId:window.BUFFET_ONLINE?.buffetId||null,createdAt:new Date().toISOString(),state:JSON.parse(JSON.stringify(S)),archive};
  const day=new Date().toISOString().slice(0,10);
  return await shareOrDownload(JSON.stringify(payload,null,2),"buffet-backup-"+day+".json","application/json");
 }
@@ -601,12 +613,14 @@ function renderPublicAccount(data){
  document.title="كشف حساب "+String(data.n||"")+" — البوفيه";
 }
 function editOfficer(oldName){
+ if(!navigator.onLine)return alert("تعديل اسم الضابط يحتاج اتصالًا بالإنترنت لحماية الحركات المرتبطة.");
  const newName=prompt("تعديل اسم الضابط",oldName);
  if(newName===null)return;
  const n=newName.trim();
  if(!n)return alert("اكتب اسم الضابط");
  if(n===oldName)return;
  if(S.people.includes(n))return alert("الاسم موجود بالفعل");
+ if(!confirm("تغيير اسم الضابط من «"+oldName+"» إلى «"+n+"»؟\nسيتم تعديل الاسم في المبيعات والتحصيلات والديون.\nإلغاء: بدون تغيير."))return;
  const idx=S.people.indexOf(oldName);
  if(idx<0)return;
  S.people[idx]=n;
@@ -634,11 +648,13 @@ function openDetail(name){
  show("officerDetail");
 }
 function deleteProduct(i){
+ if(!navigator.onLine)return alert("حذف المنتجات يحتاج اتصالًا بالإنترنت لمنع التعارض بين الأجهزة.");
  const idx=Number(i);
  if(!Number.isInteger(idx)||idx<0||idx>=S.products.length)return;
  const p=S.products[idx];
  if(!p)return;
  const name=p.name;
+ if(!confirm("حذف المنتج «"+name+"»؟\nهيختفي من قائمة البيع والمخزون.\nإلغاء: الاحتفاظ بالمنتج."))return;
  // لو الصنف كان موجودًا في فاتورة مفتوحة عند أحد الضباط، شيله منها أولًا
  cart=cart.filter(x=>!(x.type!=="recipe"&&x.i===idx)).map(x=>x.type==="recipe"?x:({...x,i:x.i>idx?x.i-1:x.i}));
  S.products.splice(idx,1);
@@ -827,7 +843,7 @@ function confirmCart(forceCash){
 function sell(i){addToCart(i)}
 function editProduct(i){const p=S.products[i];if(!p)return;window._editingProductIndex=i;document.getElementById("editProductName").value=p.name||"";document.getElementById("editProductBuy").value=p.buy??0;document.getElementById("editProductSell").value=p.sell??0;document.getElementById("editProductQty").value=p.qty??0;document.getElementById("editProductMin").value=p.min??0;document.getElementById("editProductUnit").value=p.unit||"قطعة";const c=document.getElementById("editProductCat");c.innerHTML=`<option value="">بدون فئة</option>`+S.cats.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");c.value=p.cat||"";document.getElementById("productModal").classList.add("show");document.getElementById("productModal").setAttribute("aria-hidden","false");}
 function closeProductModal(){window._editingProductIndex=null;document.getElementById("productModal").classList.remove("show");document.getElementById("productModal").setAttribute("aria-hidden","true");}
-function saveProductEdit(){const i=window._editingProductIndex,p=S.products[i];if(!p)return;const n=document.getElementById("editProductName").value.trim();if(!n)return alert("اكتب اسم المنتج");if(S.products.some((x,j)=>j!==i&&normalizeProductLookup(x.name)===normalizeProductLookup(n)))return alert("اسم المنتج موجود بالفعل");const oldName=p.name;if(n!==oldName){p.name=n;(S.purchases||[]).forEach(x=>{if(x.p===oldName)x.p=n});(S.recipes||[]).forEach(r=>(r.ins||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n}));(S.sales||[]).forEach(x=>{if(x.product===oldName)x.product=n;(x.recipeIns||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n});});(S.accountLedger||[]).forEach(x=>{if(x.type==="sale"&&x.product===oldName)x.product=n;});}p.sell=Number(document.getElementById("editProductSell").value)||0;p.min=Number(document.getElementById("editProductMin").value)||0;p.cat=document.getElementById("editProductCat").value||"";logAction("تعديل منتج",oldName+" ← "+p.name);save();closeProductModal();render();}
+function saveProductEdit(){if(!navigator.onLine)return alert("تعديل المنتجات يحتاج اتصالًا بالإنترنت.");const i=window._editingProductIndex,p=S.products[i];if(!p)return;const n=document.getElementById("editProductName").value.trim();if(!n)return alert("اكتب اسم المنتج");if(S.products.some((x,j)=>j!==i&&normalizeProductLookup(x.name)===normalizeProductLookup(n)))return alert("اسم المنتج موجود بالفعل");const oldName=p.name;if(n!==oldName){p.name=n;(S.purchases||[]).forEach(x=>{if(x.p===oldName)x.p=n});(S.recipes||[]).forEach(r=>(r.ins||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n}));(S.sales||[]).forEach(x=>{if(x.product===oldName)x.product=n;(x.recipeIns||[]).forEach(ing=>{if(ing.n===oldName)ing.n=n});});(S.accountLedger||[]).forEach(x=>{if(x.type==="sale"&&x.product===oldName)x.product=n;});}p.sell=Number(document.getElementById("editProductSell").value)||0;p.min=Number(document.getElementById("editProductMin").value)||0;p.cat=document.getElementById("editProductCat").value||"";logAction("تعديل منتج",oldName+" ← "+p.name);save();closeProductModal();render();}
 
 function purchasedProductNames(){return (S.products||[]).map(x=>x.name).filter(Boolean)}
 function renderProductPurchasePicker(){
@@ -846,7 +862,7 @@ function loadPurchasedProduct(){
  if(!p)return;
  productSalePrice.value=Number(p.sell||0);productMinStock.value=Number(p.min||0);productCategoryEdit.value=p.cat||"";
 }
-function setPurchasedProductSale(){
+function setPurchasedProductSale(){if(!navigator.onLine)return alert("تغيير بيانات المنتج يحتاج اتصالًا بالإنترنت.");
  const name=productFromPurchases.value.trim();
  if(!name)return alert("اختار منتجًا أولًا");
  const p=S.products.find(x=>x.name===name);
@@ -872,7 +888,8 @@ function addCategory(){
 }
 function deleteCategory(i){
  const name=S.cats[i];
- if(!confirm("حذف الفئة "+name+"؟"))return;
+ if(!navigator.onLine)return alert("حذف الفئة يحتاج اتصالًا بالإنترنت.");
+  if(!confirm("حذف الفئة «"+name+"»؟\nهتتشال من المنتجات والريسبي المرتبطة بيها.\nإلغاء: بدون أي تغيير."))return;
  S.cats.splice(i,1);
  S.products.forEach(p=>{if(p.cat===name)p.cat="";});
  (S.recipes||[]).forEach(r=>{if(r.cat===name)r.cat="";});
@@ -888,16 +905,18 @@ function addIng(){
 }
 function recipeCost(r){return (r.ins||[]).reduce((a,x)=>a+(S.products.find(p=>p.name===x.n)?.buy||0)*x.q,0)}
 function deleteRecipe(i){
+ if(!navigator.onLine)return alert("حذف الريسبي يحتاج اتصالًا بالإنترنت.");
  const idx=Number(i);
  if(!Number.isInteger(idx)||idx<0||idx>=S.recipes.length)return;
  const name=S.recipes[idx].name;
+ if(!confirm("حذف الريسبي «"+name+"»؟\nمش هيبقى متاح للبيع.\nإلغاء: بدون تغيير."))return;
  cart=cart.filter(x=>!(x.type==="recipe"&&x.i===idx)).map(x=>x.type==="recipe"&&x.i>idx?({...x,i:x.i-1}):x);
  S.recipes.splice(idx,1);
  logAction("حذف ريسبي",name);
  save();
  render();
 }
-function setRecipeCategory(i,cat){
+function setRecipeCategory(i,cat){if(!navigator.onLine)return alert("تعديل الفئات المرتبطة بالريسبي يحتاج اتصالًا بالإنترنت.");
  const r=S.recipes[Number(i)];
  if(!r)return;
  const next=String(cat||"");
@@ -907,7 +926,7 @@ function setRecipeCategory(i,cat){
  if(old!==next)logAction("تعديل فئة ريسبي",r.name+" — "+(next||"بدون فئة"));
  save();render();
 }
-function saveRecipe(){
+function saveRecipe(){if(!navigator.onLine)return alert("إضافة الريسبي تحتاج اتصالًا بالإنترنت لتفادي التعارض.");
  let name=rn.value.trim(),price=+rs.value||0,cat=(document.getElementById("rc")?.value||""),rows=[...ings.children];
  if(!name)return alert("اكتب اسم الريسبي");
  if((S.recipes||[]).some(r=>String(r.name||"").trim()===name))return alert("اسم الريسبي موجود بالفعل");
@@ -1023,8 +1042,10 @@ function purchase(ev){
 }
 
 function deletePurchase(i){
+ if(!navigator.onLine)return alert("حذف المشتريات يحتاج اتصالًا بالإنترنت.");
  const x=S.purchases[i];
  if(!x)return;
+ if(!confirm("حذف عملية شراء «"+x.p+"» بكمية "+x.q+" وتكلفة "+money(x.total)+"؟\nهيتخصم مقدارها من المخزون وهيتعدل متوسط التكلفة.\nإلغاء: بدون تغيير."))return;
  const p=S.products.find(z=>z.name===x.p);
  if(p){
    const curQty=Number(p.qty||0),removeQty=Number(x.q||0);
@@ -1040,7 +1061,10 @@ function deletePurchase(i){
 }
 function expense(){let a=+ea.value||0;if(a<=0)return;if(a>cashAvailable())return alert("الكاش المتاح لا يكفي لتسجيل المصروف");S.expenses.push({date:new Date().toLocaleDateString("ar-EG"),t:et.value||"عام",n:en.value,a,nonCash:false});logAction("مصروف",money(a));ea.value=en.value="";save();render()}
 function adjust(i){
+ if(!navigator.onLine)return alert("تسوية الجرد تحتاج اتصالًا بالإنترنت.");
  let a=+document.getElementById("actual"+i).value||0;
+ if(!S.products[i]||a<0)return alert("كمية جرد غير صحيحة");
+ if(!confirm("تسوية مخزون «"+S.products[i].name+"» من "+S.products[i].qty+" إلى "+a+"؟\nسيتغير رصيد المخزون.\nإلغاء: بدون تغيير."))return;
  S.products[i].qty=a;logAction("جرد",S.products[i].name+" = "+a);save();render();
 }
 
@@ -1100,7 +1124,7 @@ function archiveCurrentMonth(){
 function closeMonth(){
  try{
    normalizeState();
-   if(!window.confirm("تأكيد إغلاق الشهر وحفظه في الأرشيف؟"))return;
+   if(!window.confirm("إغلاق الشهر الحالي وترحيل الديون والكاش والأرشيف؟\nبعد الإغلاق هيبدأ شهر جديد ولن تتاح عمليات الشهر السابق للتعديل العادي.\nإلغاء: بدون تغيير."))return;
    archiveCurrentMonth();
    window.alert("تم إغلاق الشهر وحفظه في الأرشيف");
  }catch(err){
@@ -1123,6 +1147,7 @@ function sellRecipe(index){
 }
 function saleUnitCost(x){return Number(x.cost||0)/Math.max(1,Number(x.qty||1))}
 function editSale(i){
+ if(!navigator.onLine)return alert("تعديل مبيعات سابقة يحتاج اتصالًا بالإنترنت.");
  const x=S.sales[i];if(!x||x.returned)return alert("لا يمكن تعديل حركة مرتجعة");
  const oldQty=Number(x.qty||1),oldTotal=Number(x.total||0),oldCost=Number(x.cost||0);
  let q=Number(prompt("الكمية الجديدة",oldQty));if(!Number.isFinite(q)||q<=0)return;
@@ -1132,6 +1157,7 @@ function editSale(i){
    const chargesAfter=officerOpening(x.who)+officerTotal(x.who)-oldTotal+newTotal;
    if(chargesAfter+0.000001<officerPaid(x.who))return alert("لا يمكن تقليل حركة البيع لأن فيه تحصيلات مسجلة تغطي جزءًا منها. عدّل التحصيلات أولًا.");
  }
+ if(!confirm("تعديل بيع «"+x.product+"» من "+money(oldTotal)+" إلى "+money(newTotal)+" وبكمية "+q+"؟\nسيتغير المخزون والمستحقات.\nإلغاء: بدون تغيير."))return;
  const delta=q-oldQty;
  if(delta>0){
    if(Array.isArray(x.recipeIns)){for(const ing of x.recipeIns){const p=S.products.find(z=>z.name===ing.n);if(!p||Number(p.qty||0)<Number(ing.q||0)*delta)return alert("المخزون غير كافٍ: "+ing.n);}}
@@ -1145,11 +1171,13 @@ function editSale(i){
 }
 function recalcProductBuy(name){const p=S.products.find(z=>z.name===name);if(!p)return;const rows=S.purchases.filter(z=>z.p===name);const q=rows.reduce((a,z)=>a+Number(z.q||0),0);const v=rows.reduce((a,z)=>a+Number(z.total||0),0);p.buy=q>0?v/q:0;}
 function editPurchase(i){
+ if(!navigator.onLine)return alert("تعديل مشتريات سابقة يحتاج اتصالًا بالإنترنت.");
  const x=S.purchases[i];if(!x)return;const oldQ=Number(x.q||0),oldTotal=Number(x.total||0),oldSup=x.sup||"";
  let q=Number(prompt("الكمية الجديدة",oldQ));if(!Number.isFinite(q)||q<=0)return;
  let pr=Number(prompt("سعر الوحدة الجديد",Number(x.unitPrice??(oldTotal/Math.max(oldQ,1)))));if(!Number.isFinite(pr)||pr<0)return;
  let supNew=prompt("المورد",oldSup);if(supNew===null)return;
- const p=S.products.find(z=>z.name===x.p),deltaQ=q-oldQ,newTotal=q*pr,deltaValue=newTotal-oldTotal;
+ const newTotal=q*pr;if(!confirm("تعديل مشتريات «"+x.p+"» من "+money(oldTotal)+" إلى "+money(newTotal)+"؟\nسيُعاد حساب كمية المخزون ومتوسط التكلفة.\nإلغاء: بدون تغيير."))return;
+ const p=S.products.find(z=>z.name===x.p),deltaQ=q-oldQ,deltaValue=newTotal-oldTotal;
  if(p){
    const curQty=Number(p.qty||0),newQty=curQty+deltaQ;
    if(newQty<0)return alert("لا يمكن تقليل الشراء لأن الكمية الحالية بالمخزون لا تكفي");
@@ -1159,12 +1187,12 @@ function editPurchase(i){
  x.q=q;x.unitPrice=pr;x.total=newTotal;x.sup=supNew.trim();if(x.sup&&!S.suppliers.includes(x.sup))S.suppliers.push(x.sup);
  logAction("تعديل شراء",x.p+" | "+oldQ+" → "+q+" | "+money(oldTotal)+" → "+money(x.total));save();render();
 }
-function editExpense(i){const x=S.expenses[i];if(!x)return;if(x.source==="hospitality")return alert("مصروف الضيافة بيتسجل تلقائيًا من عملية الضيافة، وعدّله من حالة الضيافة نفسها.");const old=Number(x.a||0);let a=Number(prompt("المبلغ الجديد",old));if(!Number.isFinite(a)||a<0)return;let t=prompt("نوع المصروف",x.t||"");if(t===null)return;let n=prompt("البيان",x.n||"");if(n===null)return;x.a=a;x.t=t.trim()||"عام";x.n=n.trim();logAction("تعديل مصروف",money(old)+" → "+money(a));save();render();}
-function editPayment(i){const x=S.payments[i];if(!x)return;const old=Number(x.amount||0);const max=old+officerDue(x.who);let a=Number(prompt("المبلغ الجديد — الحد الأقصى "+max.toFixed(2),old));if(!Number.isFinite(a)||a<=0)return;if(a>max)return alert("المبلغ أكبر من المستحق");x.amount=a;syncAccountPayment(x);logAction("تعديل تحصيل",x.who+" | "+money(old)+" → "+money(a));save();render();}
-function deleteSale(i){
+function editExpense(i){if(!navigator.onLine)return alert("تعديل المصروف يحتاج اتصالًا بالإنترنت.");const x=S.expenses[i];if(!x)return;if(x.source==="hospitality")return alert("مصروف الضيافة بيتسجل تلقائيًا من عملية الضيافة، وعدّله من حالة الضيافة نفسها.");const old=Number(x.a||0);let a=Number(prompt("المبلغ الجديد",old));if(!Number.isFinite(a)||a<0)return;let t=prompt("نوع المصروف",x.t||"");if(t===null)return;let n=prompt("البيان",x.n||"");if(n===null)return;if(!confirm("تعديل المصروف من "+money(old)+" إلى "+money(a)+"؟\nسيؤثر على رصيد الخزنة.\nإلغاء: بدون تغيير."))return;x.a=a;x.t=t.trim()||"عام";x.n=n.trim();logAction("تعديل مصروف",money(old)+" → "+money(a));save();render();}
+function editPayment(i){if(!navigator.onLine)return alert("تعديل التحصيل يحتاج اتصالًا بالإنترنت.");const x=S.payments[i];if(!x)return;const old=Number(x.amount||0);const max=old+officerDue(x.who);let a=Number(prompt("المبلغ الجديد — الحد الأقصى "+max.toFixed(2),old));if(!Number.isFinite(a)||a<=0)return;if(a>max)return alert("المبلغ أكبر من المستحق");if(!confirm("تعديل تحصيل «"+x.who+"» من "+money(old)+" إلى "+money(a)+"؟\nسيتغير رصيد الخزنة ومستحقات الضابط.\nإلغاء: بدون تغيير."))return;x.amount=a;syncAccountPayment(x);logAction("تعديل تحصيل",x.who+" | "+money(old)+" → "+money(a));save();render();}
+function deleteSale(i){if(!navigator.onLine)return alert("المرتجع يحتاج اتصالًا بالإنترنت لتفادي تعارض المخزون والتحصيلات.");
  const x=S.sales[i];
  if(!x||x.returned)return;
- if(!confirm("تأكيد مرتجع الحركة وإرجاعها للمخزون؟"))return;
+ if(!confirm("تأكيد مرتجع «"+x.product+"» بقيمة "+money(x.total)+"؟\nهتتعدل المبيعات والمخزون وممكن يتغير المستحق على الضابط.\nإلغاء: بدون تغيير."))return;
  if(!x.cash&&x.who){
    const chargesAfter=officerOpening(x.who)+officerTotal(x.who)-Number(x.total||0);
    if(chargesAfter+0.000001<officerPaid(x.who))return alert("لا يمكن تنفيذ المرتجع لأن فيه تحصيلات مسجلة تغطي جزءًا من الحركة. عدّل التحصيلات أولًا.");
@@ -1227,18 +1255,20 @@ function migrateHospitalityBuffetExpenses(){
  if(changed)save();
 }
 function setHospitalityStatus(i,status){
+ if(!navigator.onLine)return alert("تعديل حالة الضيافة يحتاج اتصالًا بالإنترنت.");
  const h=(S.hospitality||[])[i];if(!h)return;
  if(h.status==="paid")return alert("الضيافة دي تم تحصيلها بالفعل");
  if(!["pending","buffet","general"].includes(status))return;
  const old=h.status||"pending";
  if(old===status)return;
+ if(!confirm("تعديل حالة الضيافة من «"+hospitalityStatusLabel(old)+"» إلى «"+hospitalityStatusLabel(status)+"»؟\nقد يتغير المصروف أو المستحق.\nإلغاء: بدون تغيير."))return;
  if(old==="buffet"&&status!=="buffet")removeHospitalityBuffetExpense(h);
  h.status=status;h.statusDate=new Date().toISOString();
  if(status==="buffet")addHospitalityBuffetExpense(h);
  logAction("تعديل حالة ضيافة",money(h.total)+" | "+hospitalityStatusLabel(old)+" → "+hospitalityStatusLabel(status));
  save();render();
 }
-function collectHospitality(i){
+function collectHospitality(i){if(!navigator.onLine)return alert("تحصيل الضيافة يحتاج اتصالًا بالإنترنت لمنع تحصيلها مرتين على جهازين.");
  try{
    normalizeState();
    const h=(S.hospitality||[])[i];if(!h)return window.alert("حركة الضيافة غير موجودة");
@@ -1281,7 +1311,7 @@ function payDebt(){
  S.cash=S.cash||{opening:0,movements:[]};S.cash.movements.push({type:'debtPay',amount:a,note:n,date:new Date().toLocaleString('ar-EG')});
  logAction('سداد دين',money(a)+(n?' — '+n:''));document.getElementById('cashDebtPayAmount').value='';document.getElementById('cashDebtPayNote').value='';save();render();
 }
-function setCashOpening(){let v=Number(document.getElementById('cashOpening')?.value);if(v<0||!Number.isFinite(v))return alert('اكتب رصيد صحيح');S.cash=S.cash||{opening:0,movements:[]};S.cash.opening=v;logAction('تعديل رصيد بداية الخزنة',money(v));save();render()}
+function setCashOpening(){if(!navigator.onLine)return alert("تعديل الرصيد الافتتاحي يحتاج اتصالًا بالإنترنت.");let v=Number(document.getElementById('cashOpening')?.value);if(v<0||!Number.isFinite(v))return alert('اكتب رصيد صحيح');if(!confirm('تغيير الرصيد الافتتاحي من '+money(S.cash?.opening||0)+' إلى '+money(v)+'؟\nسيتغير رصيد الخزنة.\nإلغاء: بدون تغيير.'))return;S.cash=S.cash||{opening:0,movements:[]};S.cash.opening=v;logAction('تعديل رصيد بداية الخزنة',money(v));save();render()}
 function addCashMove(){
  let type=document.getElementById('cashMoveType').value,a=Number(document.getElementById('cashMoveAmount').value),n=document.getElementById('cashMoveNote').value.trim();
  if(!a||a<=0)return alert('اكتب مبلغ صحيح');
@@ -1711,7 +1741,9 @@ if(__publicPayload){
   try{const dl=document.getElementById("currentDateLabel");if(dl)dl.textContent=new Date().toLocaleDateString("ar-EG",{day:"numeric",month:"long",year:"numeric"});renderPublicAccount(__publicPayload);}catch(err){console.error("Public view error",err);}
 }else{
   try{
-    load();
+    // V9 Online must not render generic localStorage data before authenticated buffet selection.
+    // activateBuffetAccess() restores only the cache scoped to the active buffet and user.
+    if(typeof window.onlineInit==='function')normalizeState();else load();
     S.products.forEach(p=>{if(!p.unit)p.unit="قطعة";});
     const dl=document.getElementById("currentDateLabel");
     if(dl)dl.textContent=new Date().toLocaleDateString("ar-EG",{day:"numeric",month:"long",year:"numeric"});
