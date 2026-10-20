@@ -61,21 +61,21 @@ function restoreBuffetCache(bid){
   return !!data;
 }
 function rememberBuffetAccess(m){
-  if(!m?.buffet_id||m.access_mode==='worker')return false;
-  const mode=m.access_mode==='worker'?'worker':'owner';
-  const cached={...m,user_id:O.user?.id||m.user_id||null,access_mode:mode,is_primary:mode==='owner'};
-  O.accessMode=mode;O.buffetId=cached.buffet_id;O.buffetName=cached.buffet_name||'البوفيه';
+  // Owner-only: do not upgrade an unknown/worker membership to admin by default.
+  if(!m?.buffet_id||m.access_mode!=='owner'||m.is_primary!==true)return false;
+  const accountId=O.user?.id||O.session?.user?.id||null;
+  if(!accountId||(m.user_id&&m.user_id!==accountId))return false;
+  const cached={...m,user_id:accountId,access_mode:'owner',is_primary:true};
+  O.accessMode='owner';O.buffetId=cached.buffet_id;O.buffetName=cached.buffet_name||'البوفيه';
   try{localStorage.setItem(CFG.memberKey,JSON.stringify(cached));}catch(e){}
   O.dataEpoch=Number(localStorage.getItem(epochKeyFor(O.buffetId))||1);O.periodEpoch=Number(localStorage.getItem(periodKeyFor(O.buffetId))||1);
   return true;
 }
 function cachedBuffetAccess(){
   let m=null;try{m=JSON.parse(localStorage.getItem(CFG.memberKey)||'null')}catch(e){}
-  if(!m?.buffet_id||m.access_mode==='worker')return null;
-  const uid=O.user?.id||O.session?.user?.id||null;
-  if(m.user_id&&uid&&m.user_id!==uid)return null;
-  if(uid&&!m.user_id){m.user_id=uid;try{localStorage.setItem(CFG.memberKey,JSON.stringify(m));}catch(e){}}
-  m.access_mode=m.access_mode==='worker'?'worker':'owner';m.is_primary=m.access_mode==='owner';
+  // Offline access is possible only for the previously verified primary owner on this device.
+  const uid=O.session?.user?.id||null;
+  if(!uid||!m?.buffet_id||m.access_mode!=='owner'||m.is_primary!==true||m.user_id!==uid)return null;
   return m;
 }
 function hasBuffetCache(m){
@@ -206,7 +206,7 @@ async function queueCount(){let ids;try{ids=new Set(journalRead().filter(x=>x.bu
 async function setStatus(mode,text){const e=document.getElementById('onlineStatus'),t=document.getElementById('onlineStatusText');if(!e||!t)return;e.className='show '+mode;t.textContent=text;}
 async function refreshStatus(){
   const n=await queueCount(),button=document.getElementById('onlineSyncNowBtn');
-  if(button)button.style.display=O.ready&&navigator.onLine&&!O.syncing&&!O.storageFault&&(n>0||!!O.syncError||O.needCloudRefresh)?'inline-block':'none';
+  if(button)button.style.display=O.ready&&!O.startedOffline&&navigator.onLine&&!O.syncing&&!O.storageFault&&(n>0||!!O.syncError||O.needCloudRefresh)?'inline-block':'none';
   if(O.storageFault)return setStatus('error','تعذر قراءة العمليات المعلقة · المزامنة متوقفة');
   if(O.syncing){const progress=O.syncProgress?` · ${O.syncProgress.done}/${O.syncProgress.total} حركة`:'';return setStatus('syncing',`جاري المزامنة${progress} · ${n} معلقة`);}
   if(!navigator.onLine)return setStatus('offline',n?`بدون إنترنت · ${n} عملية معلقة`:'بدون إنترنت');
@@ -403,7 +403,9 @@ async function loadBuffetAccess(){
     const rows=await api('/rest/v1/rpc/resolve_my_buffet_access_v1',{method:'POST',body:'{}'});
     const m=(Array.isArray(rows)?rows[0]:rows)||null;
     if(m?.access_mode==='worker'){const err=new Error('تم إلغاء نظام الموظفين. الدخول متاح لحساب المدير الرئيسي فقط.');err.code='WORKER_FEATURE_DISABLED';throw err;}
-    return m?.buffet_id?{...m,user_id:O.user.id,access_mode:'owner',is_primary:m.is_primary===true}:null;
+    // Unknown or non-primary memberships must never be auto-promoted to owner.
+    if(m?.buffet_id&&(m.access_mode!=='owner'||m.is_primary!==true))throw new Error('OWNER_ACCESS_NOT_CONFIRMED');
+    return m?.buffet_id?{...m,user_id:O.user.id,access_mode:'owner',is_primary:true}:null;
   }catch(e){
     if(e?.code==='WORKER_FEATURE_DISABLED')throw e;
     // Backward-compatible owner fallback while deploying V9.3 database changes.
@@ -416,13 +418,18 @@ async function loadBuffetAccess(){
 }
 async function activateBuffetAccess(m){
   if(!rememberBuffetAccess(m))return null;
-  const hasCache=restoreBuffetCache(O.buffetId);showAuth(false);applyAccessUI();O.ready=false;
+  const hasCache=restoreBuffetCache(O.buffetId);O.ready=false;
   if(!hasCache&&!navigator.onLine){showAuth(true);authMsg("لا توجد بيانات محفوظة على الجهاز. افتح البرنامج مرة بالإنترنت أولًا.","err");return null;}
-  if(!navigator.onLine){O.ready=true;O.startedOffline=true;clearOperationalAutofill();await refreshStatus();return m;}
+  if(!navigator.onLine){
+    O.ready=true;O.startedOffline=true;showAuth(false);applyAccessUI();clearOperationalAutofill();await refreshStatus();return m;
+  }
+  // Avoid accepting unsynchronized local writes while the initial online snapshot is still loading.
+  showAuth(true);authMsg('جاري تجهيز بيانات البوفيه والتحقق من المزامنة...');
   await O.queuePromise;O.ready=true;O.startedOffline=false;
   if((await queueCount())>0)await syncPending();else await pullCloud();
   persistBuffetCache();O.lastServerEventAt=await latestEventAt();clearOperationalAutofill();await touchDevice();await refreshStatus();scheduleSync(100);
   clearInterval(O.pollTimer);O.pollTimer=setInterval(poll,CFG.pollMs);
+  showAuth(false);applyAccessUI();
   return m;
 }
 
@@ -849,13 +856,19 @@ async function init(){
     showAuth(true);authMsg('رابط استعادة كلمة المرور غير صالح أو انتهت صلاحيته. اطلب رابط جديد من شاشة الدخول.','err');return;
   }
   if(O.session?.access_token){
+    // Cold start: recover the previously verified owner's local cache before any network call.
+    // This covers iOS/PWA cases in which navigator.onLine is true without real internet.
+    const cached=cachedBuffetAccess();
+    if(cached&&window.S&&hasBuffetCache(cached)){
+      rememberBuffetAccess(cached);restoreBuffetCache(cached.buffet_id);
+      O.ready=true;O.startedOffline=true;showAuth(false);applyAccessUI();clearOperationalAutofill();
+      await refreshStatus();
+      if(navigator.onLine)resumeAfterConnectivity().catch(console.error);
+      return;
+    }
     try{
       if(navigator.onLine){await accessToken();const u=await api('/auth/v1/user',{method:'GET'});O.user=u;O.session.user=u;saveSession(O.session);await afterAuth();}
-      else{
-        const m=cachedBuffetAccess();
-        if(m&&window.S&&hasBuffetCache(m)){rememberBuffetAccess(m);restoreBuffetCache(m.buffet_id);O.ready=true;O.startedOffline=true;showAuth(false);applyAccessUI();clearOperationalAutofill();await refreshStatus();}
-        else{showAuth(true);authMsg('أول تشغيل Offline يحتاج فتح الحساب مرة واحدة بالإنترنت.','err');}
-      }
+      else{showAuth(true);authMsg('أول تشغيل Offline يحتاج فتح الحساب مرة واحدة بالإنترنت.','err');}
     }catch(e){
       console.error(e);
       if(e?.status===401){saveSession(null);O.ready=false;showAuth(true);authMsg('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.','err');return;}

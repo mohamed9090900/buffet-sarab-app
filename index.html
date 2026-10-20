@@ -286,8 +286,17 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 </section>
 <section id="salesProductsPage">
   <div class="rowtitle"><h2>تحليل المبيعات حسب المنتج</h2><button type="button" class="tab" onclick="show('salesPage')">رجوع للمبيعات</button></div>
-  <div class="hint">الكمية المباعة، وإجمالي البيع، وتكلفة البضاعة، والربح لكل منتج خلال الشهر الحالي.</div>
-  <div class="card" style="overflow:auto"><div id="productSalesReport"></div></div>
+  <div class="hint">ترتيب الأصناف حسب الأرباح أو المبيعات أو هامش الربح أو الكمية؛ نفس حسابات الشهر الحالي بدون تغيير.</div>
+  <div class="card">
+    <label for="productSalesSort">ترتيب المنتجات حسب</label>
+    <select id="productSalesSort" onchange="renderProductSalesAnalysis()" style="margin-top:8px;margin-bottom:12px">
+      <option value="profit">الأعلى ربحًا</option>
+      <option value="sales">الأعلى مبيعات بالقيمة</option>
+      <option value="margin">أعلى هامش ربح %</option>
+      <option value="qty">الأكثر بيعًا بالكمية</option>
+    </select>
+    <div style="overflow:auto"><div id="productSalesReport"></div></div>
+  </div>
 </section>
 <section id="salesMovementsPage">
   <div class="rowtitle"><h2>حركة المبيعات</h2><button type="button" class="tab" onclick="show('salesPage')">رجوع للمبيعات</button></div>
@@ -312,7 +321,7 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 </main>
 <div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3><input id="editProductName" placeholder="اسم المنتج" readonly><input id="editProductBuy" type="number" step="0.01" placeholder="متوسط التكلفة — تلقائي" readonly><input id="editProductSell" type="number" step="0.01" placeholder="سعر البيع"><input id="editProductQty" type="number" step="0.01" placeholder="المخزون الحالي — تلقائي" readonly><input id="editProductMin" type="number" step="0.01" placeholder="حد التنبيه"><select id="editProductUnit" disabled><option>قطعة</option><option>جم</option><option>كجم</option><option>مل</option><option>لتر</option></select><select id="editProductCat"></select><div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div><div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
-<script src="online.js?v=9.3.1-owner-only-test-v1"></script>
+<script src="online.js?v=9.3.1-owner-sales-offline-v2"></script>
 <script>
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
@@ -1417,12 +1426,7 @@ if(document.getElementById("hospitalityStats")){
  hospitalityStats.innerHTML=`<div class="metric-card tone-blue"><div class="metric-head">إجمالي ضيافة الشهر</div><div class="metric-value">${money(totalMonth)}</div></div><div class="metric-card tone-amber"><div class="metric-head">ضيافة معلّقة</div><div class="metric-value">${money(pending)}</div></div><div class="metric-card tone-red"><div class="metric-head">على البوفيه</div><div class="metric-value">${money(buffet)}</div></div><div class="metric-card tone-purple"><div class="metric-head">مستحق على اللواء</div><div class="metric-value">${money(generalDue)}</div></div><div class="metric-card tone-green metric-wide"><div class="metric-head">تم تحصيله من اللواء هذا الشهر</div><div class="metric-value">${money(paidMonth)}</div></div>`;
  const visibleHospitality=all.map((h,i)=>({h,i})).filter(x=>(!x.h.archived&&x.h.period===period)||x.h.status==="pending"||x.h.status==="general").reverse().slice(0,40);hospitalityRows.innerHTML=visibleHospitality.length?visibleHospitality.map(({h,i})=>{let actions="";if(h.status==="pending")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'buffet')">على البوفيه</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'general')">على اللواء</button>`;else if(h.status==="buffet")actions=`<button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;else if(h.status==="general")actions=`<button type="button" class="primary hospitality-collect-btn" data-hospitality-index="${i}">تحصيل من اللواء</button> <button type="button" class="tab" onclick="setHospitalityStatus(${i},'pending')">إرجاع لمعلّقة</button>`;return `<div class="card" style="margin:10px 0"><div class="rowtitle"><span><b>${hospitalityStatusLabel(h.status)}</b><div class="muted">${esc(h.date||"")} — ${esc(hospitalityItemsText(h))}</div></span><b>${money(h.total)}</b></div>${actions?`<div class="public-actions">${actions}</div>`:""}</div>`}).join(""):`<div class="hint">لا توجد ضيافة مسجلة.</div>`;
 }
-if(document.getElementById("productSalesReport")){
- const by={};
- currentReportingSales().forEach(x=>{const q=Number(x.qty||1);const key=x.product||"غير محدد";if(!by[key])by[key]={q:0,sales:0,cost:0};by[key].q+=q;by[key].sales+=Number(x.total||0);by[key].cost+=Number(x.cost||0);});
- const rows=Object.entries(by).sort((a,b)=>b[1].sales-a[1].sales);
- productSalesReport.innerHTML=rows.length?`<table><thead><tr><th>المنتج</th><th>الكمية</th><th>المبيعات</th><th>التكلفة</th><th>الربح</th></tr></thead><tbody>${rows.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.q}</td><td>${money(v.sales)}</td><td>${money(v.cost)}</td><td>${money(v.sales-v.cost)}</td></tr>`).join("")}</tbody></table>`:"لا توجد مبيعات.";
-}
+if(document.getElementById("productSalesReport"))renderProductSalesAnalysis();
 if(document.getElementById("topProducts")){
  const by={};currentReportingSales().forEach(x=>by[x.product]=(by[x.product]||0)+(x.qty||1));
  topProducts.innerHTML=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>`<div class="rowtitle"><span>${esc(k)}</span><b>${v} وحدة</b></div>`).join("")||"لا توجد مبيعات";
@@ -1502,6 +1506,20 @@ if(document.getElementById("paymentFromDate")) renderPaymentsView();
 
 }
 // Full current-month sales movement ledger: display every entry through explicit paging, never silently truncate.
+// ترتيب للعرض فقط — نفس مصدر المبيعات والتكلفة المستخدم في ملخص الشهر.
+function renderProductSalesAnalysis(){
+ const el=document.getElementById("productSalesReport");if(!el)return;
+ const by=Object.create(null);
+ currentReportingSales().forEach(x=>{
+   const key=String(x.product||"غير محدد");
+   if(!by[key])by[key]={q:0,sales:0,cost:0};
+   const v=by[key];v.q+=Number(x.qty||1);v.sales+=Number(x.total||0);v.cost+=Number(x.cost||0);
+ });
+ const mode=document.getElementById("productSalesSort")?.value||"profit";
+ const score=v=>mode==="sales"?v.sales:mode==="qty"?v.q:mode==="margin"?(v.sales>0?(v.sales-v.cost)/v.sales:-Infinity):v.sales-v.cost;
+ const rows=Object.entries(by).sort((a,b)=>score(b[1])-score(a[1])||b[1].sales-a[1].sales||a[0].localeCompare(b[0],"ar"));
+ el.innerHTML=rows.length?`<table><thead><tr><th>المنتج</th><th>الكمية</th><th>المبيعات</th><th>التكلفة</th><th>الربح</th><th>هامش الربح</th></tr></thead><tbody>${rows.map(([name,v])=>`<tr><td>${esc(name)}</td><td>${v.q}</td><td>${money(v.sales)}</td><td>${money(v.cost)}</td><td>${money(v.sales-v.cost)}</td><td>${v.sales>0?((v.sales-v.cost)/v.sales*100).toFixed(1)+"%":"—"}</td></tr>`).join("")}</tbody></table>`:"لا توجد مبيعات.";
+}
 function resetSalesHistoryView(){salesHistoryLimit=100;renderSalesHistory();}
 function showMoreSalesHistory(){salesHistoryLimit+=100;renderSalesHistory();}
 function renderSalesHistory(){
