@@ -231,10 +231,87 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 .receipt-legacy-note{font-size:12px;color:#f2cd85;padding:10px 15px;border-top:1px solid #28505d;line-height:1.65}
 .receipt-footer{display:flex;justify-content:space-between;padding:13px 8px 2px;font-weight:bold;gap:10px}
 @media(max-width:600px){.returns-invoice-summary{padding:12px 11px;gap:8px}.receipt-summary-main b{font-size:15px}.receipt-summary-side b{font-size:15px}.receipt-preview{font-size:12px}.receipt-table th,.receipt-table td{padding:8px 4px;font-size:12px}.receipt-action .tab{padding:7px 8px;font-size:11px}}
+
+/* V9.4.4: four compact, permanently highlighted selectable products per row on every device. */
+#saleProducts.sale-picker-grid{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;align-items:stretch;margin:10px 0 12px;
+}
+#saleProducts .sale-tile{
+  display:flex!important;flex-direction:column;align-items:center;justify-content:space-between;
+  width:100%;min-width:0;min-height:106px;padding:10px 3px 7px!important;
+  margin:0!important;border-radius:14px!important;text-align:center;
+  background:linear-gradient(165deg,#0d2835,#071c29)!important;
+  border:1px solid rgba(29,191,219,.48)!important;
+  box-shadow:0 3px 9px rgba(0,0,0,.2)!important;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+#saleProducts .sale-tile-name{
+  display:block;width:100%;min-height:34px;color:#f2fcff;
+  font-size:clamp(10px,2.9vw,15px);font-weight:800;line-height:1.32;
+  overflow-wrap:anywhere;word-break:normal;
+}
+#saleProducts .sale-tile-price{
+  display:block;color:#d8f7f4;font-weight:800;
+  font-size:clamp(11px,2.9vw,16px);line-height:1.2;white-space:nowrap;
+}
+#saleProducts .sale-tile-qty{
+  display:grid;place-items:center;min-height:21px;min-width:32px;
+  padding:1px 3px;border-radius:999px;visibility:hidden;
+  font-size:13px;line-height:1.2;font-weight:900;
+}
+#saleProducts .sale-tile-qty.has-qty{
+  visibility:visible;background:#067e75;color:#effffc;border:1px solid #69fff0;
+}
+#saleProducts .sale-tile.in-cart{
+  background:linear-gradient(145deg,#075f5e,#0b343a)!important;
+  border:2px solid #65fff0!important;
+  box-shadow:0 0 0 1px rgba(91,255,233,.35),0 0 19px rgba(28,233,209,.36),inset 0 0 14px rgba(15,220,198,.19)!important;
+}
+#saleProducts .sale-tile.in-cart .sale-tile-name{color:#fff!important}
+#saleProducts .sale-tile.in-cart .sale-tile-price{color:#b5fff0!important}
+#saleProducts .sale-tile:focus-visible{outline:3px solid #80ffec;outline-offset:2px}
+#saleProducts .sale-tile:active{transform:scale(.97)}
+#saleProducts .sale-grid-empty{grid-column:1/-1}
+@media(min-width:720px){
+ #saleProducts.sale-picker-grid{gap:12px!important}
+ #saleProducts .sale-tile{min-height:120px;padding:14px 10px 10px!important}
+ #saleProducts .sale-tile-name{font-size:16px}
+ #saleProducts .sale-tile-price{font-size:17px}
+}
+@media(max-width:360px){
+ #saleProducts.sale-picker-grid{gap:5px!important}
+ #saleProducts .sale-tile{min-height:105px;padding:9px 2px 6px!important}
+ #saleProducts .sale-tile-name{font-size:10px}
+ #saleProducts .sale-tile-price{font-size:11px}
+}
+
+
+/* V9.4.6: small on-type officer picker directly under the search input. */
+.officer-search-wrap{position:relative;z-index:15}
+.officer-quick-results{
+ position:absolute;z-index:100;top:calc(100% + 5px);right:0;left:0;
+ max-height:min(320px,48vh);overflow-y:auto;overscroll-behavior:contain;
+ background:#071f2a;border:1px solid #46e5d5;border-radius:14px;
+ box-shadow:0 14px 36px rgba(0,0,0,.65),0 0 18px rgba(25,230,210,.14);
+ -webkit-overflow-scrolling:touch;padding:5px;
+}
+.officer-quick-results[hidden]{display:none!important}
+.officer-quick-option{
+ appearance:none;display:flex;align-items:center;justify-content:space-between;
+ text-align:right;width:100%;min-height:48px;gap:10px;padding:11px 13px;
+ color:#f7ffff!important;background:#0b2a38!important;border:0!important;
+ border-bottom:1px solid rgba(74,190,204,.22)!important;border-radius:7px;
+ box-shadow:none!important;font-size:16px;font-weight:800;cursor:pointer;
+}
+.officer-quick-option:last-child{border-bottom:0!important}
+.officer-quick-option:active,.officer-quick-option:focus-visible{background:#076a6c!important;outline:2px solid #7af7e9}
+.officer-quick-action{font-size:12px;font-weight:500;color:#8feadf;white-space:nowrap}
+.officer-quick-empty{padding:15px;text-align:center;font-size:14px;color:#aac2d0}
 </style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v9.4.3-invoice-returns-no-cash-test-only">
+<body data-app-version="v9.4.6-officer-quick-search-test-only">
 <div id="appSplash" class="app-splash" aria-hidden="true">
   <div class="splash-inner">
     <div class="splash-logo-wrap"><img class="splash-logo" src="icon-512.png" alt=""></div>
@@ -280,7 +357,7 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 <input id="saleSearch" placeholder="ابحث عن صنف..." oninput="renderSaleProducts()">
 <div id="saleCategoryHeader" class="rowtitle" style="display:none"><button type="button" class="tab sale-back-categories-btn">← الفئات</button><b id="saleCategoryTitle"></b></div>
 <div id="saleCategoryBar" class="sale-category-grid"></div>
-<div id="saleProducts" class="cards"></div>
+<div id="saleProducts" class="cards sale-picker-grid" aria-label="المنتجات المتاحة للبيع"></div>
 <div class="card" style="margin-top:14px"><div class="rowtitle"><b>الفاتورة الحالية</b><span id="cartTotal">0.00 ج</span></div><div id="salePickNotice" class="sale-pick-notice" role="status" aria-live="polite"></div><div id="cartRows" class="hint">لم يتم اختيار أصناف</div><div class="grid" id="saleActionButtons"><button id="confirmSaleBtn" type="button" class="primary" onclick="confirmCart(false)">تسجيل على الحساب</button></div></div>
 </section>
 
@@ -296,8 +373,11 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
   </button>
 </div>
 <div class="card" style="margin-bottom:14px">
-  <input id="officerSearch" name="buffet_officer_search" autocomplete="off" data-lpignore="true" data-form-type="other" placeholder="بحث باسم الضابط" oninput="renderOfficers()">
-  <div class="grid" style="margin-top:10px"><input id="newOfficerName" name="buffet_officer_name" autocomplete="off" data-lpignore="true" data-form-type="other" placeholder="اسم الضابط"><button class="primary" type="button" onclick="addOfficer()">إضافة الضابط</button></div>
+  <div class="officer-search-wrap">
+    <input id="officerSearch" type="search" name="buffet_officer_search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search" enterkeyhint="search" data-lpignore="true" data-1p-ignore="true" data-form-type="other" aria-autocomplete="list" aria-controls="officerQuickResults" aria-expanded="false" aria-label="بحث سريع عن ضابط" placeholder="اكتب الاسم واضغط على الضابط للبيع" oninput="renderOfficers()" onfocus="renderOfficerQuickSearch()" onkeydown="officerSearchKeyDown(event)">
+    <div id="officerQuickResults" class="officer-quick-results" role="listbox" aria-label="نتائج البحث عن الضباط" hidden></div>
+  </div>
+  <div class="grid" style="margin-top:10px"><input id="newOfficerName" name="buffet_officer_name" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="اسم الضابط"><button class="primary" type="button" onclick="addOfficer()">إضافة الضابط</button></div>
 </div>
 <div id="people"></div>
 <details class="card data-safety-tools" style="margin-top:22px">
@@ -415,7 +495,7 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 <div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div>
 <div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
-<script src="online.js?v=9.4.3-invoice-returns-no-cash"></script>
+<script src="online.js?v=9.4.6-officer-quick-search"></script>
 <script>
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
@@ -724,8 +804,8 @@ function fromBase64Url(text){
 }
 function officerSharePayload(name){
  const cycle=accountCycleInfo(name);
- const sales=cycle.sales.map(x=>({d:x.date||"",p:x.product||"",q:Number(x.qty||1),t:Number(x.amount||0)}));
- return {v:3,n:name,g:new Date().toLocaleString("ar-EG"),s:sales,d:officerDue(name),p:Number(cycle.paid||0)};
+ const sales=cycle.sales.map(x=>({d:x.date||"",p:x.product||"",q:Number(x.qty||1)}));
+ return {v:4,n:name,g:new Date().toLocaleString("ar-EG"),s:sales,d:officerDue(name),p:Number(cycle.paid||0)};
 }
 async function shareOfficerAccountByIndex(i){
  const name=S.people?.[Number(i)];if(!name)return;
@@ -738,7 +818,7 @@ async function shareOfficerAccountByIndex(i){
  prompt("انسخ رابط حساب "+name,url);
 }
 function readPublicAccountHash(){
- try{const h=location.hash||"";if(!h.startsWith("#account="))return null;const data=JSON.parse(fromBase64Url(h.slice(9)));return data&&(data.v===1||data.v===2||data.v===3)?data:null;}catch(e){return null;}
+ try{const h=location.hash||"";if(!h.startsWith("#account="))return null;const data=JSON.parse(fromBase64Url(h.slice(9)));return data&&(data.v===1||data.v===2||data.v===3||data.v===4)?data:null;}catch(e){return null;}
 }
 function renderPublicAccount(data){
  document.body.classList.add("public-view");
@@ -748,7 +828,7 @@ function renderPublicAccount(data){
  const name=document.getElementById("publicAccountName");if(name)name.textContent="كشف حساب — "+String(data.n||"");
  const due=Number(data.d||0),paid=Number(data.p||0);
  const stats=document.getElementById("publicAccountStats");if(stats)stats.innerHTML=`<div class="stat" style="grid-column:1/-1;text-align:center">المستحق حاليًا<br><b style="font-size:30px">${money(due)}</b></div>`;
- const sales=document.getElementById("publicAccountSales");if(sales)sales.innerHTML=(data.s||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${esc(x.p)} × ${Number(x.q||1)}<div class="muted">${esc(x.d||"")}</div></span><b>${money(x.t)}</b></div>`).join("")||`<div class="hint">لا توجد أصناف مستحقة حاليًا.</div>`;
+ const sales=document.getElementById("publicAccountSales");if(sales)sales.innerHTML=(data.s||[]).slice().reverse().map(x=>`<div class="rowtitle"><span>${esc(x.p)} × ${Number(x.q||1)}<div class="muted">${esc(x.d||"")}</div></span></div>`).join("")||`<div class="hint">لا توجد أصناف مستحقة حاليًا.</div>`;
  const note=document.getElementById("publicAccountPaymentNote");if(note){if(paid>0&&due>0){note.textContent=`كنت دفعت قبل كده ${money(paid)}، وفاضل على حضرتك ${money(due)}.`;note.classList.add("show");}else{note.textContent="";note.classList.remove("show");}}
  const gen=document.getElementById("publicAccountGenerated");if(gen)gen.textContent="نسخة للعرض فقط — تم إنشاء الرابط: "+String(data.g||"");
  document.title="كشف حساب "+String(data.n||"")+" — البوفيه";
@@ -785,7 +865,7 @@ function openDetail(name){
  document.getElementById("detailName").textContent="كشف حساب — "+name;
  const rows=accountCycleSales(name), due=officerDue(name);
  detailStats.innerHTML=`<div class="stat" style="grid-column:1/-1;text-align:center">المستحق حاليًا<br><b>${money(due)}</b></div>`;
- detailRows.innerHTML=rows.slice().reverse().map(x=>`<div class="rowtitle"><span>${esc(x.product)} × ${Number(x.qty||1)}<div class="muted">${esc(x.date||"")}</div></span><b>${money(x.amount)}</b></div>`).join("")||"<div class='hint'>لا توجد مشتريات مستحقة حاليًا.</div>";
+ detailRows.innerHTML=rows.slice().reverse().map(x=>`<div class="rowtitle"><span>${esc(x.product)} × ${Number(x.qty||1)}<div class="muted">${esc(x.date||"")}</div></span></div>`).join("")||"<div class='hint'>لا توجد مشتريات مستحقة حاليًا.</div>";
  show("officerDetail");
 }
 function deleteProduct(i){
@@ -882,8 +962,9 @@ function renderSaleProducts(){
  const matches=(S.products||[]).filter(p=>!p.inactive&&Number(p.sell||0)>0&&String(p.name||'').toLocaleLowerCase('ar').includes(q));
  saleProducts.innerHTML=matches.map(p=>{
   const i=S.products.indexOf(p),count=cart.find(x=>x.type==='product'&&x.i===i)?.q||0;
-  return `<div class="card sale-item-card sale-product-card${count?' in-cart':''}" data-product-index="${i}" role="button" tabindex="0" aria-label="إضافة ${esc(p.name)}"><div class="rowtitle"><span class="name">${esc(p.name)}</span><span class="amount">${money(p.sell)}</span></div>${count?`<span class="sale-item-picked">✓ في الفاتورة: ${count}</span>`:''}</div>`;
- }).join('')||'<div class="hint">لا توجد منتجات للبيع. أضف المنتجات وحدد سعر البيع أولًا.</div>';
+  const last=!!count&&lastPickedSaleItem?.type==='product'&&lastPickedSaleItem.i===i;
+  return `<div class="card sale-item-card sale-product-card sale-tile${count?' in-cart':''}${last?' just-added':''}" data-product-index="${i}" role="button" tabindex="0" aria-pressed="${count>0}" aria-label="${esc(p.name)}، ${money(p.sell)}، في الفاتورة ${count}. اضغط لإضافة واحد آخر" title="${esc(p.name)}"><span class="sale-tile-name">${esc(p.name)}</span><span class="sale-tile-price">${money(p.sell)}</span><span class="sale-tile-qty${count?' has-qty':''}" aria-hidden="true">${count?'×'+count:'&nbsp;'}</span></div>`;
+ }).join('')||'<div class="hint sale-grid-empty">لا توجد منتجات للبيع. أضف المنتجات وحدد سعر البيع أولًا.</div>';
 }
 function addToCart(i){
  const p=S.products[i];if(!p||p.inactive||Number(p.sell||0)<=0)return;
@@ -1747,9 +1828,45 @@ function renderDebtorAccounts(){
   const i=names.get(x.name);return `<div class="person"><div><div class="name">${esc(x.name)}</div><div class="muted">المستحق الحالي</div></div><div><div class="amount">${money(x.due)}</div><div class="debtor-actions"><button type="button" class="tab" onclick="openPayModal(S.people[${i}])">تحصيل</button><button type="button" class="tab" onclick="openDetail(S.people[${i}])">كشف الحساب</button></div></div></div>`;
  }).join('')||`<div class="hint">${q?'لا يوجد ضباط مطابقون للبحث.':'لا توجد مستحقات على الضباط حاليًا.'}</div>`;
 }
+// Only UI search: choosing a suggestion uses the same openOfficer path as an existing officer card.
+function renderOfficerQuickSearch(){
+ const field=document.getElementById('officerSearch'), menu=document.getElementById('officerQuickResults');
+ if(!field||!menu)return;
+ const q=String(field.value||'').trim().toLocaleLowerCase('ar');
+ if(!q){menu.hidden=true;menu.innerHTML='';field.setAttribute('aria-expanded','false');return;}
+ const names=(S.people||[]).map((name,index)=>({name,index}))
+  .filter(x=>String(x.name||'').toLocaleLowerCase('ar').includes(q))
+  .sort((a,b)=>Number(!a.name.toLocaleLowerCase('ar').startsWith(q))-Number(!b.name.toLocaleLowerCase('ar').startsWith(q))||a.index-b.index);
+ menu.innerHTML=names.length?names.map(({name,index})=>`<button type="button" class="officer-quick-option" role="option" data-officer-index="${index}" onclick="quickOpenOfficer(${index})"><span>${esc(name)}</span><span class="officer-quick-action">فتح البيع ‹</span></button>`).join(''):'<div class="officer-quick-empty">مفيش ضباط بالاسم ده</div>';
+ menu.hidden=false;field.setAttribute('aria-expanded','true');
+}
+function quickOpenOfficer(index){
+ const name=S.people?.[Number(index)];if(typeof name!=='string')return;
+ const field=document.getElementById('officerSearch');
+ if(field){field.value='';field.blur();}
+ const menu=document.getElementById('officerQuickResults');if(menu){menu.hidden=true;menu.innerHTML='';}
+ field?.setAttribute('aria-expanded','false');
+ // No sale/payment is booked here; the sale is only booked by confirming its cart.
+ openOfficer(name);
+}
+function officerSearchKeyDown(e){
+ if(e.key==='Escape'){const menu=document.getElementById('officerQuickResults');if(menu)menu.hidden=true;e.currentTarget.setAttribute('aria-expanded','false');return;}
+ if(e.key==='Enter'){
+  const first=document.querySelector('#officerQuickResults:not([hidden]) .officer-quick-option');
+  if(first){e.preventDefault();first.click();}
+ }
+}
+document.addEventListener('pointerdown',function(e){
+ if(e.target.closest?.('.officer-search-wrap'))return;
+ const menu=document.getElementById('officerQuickResults');
+ if(menu)menu.hidden=true;
+ const field=document.getElementById('officerSearch');field?.setAttribute('aria-expanded','false');
+});
 function renderOfficers(){
- const q=(document.getElementById("officerSearch")?.value||"").trim().toLowerCase();
- const list=S.people.filter(n=>n.toLowerCase().includes(q));
+ const q=(document.getElementById("officerSearch")?.value||"").trim().toLocaleLowerCase('ar');
+ renderOfficerQuickSearch();
+ // While typing the matches are directly below the input, not far down the page.
+ const list=q?[]:S.people;
  const balanceMap=buildOfficerBalanceMap();
  const peopleIndex=new Map(S.people.map((n,i)=>[n,i]));
  people.innerHTML=list.map(n=>{
@@ -1757,7 +1874,7 @@ function renderOfficers(){
    const due=b.due, done=(b.opening+b.sales)>0 && due<=0;
    const personIndex=peopleIndex.get(n);
    return `<div class="person" style="${done?"background:#5a4a00;border-color:#a88b00":""}" onclick="personSale(S.people[${personIndex}])"><div><div class="name">${esc(n)}</div><div class="muted">${done?"الحساب مسدد":"المستحق الحالي"}</div></div><div style="text-align:left"><div class="amount">${money(due)}</div><button type="button" class="tab" onclick="event.stopPropagation();openPayModal(S.people[${personIndex}])">${done?"مدفوع":"تحصيل"}</button> <button type="button" class="tab share-btn" onclick="event.stopPropagation();shareOfficerAccountByIndex(${personIndex})">مشاركة الحساب</button> <button type="button" class="tab" onclick="event.stopPropagation();editOfficer(S.people[${personIndex}])">تعديل الاسم</button></div></div>`;
- }).join("") || `<div class="hint">لا يوجد ضابط بهذا الاسم.</div>`;
+ }).join("") || (q?'':`<div class="hint">لا يوجد ضباط مسجلون.</div>`);
 }
 function openPayModal(name){
  const due=officerDue(name);
