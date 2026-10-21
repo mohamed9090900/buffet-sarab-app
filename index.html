@@ -308,10 +308,16 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 .officer-quick-option:active,.officer-quick-option:focus-visible{background:#076a6c!important;outline:2px solid #7af7e9}
 .officer-quick-action{font-size:12px;font-weight:500;color:#8feadf;white-space:nowrap}
 .officer-quick-empty{padding:15px;text-align:center;font-size:14px;color:#aac2d0}
+/* V9.4.7: share debtor statements only from Accounts; keep the row compact on phones. */
+.debtor-rows .debtor-actions .debtor-share-btn{border-color:#40cfc2;color:#b8fff7}
+@media(max-width:430px){
+ .debtor-rows .debtor-actions{gap:5px}
+ .debtor-rows .debtor-actions .tab{padding:8px 9px;font-size:13px;min-height:38px}
+}
 </style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v9.4.6-officer-quick-search-test-only">
+<body data-app-version="v9.4.7-debtor-share-one-letter-test-only">
 <div id="appSplash" class="app-splash" aria-hidden="true">
   <div class="splash-inner">
     <div class="splash-logo-wrap"><img class="splash-logo" src="icon-512.png" alt=""></div>
@@ -374,7 +380,7 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 </div>
 <div class="card" style="margin-bottom:14px">
   <div class="officer-search-wrap">
-    <input id="officerSearch" type="search" name="buffet_officer_search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search" enterkeyhint="search" data-lpignore="true" data-1p-ignore="true" data-form-type="other" aria-autocomplete="list" aria-controls="officerQuickResults" aria-expanded="false" aria-label="بحث سريع عن ضابط" placeholder="اكتب الاسم واضغط على الضابط للبيع" oninput="renderOfficers()" onfocus="renderOfficerQuickSearch()" onkeydown="officerSearchKeyDown(event)">
+    <input id="officerSearch" type="search" name="buffet_officer_search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="search" enterkeyhint="search" data-lpignore="true" data-1p-ignore="true" data-form-type="other" aria-autocomplete="list" aria-controls="officerQuickResults" aria-expanded="false" aria-label="بحث سريع عن ضابط" placeholder="اكتب الاسم واضغط على الضابط للبيع" oninput="renderOfficers()" onsearch="renderOfficers()" oncompositionend="renderOfficers()" onfocus="renderOfficerQuickSearch()" onkeydown="officerSearchKeyDown(event)">
     <div id="officerQuickResults" class="officer-quick-results" role="listbox" aria-label="نتائج البحث عن الضباط" hidden></div>
   </div>
   <div class="grid" style="margin-top:10px"><input id="newOfficerName" name="buffet_officer_name" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="اسم الضابط"><button class="primary" type="button" onclick="addOfficer()">إضافة الضابط</button></div>
@@ -495,7 +501,7 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 <div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div>
 <div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
-<script src="online.js?v=9.4.6-officer-quick-search"></script>
+<script src="online.js?v=9.4.7-debtor-share-one-letter"></script>
 <script>
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
@@ -1825,18 +1831,28 @@ function renderDebtorAccounts(){
  const names=new Map((S.people||[]).map((n,i)=>[n,i]));
  const shown=debtors.filter(x=>x.name.toLocaleLowerCase('ar').includes(q)).sort((a,b)=>b.due-a.due||a.name.localeCompare(b.name,'ar'));
  rows.innerHTML=shown.map(x=>{
-  const i=names.get(x.name);return `<div class="person"><div><div class="name">${esc(x.name)}</div><div class="muted">المستحق الحالي</div></div><div><div class="amount">${money(x.due)}</div><div class="debtor-actions"><button type="button" class="tab" onclick="openPayModal(S.people[${i}])">تحصيل</button><button type="button" class="tab" onclick="openDetail(S.people[${i}])">كشف الحساب</button></div></div></div>`;
+  const i=names.get(x.name);return `<div class="person"><div><div class="name">${esc(x.name)}</div><div class="muted">المستحق الحالي</div></div><div><div class="amount">${money(x.due)}</div><div class="debtor-actions"><button type="button" class="tab" onclick="openPayModal(S.people[${i}])">تحصيل</button><button type="button" class="tab" onclick="openDetail(S.people[${i}])">كشف الحساب</button><button type="button" class="tab debtor-share-btn" onclick="shareOfficerAccountByIndex(${i})" aria-label="مشاركة كشف حساب ${esc(x.name)}">مشاركة</button></div></div></div>`;
  }).join('')||`<div class="hint">${q?'لا يوجد ضباط مطابقون للبحث.':'لا توجد مستحقات على الضباط حاليًا.'}</div>`;
+}
+// Search is live starting with the first typed character, with Arabic letter normalization.
+function normalizeOfficerLookup(value){
+ return String(value??'')
+  .normalize('NFKC')
+  .replace(/[\u064b-\u065f\u0670\u0640]/g,'')
+  .replace(/[أإآٱ]/g,'ا')
+  .replace(/ى/g,'ي')
+  .toLocaleLowerCase('ar')
+  .trim();
 }
 // Only UI search: choosing a suggestion uses the same openOfficer path as an existing officer card.
 function renderOfficerQuickSearch(){
  const field=document.getElementById('officerSearch'), menu=document.getElementById('officerQuickResults');
  if(!field||!menu)return;
- const q=String(field.value||'').trim().toLocaleLowerCase('ar');
+ const q=normalizeOfficerLookup(field.value);
  if(!q){menu.hidden=true;menu.innerHTML='';field.setAttribute('aria-expanded','false');return;}
  const names=(S.people||[]).map((name,index)=>({name,index}))
-  .filter(x=>String(x.name||'').toLocaleLowerCase('ar').includes(q))
-  .sort((a,b)=>Number(!a.name.toLocaleLowerCase('ar').startsWith(q))-Number(!b.name.toLocaleLowerCase('ar').startsWith(q))||a.index-b.index);
+  .filter(x=>normalizeOfficerLookup(x.name).includes(q))
+  .sort((a,b)=>Number(!normalizeOfficerLookup(a.name).startsWith(q))-Number(!normalizeOfficerLookup(b.name).startsWith(q))||a.index-b.index);
  menu.innerHTML=names.length?names.map(({name,index})=>`<button type="button" class="officer-quick-option" role="option" data-officer-index="${index}" onclick="quickOpenOfficer(${index})"><span>${esc(name)}</span><span class="officer-quick-action">فتح البيع ‹</span></button>`).join(''):'<div class="officer-quick-empty">مفيش ضباط بالاسم ده</div>';
  menu.hidden=false;field.setAttribute('aria-expanded','true');
 }
@@ -1863,7 +1879,7 @@ document.addEventListener('pointerdown',function(e){
  const field=document.getElementById('officerSearch');field?.setAttribute('aria-expanded','false');
 });
 function renderOfficers(){
- const q=(document.getElementById("officerSearch")?.value||"").trim().toLocaleLowerCase('ar');
+ const q=normalizeOfficerLookup(document.getElementById("officerSearch")?.value);
  renderOfficerQuickSearch();
  // While typing the matches are directly below the input, not far down the page.
  const list=q?[]:S.people;
@@ -1873,7 +1889,7 @@ function renderOfficers(){
    const b=balanceMap.get(n)||{opening:0,sales:0,paid:0,due:0};
    const due=b.due, done=(b.opening+b.sales)>0 && due<=0;
    const personIndex=peopleIndex.get(n);
-   return `<div class="person" style="${done?"background:#5a4a00;border-color:#a88b00":""}" onclick="personSale(S.people[${personIndex}])"><div><div class="name">${esc(n)}</div><div class="muted">${done?"الحساب مسدد":"المستحق الحالي"}</div></div><div style="text-align:left"><div class="amount">${money(due)}</div><button type="button" class="tab" onclick="event.stopPropagation();openPayModal(S.people[${personIndex}])">${done?"مدفوع":"تحصيل"}</button> <button type="button" class="tab share-btn" onclick="event.stopPropagation();shareOfficerAccountByIndex(${personIndex})">مشاركة الحساب</button> <button type="button" class="tab" onclick="event.stopPropagation();editOfficer(S.people[${personIndex}])">تعديل الاسم</button></div></div>`;
+   return `<div class="person" style="${done?"background:#5a4a00;border-color:#a88b00":""}" onclick="personSale(S.people[${personIndex}])"><div><div class="name">${esc(n)}</div><div class="muted">${done?"الحساب مسدد":"المستحق الحالي"}</div></div><div style="text-align:left"><div class="amount">${money(due)}</div><button type="button" class="tab" onclick="event.stopPropagation();openPayModal(S.people[${personIndex}])">${done?"مدفوع":"تحصيل"}</button> <button type="button" class="tab" onclick="event.stopPropagation();editOfficer(S.people[${personIndex}])">تعديل الاسم</button></div></div>`;
  }).join("") || (q?'':`<div class="hint">لا يوجد ضباط مسجلون.</div>`);
 }
 function openPayModal(name){
