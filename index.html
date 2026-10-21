@@ -314,10 +314,25 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
  .debtor-rows .debtor-actions{gap:5px}
  .debtor-rows .debtor-actions .tab{padding:8px 9px;font-size:13px;min-height:38px}
 }
+
+/* V9.4.9: products stay in four-column grids, now grouped by their own category. */
+#saleProducts.sale-category-list{display:flex!important;flex-direction:column;gap:16px!important;margin:10px 0 12px;min-width:0}
+#saleProducts .sale-group{display:block!important;min-width:0}
+#saleProducts .sale-group-title{display:flex;align-items:center;gap:9px;min-height:41px;padding:7px 11px;margin:0 0 9px;background:linear-gradient(100deg,#0d3540,#09212e);border:1px solid rgba(53,217,218,.48);border-radius:13px;color:#d9fffa;font-weight:850;font-size:17px}
+#saleProducts .sale-group-title:before{content:"";height:19px;width:4px;border-radius:8px;background:#35e7d3;flex:none}
+#saleProducts .sale-group-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;align-items:stretch;min-width:0}
+#saleProducts .sale-group-grid .sale-tile{height:100%;min-width:0}
+#saleProducts .sale-grid-empty{width:100%;grid-column:auto}
+.simple-category-tools{display:flex;gap:8px;align-items:center;margin:8px 0 13px}
+.simple-category-tools input{flex:1;min-width:0;margin:0}
+.simple-category-tools button{flex:none;min-height:44px;margin:0!important;white-space:nowrap}
+.simple-category-list{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 10px}
+.simple-category-list .pill{font-size:12px;padding:5px 8px}
+@media(max-width:380px){#saleProducts .sale-group-grid{gap:5px}#saleProducts .sale-group-title{font-size:15px}}
 </style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v9.4.7-debtor-share-one-letter-test-only">
+<body data-app-version="v9.4.9-grouped-products-no-hide-test-only">
 <div id="appSplash" class="app-splash" aria-hidden="true">
   <div class="splash-inner">
     <div class="splash-logo-wrap"><img class="splash-logo" src="icon-512.png" alt=""></div>
@@ -363,7 +378,7 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 <input id="saleSearch" placeholder="ابحث عن صنف..." oninput="renderSaleProducts()">
 <div id="saleCategoryHeader" class="rowtitle" style="display:none"><button type="button" class="tab sale-back-categories-btn">← الفئات</button><b id="saleCategoryTitle"></b></div>
 <div id="saleCategoryBar" class="sale-category-grid"></div>
-<div id="saleProducts" class="cards sale-picker-grid" aria-label="المنتجات المتاحة للبيع"></div>
+<div id="saleProducts" class="sale-category-list" aria-label="المنتجات المتاحة للبيع حسب الفئة"></div>
 <div class="card" style="margin-top:14px"><div class="rowtitle"><b>الفاتورة الحالية</b><span id="cartTotal">0.00 ج</span></div><div id="salePickNotice" class="sale-pick-notice" role="status" aria-live="polite"></div><div id="cartRows" class="hint">لم يتم اختيار أصناف</div><div class="grid" id="saleActionButtons"><button id="confirmSaleBtn" type="button" class="primary" onclick="confirmCart(false)">تسجيل على الحساب</button></div></div>
 </section>
 
@@ -414,10 +429,17 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
   <div class="grid3">
     <label>اسم المنتج<input id="simpleProductName" placeholder="مثلاً شاي" maxlength="120" autocomplete="off"></label>
     <label>سعر البيع<input id="simpleProductPrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></label>
+    <label>الفئة<select id="simpleProductCategory" aria-label="فئة المنتج"><option value="">بدون فئة</option></select></label>
   </div>
   <button type="button" class="primary" style="margin-top:12px;width:100%" onclick="addSimpleProduct()">إضافة المنتج</button>
 </div>
-<div class="card" style="margin-bottom:12px"><input id="productSearch" placeholder="ابحث باسم المنتج" oninput="renderProducts()" autocomplete="off"><button type="button" id="showArchivedProductsBtn" class="tab" style="margin-top:10px" onclick="toggleArchivedProducts()">عرض المنتجات المخفية</button></div>
+<div class="card" style="margin-bottom:12px">
+  <h3 style="margin:0 0 7px">فئات المنتجات</h3>
+  <div class="hint">اكتب اسم فئة مرة واحدة، وبعدها اختارها وقت إضافة المنتج أو تعديله.</div>
+  <div class="simple-category-tools"><input id="simpleCategoryName" maxlength="80" autocomplete="off" placeholder="مثلاً مشروبات ساخنة" aria-label="اسم الفئة الجديدة"><button type="button" class="tab" onclick="addSimpleCategory()">إضافة فئة</button></div>
+  <div id="simpleCategoryList" class="simple-category-list"></div>
+</div>
+<div class="card" style="margin-bottom:12px"><input id="productSearch" placeholder="ابحث باسم المنتج" oninput="renderProducts()" autocomplete="off"></div>
 <div class="simple-table-wrap"><table class="simple-products-table"><thead><tr><th>المنتج</th><th>سعر البيع</th><th>الإجراء</th></tr></thead><tbody id="productRows"></tbody></table></div>
 <div class="hint" style="margin-top:12px">تعديل سعر البيع لا يغيّر المبيعات القديمة أو مستحقات الضباط.</div>
 <div id="legacyRecipeImport" class="card" style="display:none;margin-top:12px"><div class="hint">فيه مشروبات قديمة كانت مسجلة بطريقة الريسبي. تقدر تضيفها لقائمة المنتجات مع الاحتفاظ بالسجلات القديمة.</div><button type="button" class="tab" onclick="importLegacyRecipes()">نقل المشروبات القديمة للمنتجات</button></div>
@@ -498,10 +520,11 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 <div id="productModal" class="product-modal" aria-hidden="true"><div class="product-modal-box"><h3>تعديل المنتج</h3>
 <label>اسم المنتج<input id="editProductName" placeholder="اسم المنتج" maxlength="120"></label>
 <label>سعر البيع<input id="editProductSell" type="number" inputmode="decimal" min="0" step="0.01" placeholder="سعر البيع"></label>
+<label>الفئة<select id="editSimpleProductCategory"><option value="">بدون فئة</option></select></label>
 <div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div>
 <div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
-<script src="online.js?v=9.4.7-debtor-share-one-letter"></script>
+<script src="online.js?v=9.4.8-local-manual-sync"></script>
 <script>
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
@@ -723,12 +746,11 @@ function load(){
  }catch(e){}
  normalizeState();
  S.cats=S.cats||[];
- // إزالة الفئات التجريبية القديمة مرة واحدة، مع الإبقاء على أي فئات أضافها المستخدم.
- const demoCats=["سناكس","مشروبات","مشروبات ساخنة","مواد خام"];
- if(S.cats.every(c=>demoCats.includes(c))) S.cats=[];
+ // Preserve all existing product categories, including ones created by the user.
+ // Removing a category by its label here could lose it on the next cold start.
  S.products=S.products||[];
  S.hospitality=S.hospitality||[];
- S.products.forEach(p=>{if(demoCats.includes(p.cat))p.cat="";});
+ // Keep each product's existing category intact across every reload.
  migrateHospitalityBuffetExpenses();
 }
 function openSalesSubpage(id){
@@ -874,22 +896,6 @@ function openDetail(name){
  detailRows.innerHTML=rows.slice().reverse().map(x=>`<div class="rowtitle"><span>${esc(x.product)} × ${Number(x.qty||1)}<div class="muted">${esc(x.date||"")}</div></span></div>`).join("")||"<div class='hint'>لا توجد مشتريات مستحقة حاليًا.</div>";
  show("officerDetail");
 }
-function deleteProduct(i){
- // Archive a product instead of deleting the server row or touching legacy stock.
- if(!navigator.onLine)return alert('إخفاء المنتج يحتاج اتصالًا بالإنترنت لتجنب اختلاف الأجهزة');
- const p=S.products[Number(i)];if(!p||p.inactive)return;
- if(!confirm('إخفاء المنتج «'+p.name+'» من قائمة البيع؟\nالمبيعات القديمة ستظل محفوظة ويمكن استرجاع المنتج لاحقًا.'))return;
- cart=cart.filter(x=>!(x.type==='product'&&S.products[x.i]===p));
- p.inactive=true;logAction('إخفاء منتج',p.name);save();render();
-}
-let showArchivedProducts=false;
-function toggleArchivedProducts(){showArchivedProducts=!showArchivedProducts;renderProducts();}
-function restoreSimpleProduct(i){
- if(!navigator.onLine)return alert('استرجاع المنتج يحتاج اتصالًا بالإنترنت لتجنب اختلاف الأجهزة');
- const p=S.products[Number(i)];if(!p||!p.inactive)return;
- if(!confirm('إعادة إظهار المنتج «'+p.name+'» في قائمة البيع؟'))return;
- p.inactive=false;logAction('إظهار منتج',p.name);save();render();
-}
 function openOfficer(name){currentOfficer=name;cart=[];resetSaleBrowser();show("sale");document.getElementById("saleTitle").textContent="استهلاك "+name;render()}
 function openHospitality(){currentOfficer="__HOSPITALITY__";cart=[];resetSaleBrowser();show("sale");document.getElementById("saleTitle").textContent="تسجيل ضيافة";render()}
 function currentPeriodKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`}
@@ -960,20 +966,38 @@ function saleRecipeCards(recipes){
 }
 function chooseSaleCategory(key){selectedSaleCategory=String(key||"");if(saleSearch)saleSearch.value="";renderSaleProducts();}
 function backToSaleCategories(){selectedSaleCategory=null;if(saleSearch)saleSearch.value="";renderSaleProducts();}
+function saleCategoryNames(){
+ const seen=new Set(),names=[];
+ for(const raw of (S.cats||[]).concat((S.products||[]).map(p=>p.cat))){
+  const cat=String(raw||'').trim();
+  if(!cat||seen.has(cat))continue;
+  seen.add(cat);names.push(cat);
+ }
+ return names;
+}
+function saleTileMarkup(p){
+ const i=S.products.indexOf(p),count=cart.find(x=>x.type==='product'&&x.i===i)?.q||0;
+ const last=!!count&&lastPickedSaleItem?.type==='product'&&lastPickedSaleItem.i===i;
+ return `<div class="card sale-item-card sale-product-card sale-tile${count?' in-cart':''}${last?' just-added':''}" data-product-index="${i}" role="button" tabindex="0" aria-pressed="${count>0}" aria-label="${esc(p.name)}، ${money(p.sell)}، في الفاتورة ${count}. اضغط لإضافة واحد آخر" title="${esc(p.name)}"><span class="sale-tile-name">${esc(p.name)}</span><span class="sale-tile-price">${money(p.sell)}</span><span class="sale-tile-qty${count?' has-qty':''}" aria-hidden="true">${count?'×'+count:'&nbsp;'}</span></div>`;
+}
 function renderSaleProducts(){
  if(!saleProducts)return;
  const q=String(saleSearch?.value||'').trim().toLocaleLowerCase('ar');
  if(saleCategoryBar)saleCategoryBar.style.display='none';
  if(saleCategoryHeader)saleCategoryHeader.style.display='none';
- const matches=(S.products||[]).filter(p=>!p.inactive&&Number(p.sell||0)>0&&String(p.name||'').toLocaleLowerCase('ar').includes(q));
- saleProducts.innerHTML=matches.map(p=>{
-  const i=S.products.indexOf(p),count=cart.find(x=>x.type==='product'&&x.i===i)?.q||0;
-  const last=!!count&&lastPickedSaleItem?.type==='product'&&lastPickedSaleItem.i===i;
-  return `<div class="card sale-item-card sale-product-card sale-tile${count?' in-cart':''}${last?' just-added':''}" data-product-index="${i}" role="button" tabindex="0" aria-pressed="${count>0}" aria-label="${esc(p.name)}، ${money(p.sell)}، في الفاتورة ${count}. اضغط لإضافة واحد آخر" title="${esc(p.name)}"><span class="sale-tile-name">${esc(p.name)}</span><span class="sale-tile-price">${money(p.sell)}</span><span class="sale-tile-qty${count?' has-qty':''}" aria-hidden="true">${count?'×'+count:'&nbsp;'}</span></div>`;
- }).join('')||'<div class="hint sale-grid-empty">لا توجد منتجات للبيع. أضف المنتجات وحدد سعر البيع أولًا.</div>';
+ // The archive/delete controls are retired; no old product or financial record is altered.
+ const matches=(S.products||[]).filter(p=>Number(p.sell||0)>0&&String(p.name||'').toLocaleLowerCase('ar').includes(q));
+ const groups=new Map();
+ for(const cat of saleCategoryNames())groups.set(cat,[]);
+ for(const p of matches){const cat=String(p.cat||'').trim()||'بدون فئة';if(!groups.has(cat))groups.set(cat,[]);groups.get(cat).push(p);}
+ const sections=[];
+ for(const [cat,products] of groups){if(!products.length)continue;
+  sections.push(`<section class="sale-group" data-sale-category="${esc(cat)}"><h3 class="sale-group-title">${esc(cat)}</h3><div class="sale-group-grid">${products.map(saleTileMarkup).join('')}</div></section>`);
+ }
+ saleProducts.innerHTML=sections.join('')||'<div class="hint sale-grid-empty">لا توجد منتجات مطابقة. أضف منتجًا بسعر بيع وحدد فئته من صفحة المنتجات.</div>';
 }
 function addToCart(i){
- const p=S.products[i];if(!p||p.inactive||Number(p.sell||0)<=0)return;
+ const p=S.products[i];if(!p||Number(p.sell||0)<=0)return;
  const x=cart.find(x=>x.type==='product'&&x.i===i);
  if(x)x.q++;else cart.push({type:'product',i,q:1});
  lastPickedSaleItem={type:'product',i};render();
@@ -993,7 +1017,7 @@ function confirmCart(forceCash){
  const saleWho=currentOfficer;
  if(!S.people.includes(saleWho))return alert('الضابط غير موجود');
  const items=cart.map(x=>({p:S.products[x.i],q:Number(x.q||0)}));
- if(items.some(x=>!x.p||x.p.inactive||!Number.isInteger(x.q)||x.q<=0||Number(x.p.sell||0)<=0))return alert('فيه منتج أو كمية غير صحيحة');
+ if(items.some(x=>!x.p||!Number.isInteger(x.q)||x.q<=0||Number(x.p.sell||0)<=0))return alert('فيه منتج أو كمية غير صحيحة');
  if(!window.confirm(`تأكيد البيع على الحساب بإجمالي ${money(items.reduce((a,x)=>a+Number(x.p.sell)*x.q,0))}؟`))return;
  // One receipt ID per confirmed cart; sales/ledger records remain item-based.
  const invoiceId=makeTxnId('INV'),invoiceCreatedAt=new Date().toISOString();
@@ -1005,11 +1029,37 @@ function confirmCart(forceCash){
  cart=[];save();render();currentOfficer=null;show('officers');alert('تم تسجيل البيع بنجاح');
 }
 function sell(i){addToCart(i)}
+function setCategoryOptions(select,preferred){
+ if(!select)return;
+ const names=saleCategoryNames();
+ const value=preferred===undefined?select.value:String(preferred||'');
+ select.innerHTML='<option value="">بدون فئة</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+ select.value=names.includes(value)?value:'';
+}
+function refreshSimpleCategories(){
+ const list=document.getElementById('simpleCategoryList');
+ const names=saleCategoryNames();
+ if(list)list.innerHTML=names.map(n=>`<span class="pill">${esc(n)}</span>`).join('')||'<span class="hint">مفيش فئات لسه. أضف أول فئة.</span>';
+ setCategoryOptions(document.getElementById('simpleProductCategory'));
+ setCategoryOptions(document.getElementById('editSimpleProductCategory'));
+}
+function addSimpleCategory(){
+ const input=document.getElementById('simpleCategoryName');
+ const name=String(input?.value||'').trim();
+ if(!name)return alert('اكتب اسم الفئة');
+ if(saleCategoryNames().some(n=>n.toLocaleLowerCase('ar')===name.toLocaleLowerCase('ar')))return alert('الفئة دي موجودة بالفعل');
+ S.cats=S.cats||[];S.cats.push(name);
+ logAction('إضافة فئة',name);save();
+ if(input)input.value='';
+ render();
+ const categorySelect=document.getElementById('simpleProductCategory');if(categorySelect)categorySelect.value=name;
+}
 function editProduct(i){
  const p=S.products[i];if(!p)return;
  window._editingProductIndex=i;
  document.getElementById('editProductName').value=p.name||'';
  document.getElementById('editProductSell').value=Number(p.sell||0);
+ setCategoryOptions(document.getElementById('editSimpleProductCategory'),p.cat||'');
  const modal=document.getElementById('productModal');modal.classList.add('show');modal.setAttribute('aria-hidden','false');
 }
 function closeProductModal(){window._editingProductIndex=null;const modal=document.getElementById('productModal');modal.classList.remove('show');modal.setAttribute('aria-hidden','true');}
@@ -1017,11 +1067,13 @@ function simplePrice(value){const raw=String(value??'').trim();if(!raw)return nu
 function addSimpleProduct(){
  const name=String(document.getElementById('simpleProductName')?.value||'').trim();
  const sell=simplePrice(document.getElementById('simpleProductPrice')?.value||'');
+ const cat=String(document.getElementById('simpleProductCategory')?.value||'');
  if(!name)return alert('اكتب اسم المنتج');
  if(sell===null||sell<=0)return alert('اكتب سعر بيع صحيح');
  if(findProductByInput(name))return alert('المنتج ده موجود بالفعل');
+ if(cat&&!saleCategoryNames().includes(cat))return alert('اختار فئة صحيحة');
  // New products have no known unit cost. Never invent a profit figure from the missing cost.
- S.products.push({_id:makeTxnId('PR'),name,buy:0,manualCost:null,costNotTracked:true,sell,qty:0,min:0,cat:'',unit:'قطعة'});
+ S.products.push({_id:makeTxnId('PR'),name,buy:0,manualCost:null,costNotTracked:true,sell,qty:0,min:0,cat,unit:'قطعة'});
  logAction('إضافة منتج',name+' — بيع '+money(sell));
  save();
  document.getElementById('simpleProductName').value='';document.getElementById('simpleProductPrice').value='';
@@ -1031,18 +1083,20 @@ function importLegacyRecipes(){
  const source=(S.recipes||[]).filter(r=>String(r.name||'').trim()&&Number(r.price||0)>0&&!findProductByInput(r.name));
  if(!source.length)return alert('كل الأصناف القديمة موجودة بالفعل في المنتجات');
  if(!confirm('هنضيف '+source.length+' مشروب من الأصناف القديمة كمنتجات، ونسيب الريسبي والسجلات القديمة من غير حذف.\nتقدر تستخدمها في البيع كمنتجات. متابعة؟'))return;
- for(const r of source){S.products.push({_id:makeTxnId('PR'),name:String(r.name||'').trim(),buy:0,manualCost:Math.round(recipeCost(r)*100)/100,sell:Math.round(Number(r.price||0)*100)/100,qty:0,min:0,cat:'',unit:'قطعة'});}
+ for(const r of source){S.products.push({_id:makeTxnId('PR'),name:String(r.name||'').trim(),buy:0,manualCost:Math.round(recipeCost(r)*100)/100,sell:Math.round(Number(r.price||0)*100)/100,qty:0,min:0,cat:String(r.cat||''),unit:'قطعة'});}
  logAction('نقل المشروبات القديمة',source.length+' مشروب إلى المنتجات بدون تعديل السجلات القديمة');save();render();alert('تمت إضافة المشروبات القديمة للمنتجات.');
 }
 function saveProductEdit(){
  const i=window._editingProductIndex,p=S.products[i];if(!p)return;
  const name=String(document.getElementById('editProductName').value||'').trim();
  const sell=simplePrice(document.getElementById('editProductSell').value);
+ const cat=String(document.getElementById('editSimpleProductCategory')?.value||'');
  if(!name||sell===null||sell<=0)return alert('اكتب اسم وسعر بيع صحيحين');
  if(S.products.some((x,j)=>j!==i&&normalizeProductLookup(x.name)===normalizeProductLookup(name)))return alert('الاسم مستخدم بالفعل');
+ if(cat&&!saleCategoryNames().includes(cat))return alert('اختار فئة صحيحة');
  if(name!==p.name&&!navigator.onLine)return alert('تغيير اسم المنتج يحتاج اتصالًا بالإنترنت، لكن تعديل الأسعار ممكن أوفلاين');
  const old=p.name;
- p.name=name;p.sell=sell;
+ p.name=name;p.sell=sell;p.cat=cat;
  // Do not alter legacy buy/qty, past sales, old recipes, account ledger or financial data.
  logAction('تعديل المنتج',old+' — بيع '+money(sell));
  save();closeProductModal();render();
@@ -1078,13 +1132,12 @@ function setPurchasedProductSale(){if(!navigator.onLine)return alert("تغيير
 function addProduct(){return alert("أضف الصنف أولًا من قسم المشتريات، وبعدها اختاره هنا لتحديد سعر البيع")}
 function renderProducts(){
  if(!productRows)return;
+ refreshSimpleCategories();
  const q=(productSearch?.value||'').trim().toLocaleLowerCase('ar');
- const list=(S.products||[]).filter(p=>(showArchivedProducts||!p.inactive)&&String(p.name||'').toLocaleLowerCase('ar').includes(q));
- const toggle=document.getElementById('showArchivedProductsBtn');if(toggle)toggle.textContent=showArchivedProducts?'إخفاء المنتجات المخفية':'عرض المنتجات المخفية';
+ const list=(S.products||[]).filter(p=>String(p.name||'').toLocaleLowerCase('ar').includes(q));
  productRows.innerHTML=list.map(p=>{
   const i=S.products.indexOf(p),sell=Number(p.sell||0);
-  const actions=p.inactive?`<button type="button" class="tab product-restore-btn" data-product-index="${i}">استرجاع</button>`:`<button type="button" class="tab product-edit-btn" data-product-index="${i}">تعديل</button> <button type="button" class="tab danger product-delete-btn" data-product-index="${i}">إخفاء</button>`;
-  return `<tr><td><b>${esc(p.name)}</b>${p.inactive?' <small class="muted">(مخفي)</small>':''}</td><td>${money(sell)}</td><td class="simple-product-actions">${actions}</td></tr>`;
+  return `<tr><td><b>${esc(p.name)}</b></td><td>${money(sell)}</td><td class="simple-product-actions"><button type="button" class="tab product-edit-btn" data-product-index="${i}">تعديل</button></td></tr>`;
  }).join('')||'<tr><td colspan="3">مفيش منتجات مطابقة.</td></tr>';
  const rbox=document.getElementById('legacyRecipeImport');if(rbox)rbox.style.display=(S.recipes||[]).some(r=>String(r.name||'').trim()&&Number(r.price||0)>0&&!findProductByInput(r.name))?'block':'none';
 }
@@ -1934,17 +1987,9 @@ function confirmPayment(){
 }
 function personSale(name){openOfficer(name)}
 function handleProductAction(e){
-  const edit=e.target.closest?.(".product-edit-btn");
-  const del=e.target.closest?.(".product-delete-btn");
-  const restore=e.target.closest?.(".product-restore-btn");
-  const btn=edit||del||restore;
- if(!btn)return;
- e.preventDefault();
- e.stopPropagation();
- const i=Number(btn.dataset.productIndex);
-  if(edit) editProduct(i);
-  else if(restore)restoreSimpleProduct(i);
-  else deleteProduct(i);
+ const btn=e.target.closest?.('.product-edit-btn');if(!btn)return;
+ e.preventDefault();e.stopPropagation();
+ const i=Number(btn.dataset.productIndex);if(Number.isInteger(i)&&i>=0)editProduct(i);
 }
 document.addEventListener("click",handleProductAction,true);
 // تنقل شاشة البيع بالفئات وربط كروت الأصناف بحدث ثابت للموبايل

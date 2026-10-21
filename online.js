@@ -19,7 +19,7 @@ const O={
   ready:false,suppress:false,lastState:null,lastArchive:[],syncing:false,lastServerEventAt:null,
   pollTimer:null,online:navigator.onLine,queuePromise:Promise.resolve(),syncError:null,closing:false,storageFault:false,
   retryAttempt:0,nextRetryAt:0,retryTimer:null,polling:false,lastSyncAt:0,syncProgress:null,needCloudRefresh:false,
-  startedOffline:false,reconnecting:false,reconnectTimer:null
+  startedOffline:false,reconnecting:false,reconnectTimer:null,manualSyncing:false
 };
 window.BUFFET_ONLINE=O;
 
@@ -138,21 +138,21 @@ function injectUI(){
   .oa-logo{width:92px;height:92px;display:block;margin:0 auto 12px;border-radius:22px;box-shadow:0 0 0 1px rgba(99,255,240,.55),0 0 24px rgba(25,230,210,.22)}.oa-box h2{text-align:center;margin:4px 0 6px;color:#fff}.oa-sub{text-align:center;color:#9db0c2;margin-bottom:18px;line-height:1.7}
   .oa-field{display:grid;gap:7px;margin:10px 0}.oa-field label{color:#d6e7ee;font-size:14px}.oa-field input{width:100%;box-sizing:border-box;background:#071923;border:1px solid rgba(47,174,204,.70);color:#fff;border-radius:13px;padding:13px;font-size:16px;direction:ltr;text-align:left;outline:none}.oa-field input:focus{border-color:#19e6d2;box-shadow:0 0 0 2px rgba(25,230,210,.12),0 0 16px rgba(25,230,210,.12)}
   .oa-actions{display:grid;gap:9px;margin-top:14px}.oa-btn{border:0;border-radius:13px;padding:13px 15px;font-size:16px;font-weight:800;cursor:pointer}.oa-primary{background:linear-gradient(135deg,#06786f,#19e6d2);color:#efffff;border:1px solid #63fff0;box-shadow:0 8px 20px rgba(7,188,178,.18)}.oa-secondary{background:#0a202c;color:#fff;border:1px solid rgba(31,194,226,.45)}.oa-msg{min-height:24px;margin-top:12px;color:#d1dce4;text-align:center;line-height:1.6}.oa-msg.err{color:#ff9a9a}.oa-msg.ok{color:#6fffdc}
-  #onlineStatus{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:18000;border:1px solid rgba(31,194,226,.48);background:rgba(7,25,35,.95);color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.3),0 0 15px rgba(25,230,210,.08);display:none;align-items:center;gap:7px;direction:rtl;cursor:pointer;user-select:none}
+  #onlineStatus{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:18000;border:1px solid rgba(31,194,226,.48);background:rgba(7,25,35,.95);color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.3),0 0 15px rgba(25,230,210,.08);display:none;align-items:center;gap:7px;direction:rtl;cursor:default;user-select:none}
   #onlineStatus.show{display:flex}.os-dot{width:8px;height:8px;border-radius:50%;background:#22c55e}.offline .os-dot{background:#f59e0b}.syncing .os-dot{background:#60a5fa}.error .os-dot{background:#ef4444}
-  #onlineLogoutBtn{display:none;align-items:center;justify-content:center;background:#0a202c;color:#eefcff;border:1px solid rgba(31,194,226,.45);border-radius:12px;padding:9px 12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
-  #onlineLogoutBtn:hover{border-color:#5a5a5a}.header-spacer{display:flex;align-items:center;justify-content:flex-end;gap:7px}#oaForgot{width:100%;margin-top:2px}
-  @media(max-width:520px){#onlineLogoutBtn{padding:8px 9px;font-size:11px;border-radius:10px}}
-  .public-view #onlineStatus,.public-view #onlineAuth,.public-view #onlineLogoutBtn{display:none!important}
+  #onlineSyncNowBtn{display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#06786f,#12bdb2);color:#f8ffff;border:1px solid #63fff0;border-radius:13px;padding:10px 14px;font-size:14px;font-weight:900;cursor:pointer;white-space:nowrap;box-shadow:0 5px 17px rgba(20,210,197,.22)}
+  #onlineSyncNowBtn:disabled{opacity:.56;cursor:wait}.header-spacer{display:flex;align-items:center;justify-content:flex-end;gap:7px}#oaForgot{width:100%;margin-top:2px}
+  @media(max-width:520px){#onlineSyncNowBtn{padding:9px 12px;font-size:13px;border-radius:11px}}
+  .public-view #onlineStatus,.public-view #onlineAuth,.public-view #onlineSyncNowBtn{display:none!important}
   `;
   document.head.appendChild(style);
   const auth=document.createElement('div');auth.id='onlineAuth';auth.innerHTML=`<div class="oa-box">
     <img class="oa-logo" src="icon-192.png" alt="البوفيه"><h2>البوفيه</h2>
     <div id="oaLoginPanel">
-      <div class="oa-sub">سجّل الدخول للوصول إلى بوفيهك من أي جهاز</div>
+      <div class="oa-sub">تفعيل الجهاز لمرة واحدة لحماية حسابات الضباط. بعد التفعيل هيفتح البوفيه بدون تسجيل دخول يومي</div>
       <div class="oa-field"><label>البريد الإلكتروني</label><input id="oaEmail" type="email" autocomplete="email" placeholder="name@example.com"></div>
       <div class="oa-field"><label>كلمة المرور</label><input id="oaPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
-      <div class="oa-actions"><button id="oaLogin" class="oa-btn oa-primary" type="button">تسجيل الدخول</button><button id="oaSignup" class="oa-btn oa-secondary" type="button">إنشاء حساب</button></div>
+      <div class="oa-actions"><button id="oaLogin" class="oa-btn oa-primary" type="button">تفعيل الجهاز / إعادة الربط</button><button id="oaSignup" class="oa-btn oa-secondary" type="button" style="display:none">إنشاء حساب</button></div>
       <button id="oaForgot" class="oa-btn oa-secondary" type="button">نسيت كلمة المرور؟</button>
     </div>
     <div id="oaRecoveryPanel" style="display:none;margin-top:8px">
@@ -164,23 +164,20 @@ function injectUI(){
     <div id="oaMsg" class="oa-msg"></div>
   </div>`;
   document.body.appendChild(auth);
-  const status=document.createElement('div');status.id='onlineStatus';status.innerHTML='<span class="os-dot"></span><span id="onlineStatusText">Online</span><button type="button" id="onlineSyncNowBtn" style="display:none;border:1px solid #6696a7;border-radius:8px;padding:3px 7px;background:#184352;color:#fff;font:inherit;cursor:pointer">مزامنة الآن</button>';document.body.appendChild(status);
-  document.getElementById('onlineSyncNowBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(O.syncing)return;clearRetryTimer();O.syncError=null;O.nextRetryAt=0;refreshStatus();scheduleSync(50);});
-  const logoutBtn=document.createElement('button');logoutBtn.id='onlineLogoutBtn';logoutBtn.type='button';logoutBtn.textContent='تسجيل الخروج';logoutBtn.addEventListener('click',logoutOnline);
-  const headerSlot=document.querySelector('.header-spacer');if(headerSlot){headerSlot.removeAttribute('aria-hidden');headerSlot.appendChild(logoutBtn);}else{document.body.appendChild(logoutBtn);}
+  // A visible manual sync control replaces background synchronization and logout shortcuts.
+  const status=document.createElement('div');status.id='onlineStatus';status.innerHTML='<span class="os-dot"></span><span id="onlineStatusText">جاهز للعمل محليًا</span>';document.body.appendChild(status);
+  const syncBtn=document.createElement('button');syncBtn.id='onlineSyncNowBtn';syncBtn.type='button';syncBtn.textContent='مزامنة';
+  const headerSlot=document.querySelector('.header-spacer');if(headerSlot){headerSlot.removeAttribute('aria-hidden');headerSlot.appendChild(syncBtn);}else{document.body.appendChild(syncBtn);}
+  syncBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();manualSyncNow().catch(console.error);});
   document.getElementById('oaLogin').addEventListener('click',()=>authLogin(false));
   document.getElementById('oaSignup').addEventListener('click',()=>authLogin(true));
   document.getElementById('oaForgot').addEventListener('click',requestPasswordReset);
   document.getElementById('oaSetPassword').addEventListener('click',updateRecoveredPassword);
-  status.addEventListener('click',()=>{if(!O.session?.access_token)return;const who=O.user?.email||'الحساب الحالي';const buffet=O.buffetName?`
-${O.buffetName}`:'';if(confirm(`${who}${buffet}
-
-تسجيل الخروج؟`))logoutOnline();});
 }
 function authMsg(t,kind=''){const e=document.getElementById('oaMsg');if(e){e.textContent=t;e.className='oa-msg '+kind;}}
 function syncAccessButtons(){
-  const b=document.getElementById('onlineLogoutBtn');
-  const auth=document.getElementById('onlineAuth'),authVisible=!!auth?.classList.contains('show'),logged=!!O.session?.access_token&&!authVisible;
+  const b=document.getElementById('onlineSyncNowBtn');
+  const auth=document.getElementById('onlineAuth'),authVisible=!!auth?.classList.contains('show'),logged=!!O.session?.access_token&&!authVisible&&O.ready;
   if(b)b.style.display=logged?'inline-flex':'none';
 }
 function showAuth(show=true){
@@ -206,16 +203,19 @@ async function queueCount(){let ids;try{ids=new Set(journalRead().filter(x=>x.bu
 async function setStatus(mode,text){const e=document.getElementById('onlineStatus'),t=document.getElementById('onlineStatusText');if(!e||!t)return;e.className='show '+mode;t.textContent=text;}
 async function refreshStatus(){
   const n=await queueCount(),button=document.getElementById('onlineSyncNowBtn');
-  if(button)button.style.display=O.ready&&!O.startedOffline&&navigator.onLine&&!O.syncing&&!O.storageFault&&(n>0||!!O.syncError||O.needCloudRefresh)?'inline-block':'none';
-  if(O.storageFault)return setStatus('error','تعذر قراءة العمليات المعلقة · المزامنة متوقفة');
-  if(O.syncing){const progress=O.syncProgress?` · ${O.syncProgress.done}/${O.syncProgress.total} حركة`:'';return setStatus('syncing',`جاري المزامنة${progress} · ${n} معلقة`);}
-  if(!navigator.onLine)return setStatus('offline',n?`بدون إنترنت · ${n} عملية معلقة`:'بدون إنترنت');
-  if(!O.ready)return setStatus('error',O.syncError||'جارِ استعادة جلسة وصلاحيات البوفيه');
-  if(O.startedOffline)return setStatus(O.syncError?'error':'syncing',O.syncError||'جارِ تأكيد صلاحيات البوفيه بعد رجوع الإنترنت');
+  if(button){
+    button.style.display=O.ready&&!!O.session?.access_token?'inline-flex':'none';
+    button.disabled=O.syncing||O.manualSyncing||O.storageFault;
+    button.textContent=(O.syncing||O.manualSyncing)?'جارِ المزامنة…':'مزامنة';
+  }
+  if(O.storageFault)return setStatus('error','تعذر قراءة الحركات المحلية · ممنوع المزامنة');
+  if(O.syncing){const progress=O.syncProgress?` · ${O.syncProgress.done}/${O.syncProgress.total} حركة`:'';return setStatus('syncing',`جارِ المزامنة${progress} · ${n} معلقة`);}
+  if(!O.ready)return setStatus('error',O.syncError||'الجهاز يحتاج تفعيلًا لمرة واحدة');
+  if(!navigator.onLine)return setStatus('offline',n?`أوفلاين · ${n} معلقة`:'أوفلاين · البيانات محلية');
   if(O.syncError)return setStatus('error',O.syncError+(n?` · ${n} معلقة`:''));
-  if(n)return setStatus('',`متصل · ${n} في انتظار المزامنة`);
+  if(n)return setStatus('',`جاهز محليًا · ${n} معلقة · اضغط مزامنة`);
   const last=Number(O.lastSyncAt||localStorage.getItem(lastSyncKeyFor(O.buffetId))||0);
-  return setStatus('',last?`تمت المزامنة · ${new Date(last).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}`:'متصل · لم يتم تأكيد مزامنة بعد');
+  return setStatus('',last?`آخر مزامنة: ${new Date(last).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}`:'جاهز محليًا · اضغط مزامنة');
 }
 function markSyncConfirmed(){
   if(!O.buffetId)return;
@@ -423,12 +423,18 @@ async function activateBuffetAccess(m){
   if(!navigator.onLine){
     O.ready=true;O.startedOffline=true;showAuth(false);applyAccessUI();clearOperationalAutofill();await refreshStatus();return m;
   }
-  // Avoid accepting unsynchronized local writes while the initial online snapshot is still loading.
-  showAuth(true);authMsg('جاري تجهيز بيانات البوفيه والتحقق من المزامنة...');
+  // On previously activated devices, keep the local snapshot until the user taps Sync.
+  // Only a new device (no local cache) downloads an initial snapshot during activation.
+  if(!hasCache){showAuth(true);authMsg('جاري تجهيز أول نسخة محلية على الجهاز...');}
   await O.queuePromise;O.ready=true;O.startedOffline=false;
-  if((await queueCount())>0)await syncPending();else await pullCloud();
-  persistBuffetCache();O.lastServerEventAt=await latestEventAt();clearOperationalAutofill();await touchDevice();await refreshStatus();scheduleSync(100);
-  clearInterval(O.pollTimer);O.pollTimer=setInterval(poll,CFG.pollMs);
+  if(!hasCache){
+    if((await queueCount())>0)throw new Error('حركات معلقة بدون نسخة محلية: يجب مراجعتها قبل تنزيل بيانات السيرفر');
+    await pullCloud();
+    if(O.syncError)throw new Error(O.syncError);
+    markSyncConfirmed();
+  }
+  persistBuffetCache();clearOperationalAutofill();await refreshStatus();
+  clearInterval(O.pollTimer);O.pollTimer=null;
   showAuth(false);applyAccessUI();
   return m;
 }
@@ -506,7 +512,8 @@ function diffAndQueue(prev,cur,prevArchive,curArchive){
 }
 async function writeQueuedDiff(pending){
   for(const x of pending){await qPut(x);journalRemove(x.eventId);}
-  await refreshStatus();if(navigator.onLine&&pending.length)scheduleSync(80);
+  // Operations stay safely in the queue until a deliberate sync click.
+  await refreshStatus();
 }
 window.onlineAfterLocalSave=function(state){
   ensureIds(state);
@@ -574,7 +581,7 @@ async function processOp(x){
   }
 }
 let syncTimer=null;
-function scheduleSync(ms=400){clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncPending().catch(console.error),ms);}
+function scheduleSync(ms=400){/* Manual-sync edition: never upload or download in background. */}
 function clearRetryTimer(){if(O.retryTimer){clearTimeout(O.retryTimer);O.retryTimer=null;}O.nextRetryAt=0;}
 function retryableSyncError(e){
   if(O.storageFault||e?.status===401||e?.status===403)return false;
@@ -584,13 +591,9 @@ function retryableSyncError(e){
   return code==='NETWORK_TIMEOUT'||code==='AbortError'||code==='TypeError'||/Failed to fetch|NetworkError|Load failed|fetch failed/i.test(String(e?.message||''));
 }
 function scheduleSyncRetry(){
-  if(!O.ready||!O.session||!O.buffetId||!navigator.onLine||O.storageFault)return;
   clearRetryTimer();
-  O.retryAttempt=Math.min(O.retryAttempt+1,7);
-  const ms=Math.min(120000,Math.round(3000*Math.pow(2,O.retryAttempt-1)));
-  O.nextRetryAt=Date.now()+ms;
-  O.retryTimer=setTimeout(()=>{O.retryTimer=null;O.nextRetryAt=0;syncPending().catch(console.error);},ms);
-  O.syncError=`تعذر الاتصال بالسيرفر · إعادة محاولة خلال ${Math.ceil(ms/1000)} ثانية`;
+  // Never retry automatically: keep the journal and ask the user to tap Sync again.
+  O.syncError='تعذر الاتصال · العمليات محفوظة · اضغط مزامنة لإعادة المحاولة';
 }
 async function syncPending(){
   // Cached offline access must be verified on reconnect before cloud writes.
@@ -633,6 +636,46 @@ async function syncPending(){
     else if(retryableSyncError(e))scheduleSyncRetry();
     else{clearRetryTimer();O.syncError=O.storageFault?'تعذر قراءة العمليات المعلقة · المزامنة متوقفة':`فشل المزامنة: ${String(e?.message||'تحقق من الاتصال').slice(0,110)} · راجع العملية`;} 
   }finally{O.syncing=false;O.syncProgress=null;await refreshStatus();}
+}
+
+
+// Sync is a user action: validate the saved owner session, upload pending ops first,
+// then pull the latest cloud snapshot only if the journal is empty.
+async function manualSyncNow(){
+  if(O.manualSyncing||O.syncing)return;
+  if(!O.ready||!O.session?.access_token){showAuth(true);authMsg('لتفعيل الجهاز لأول مرة أو إعادة ربطه، اتصل بالإنترنت وأدخل حسابك.','err');return;}
+  if(!navigator.onLine){alert('البوفيه شغال أوفلاين. وصّل الإنترنت واضغط مزامنة. الحركات محفوظة على الجهاز.');return;}
+  if(O.storageFault){alert('تعذر قراءة العمليات المحفوظة. لن تتم المزامنة لحماية حسابات الضباط.');return;}
+  O.manualSyncing=true;await refreshStatus();
+  try{
+    const token=await accessToken();
+    if(!token)throw new Error('SESSION_EXPIRED');
+    if(O.startedOffline||!O.ready){
+      await resumeAfterConnectivity();
+      if(O.startedOffline||!O.ready||O.syncError)throw new Error(O.syncError||'تعذر التحقق من صلاحيات الحساب');
+    }else{
+      // Server identity/RLS check on every explicit synchronization.
+      const u=await api('/auth/v1/user',{method:'GET'});
+      if(!u?.id||u.id!==(O.session.user?.id||O.user?.id))throw new Error('OWNER_ACCESS_NOT_CONFIRMED');
+    }
+    O.syncError=null;
+    O.needCloudRefresh=true;
+    await syncPending();
+    const left=await queueCount();
+    if(left||O.syncError||O.storageFault)throw new Error(O.syncError||`متبقي ${left} حركة غير متزامنة · البيانات محفوظة`);
+    await refreshStatus();
+    alert('تمت المزامنة بنجاح: اتبعت الحركات المعلقة واتحدّثت البيانات لآخر وضع متاح على السيرفر.');
+  }catch(e){
+    console.error('manual sync',e);
+    if(e?.message==='SESSION_EXPIRED'||e?.status===401){
+      // Do not discard offline data or pending transactions when auth expires.
+      showAuth(true);authMsg('إعادة ربط الجهاز مطلوبة لاستكمال المزامنة. بياناتك المحلية محفوظة.','err');
+    }else if(!O.syncError){O.syncError='تعذرت المزامنة: '+String(e?.message||e).slice(0,95);}
+    alert(O.syncError||'تعذرت المزامنة. العمليات محفوظة حتى إعادة الربط.');
+  }finally{
+    O.manualSyncing=false;
+    await refreshStatus();
+  }
 }
 
 async function fetchAll(table,select='*'){
@@ -863,7 +906,7 @@ async function init(){
       rememberBuffetAccess(cached);restoreBuffetCache(cached.buffet_id);
       O.ready=true;O.startedOffline=true;showAuth(false);applyAccessUI();clearOperationalAutofill();
       await refreshStatus();
-      if(navigator.onLine)resumeAfterConnectivity().catch(console.error);
+      // No automatic authentication or synchronization on launch; work from local cache.
       return;
     }
     try{
@@ -873,7 +916,7 @@ async function init(){
       console.error(e);
       if(e?.status===401){saveSession(null);O.ready=false;showAuth(true);authMsg('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.','err');return;}
       const m=cachedBuffetAccess();
-      if(m&&window.S&&hasBuffetCache(m)){rememberBuffetAccess(m);restoreBuffetCache(m.buffet_id);O.ready=true;O.startedOffline=true;showAuth(false);applyAccessUI();clearOperationalAutofill();O.syncError='تعذر الاتصال بالسيرفر · البيانات محفوظة على الجهاز';clearInterval(O.pollTimer);O.pollTimer=setInterval(poll,CFG.pollMs);retryReconnect();await refreshStatus();}
+      if(m&&window.S&&hasBuffetCache(m)){rememberBuffetAccess(m);restoreBuffetCache(m.buffet_id);O.ready=true;O.startedOffline=true;showAuth(false);applyAccessUI();clearOperationalAutofill();O.syncError='تعذر الاتصال بالسيرفر · البيانات محفوظة على الجهاز';clearInterval(O.pollTimer);O.pollTimer=null;await refreshStatus();}
       else{showAuth(true);authMsg('تعذر الوصول للسيرفر. جرّب مرة أخرى عند رجوع الإنترنت.','err');}
     }
   }else showAuth(true);
@@ -888,7 +931,7 @@ function retryReconnect(){
 }
 async function resumeAfterConnectivity(){
   if(!navigator.onLine||!O.session?.access_token||O.reconnecting)return;
-  if(O.ready&&!O.startedOffline){scheduleSync(100);return;}
+  if(O.ready&&!O.startedOffline)return;
   O.reconnecting=true;clearReconnectTimer();
   const wasReady=O.ready;
   try{
@@ -917,8 +960,8 @@ async function resumeAfterConnectivity(){
       await activateBuffetAccess(m);
     }else{
       rememberBuffetAccess(m);showAuth(false);applyAccessUI();clearOperationalAutofill();
-      clearInterval(O.pollTimer);O.pollTimer=setInterval(poll,CFG.pollMs);
-      scheduleSync(100);
+      clearInterval(O.pollTimer);O.pollTimer=null;
+      // Wait for the same explicit Sync button press to upload/download.
     }
   }catch(e){
     console.error('restore access after reconnect',e);
@@ -942,22 +985,9 @@ async function resumeAfterConnectivity(){
   }
 }
 window.onlineInit=init;
-window.addEventListener('online',()=>{
-  O.online=true;clearRetryTimer();refreshStatus();
-  resumeAfterConnectivity().catch(console.error);
-});
-window.addEventListener('offline',()=>{
-  O.online=false;clearRetryTimer();clearReconnectTimer();refreshStatus();
-});
-window.addEventListener('focus',()=>{
-  if(!navigator.onLine)return;
-  if(O.startedOffline||!O.ready)resumeAfterConnectivity().catch(console.error);
-  else{scheduleSync(100);poll();}
-});
-document.addEventListener('visibilitychange',()=>{
-  if(document.hidden||!navigator.onLine)return;
-  if(O.startedOffline||!O.ready)resumeAfterConnectivity().catch(console.error);
-  else{scheduleSync(100);poll();}
-});
+window.addEventListener('online',()=>{O.online=true;refreshStatus();});
+window.addEventListener('offline',()=>{O.online=false;clearRetryTimer();clearReconnectTimer();refreshStatus();});
+window.addEventListener('focus',()=>refreshStatus());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshStatus();});
 document.addEventListener('DOMContentLoaded',()=>setTimeout(init,50));
 })();
