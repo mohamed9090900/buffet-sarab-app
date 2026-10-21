@@ -201,10 +201,40 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 .returns-ledger .sales-history-row{gap:8px}
 @media(max-width:600px){.debtor-entry strong{font-size:18px}.debtor-rows .person{padding:15px!important}.debtor-rows .amount{font-size:22px}.returns-ledger{padding:13px!important}}
 
+
+/* V9.4.3: compact receipt-style returns, with one expandable card per checkout. */
+.returns-invoice{margin:12px 0;border:1px solid rgba(44,177,201,.58);background:linear-gradient(145deg,#0d2935,#08202b);border-radius:17px;overflow:hidden}
+.returns-invoice-summary{cursor:pointer;list-style:none;display:flex;gap:12px;justify-content:space-between;align-items:start;padding:14px 15px;touch-action:manipulation}
+.returns-invoice-summary::-webkit-details-marker{display:none}
+.returns-invoice-summary::marker{content:''}
+.receipt-summary-main{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
+.receipt-summary-main b{font-size:17px;overflow-wrap:anywhere}
+.receipt-summary-main small,.receipt-type{font-size:12px;color:#a6c4cf}
+.receipt-preview{font-size:13px;color:#e0edf0;line-height:1.65;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.receipt-summary-side{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;white-space:nowrap;direction:rtl}
+.receipt-summary-side b{font-size:17px}
+.receipt-chevron{font-size:21px;color:#63dfdf;transform-origin:center;transition:transform .15s}
+.returns-invoice[open] .receipt-chevron{transform:rotate(180deg)}
+.receipt-detail{padding:0 11px 12px}
+.receipt-table{display:table;width:100%;table-layout:fixed;border-collapse:collapse;background:none}
+.receipt-table thead{display:table-header-group}
+.receipt-table tbody{display:table-row-group}
+.receipt-table tr{display:table-row}
+.receipt-table th,.receipt-table td{display:table-cell;vertical-align:middle;text-align:right;white-space:normal;overflow-wrap:anywhere;padding:9px 5px;border-bottom:1px solid #28505d;font-size:13px}
+.receipt-table th:first-child,.receipt-table td:first-child{width:46%}
+.receipt-table th:nth-child(2),.receipt-table td:nth-child(2){width:25%;white-space:nowrap}
+.receipt-table th:nth-child(3),.receipt-table td:nth-child(3){width:29%;text-align:center}
+.receipt-qty{font-size:11px;color:#a6c4cf;margin-top:3px}
+.receipt-action .tab{padding:8px 10px;font-size:12px;white-space:nowrap}
+.receipt-item-returned{opacity:.6}
+.receipt-returned-label,.receipt-returned-state{color:#f6a4aa!important;font-size:11px}
+.receipt-legacy-note{font-size:12px;color:#f2cd85;padding:10px 15px;border-top:1px solid #28505d;line-height:1.65}
+.receipt-footer{display:flex;justify-content:space-between;padding:13px 8px 2px;font-weight:bold;gap:10px}
+@media(max-width:600px){.returns-invoice-summary{padding:12px 11px;gap:8px}.receipt-summary-main b{font-size:15px}.receipt-summary-side b{font-size:15px}.receipt-preview{font-size:12px}.receipt-table th,.receipt-table td{padding:8px 4px;font-size:12px}.receipt-action .tab{padding:7px 8px;font-size:11px}}
 </style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111111"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="البوفيه"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 </head>
-<body data-app-version="v9.4.1-price-table-test-only">
+<body data-app-version="v9.4.3-invoice-returns-no-cash-test-only">
 <div id="appSplash" class="app-splash" aria-hidden="true">
   <div class="splash-inner">
     <div class="splash-logo-wrap"><img class="splash-logo" src="icon-512.png" alt=""></div>
@@ -251,7 +281,7 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 <div id="saleCategoryHeader" class="rowtitle" style="display:none"><button type="button" class="tab sale-back-categories-btn">← الفئات</button><b id="saleCategoryTitle"></b></div>
 <div id="saleCategoryBar" class="sale-category-grid"></div>
 <div id="saleProducts" class="cards"></div>
-<div class="card" style="margin-top:14px"><div class="rowtitle"><b>الفاتورة الحالية</b><span id="cartTotal">0.00 ج</span></div><div id="salePickNotice" class="sale-pick-notice" role="status" aria-live="polite"></div><div id="cartRows" class="hint">لم يتم اختيار أصناف</div><div class="grid" id="saleActionButtons"><button id="confirmSaleBtn" type="button" class="primary" onclick="confirmCart(false)">تسجيل على الحساب</button><button id="confirmCashBtn" type="button" class="tab" onclick="confirmCart(true)">تسجيل كاش</button></div></div>
+<div class="card" style="margin-top:14px"><div class="rowtitle"><b>الفاتورة الحالية</b><span id="cartTotal">0.00 ج</span></div><div id="salePickNotice" class="sale-pick-notice" role="status" aria-live="polite"></div><div id="cartRows" class="hint">لم يتم اختيار أصناف</div><div class="grid" id="saleActionButtons"><button id="confirmSaleBtn" type="button" class="primary" onclick="confirmCart(false)">تسجيل على الحساب</button></div></div>
 </section>
 
 
@@ -268,7 +298,6 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 <div class="card" style="margin-bottom:14px">
   <input id="officerSearch" name="buffet_officer_search" autocomplete="off" data-lpignore="true" data-form-type="other" placeholder="بحث باسم الضابط" oninput="renderOfficers()">
   <div class="grid" style="margin-top:10px"><input id="newOfficerName" name="buffet_officer_name" autocomplete="off" data-lpignore="true" data-form-type="other" placeholder="اسم الضابط"><button class="primary" type="button" onclick="addOfficer()">إضافة الضابط</button></div>
-  <button type="button" class="primary officer-cash-btn" onclick="openCashSale()">بيع كاش</button>
 </div>
 <div id="people"></div>
 <details class="card data-safety-tools" style="margin-top:22px">
@@ -334,10 +363,10 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
    </button>
  </div>
  <div class="card returns-ledger">
-  <div class="hint">ابحث عن عملية البيع، واضغط «مرتجع» لإرجاعها. المرتجعات تتطلب اتصالًا بالإنترنت لحماية حسابات الضباط.</div>
-  <label for="salesHistorySearch">بحث في حركات البيع والمرتجعات</label>
+  <div class="hint">كل فاتورة بتجمع الأصناف المباعة في مرة واحدة. افتح الفاتورة عشان ترجع صنفًا محددًا. المرتجع يحتاج إنترنت لحماية حسابات الضباط.</div>
+  <label for="salesHistorySearch">بحث باسم الضابط أو الصنف أو التاريخ</label>
   <input id="salesHistorySearch" type="search" placeholder="اسم الضابط أو المنتج أو التاريخ" autocomplete="off" oninput="resetSalesHistoryView()">
-  <div class="rowtitle"><b>سجل العمليات</b><span class="pill" id="salesHistoryCount"></span></div>
+  <div class="rowtitle"><b>فواتير البيع للمرتجعات</b><span class="pill" id="salesHistoryCount"></span></div>
   <div id="salesHistory"></div>
   <button type="button" class="tab" id="salesHistoryMore" onclick="showMoreSalesHistory()" style="width:100%;margin-top:12px;display:none">عرض المزيد</button>
  </div>
@@ -386,7 +415,7 @@ table{background:#071a24!important;border:1px solid rgba(31,194,226,.46)!importa
 <div class="product-modal-actions"><button type="button" class="tab" onclick="closeProductModal()">إلغاء</button><button type="button" class="primary" onclick="saveProductEdit()">حفظ التعديل</button></div></div></div>
 <div id="payModal" class="pay-modal" aria-hidden="true">
 <div class="pay-box"><h3 id="payModalTitle">تحصيل</h3><div class="due" id="payModalDue"></div><input id="payAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="المبلغ المدفوع"><div class="pay-actions"><button type="button" class="pay-cancel" onclick="closePayModal()">إلغاء</button><button type="button" class="pay-ok" onclick="confirmPayment()">تأكيد التحصيل</button></div></div></div>
-<script src="online.js?v=9.4.2-officer-accounts-returns"></script>
+<script src="online.js?v=9.4.3-invoice-returns-no-cash"></script>
 <script>
 // DOM element aliases for reliable iPhone/Android button handling
 var archiveList=document.getElementById("archiveList");
@@ -485,7 +514,7 @@ var salesHistoryCount=document.getElementById("salesHistoryCount");
 var salesHistorySearch=document.getElementById("salesHistorySearch");
 var salesHistoryMore=document.getElementById("salesHistoryMore");
 var salePickNotice=document.getElementById("salePickNotice");
-var salesHistoryLimit=100;
+var salesHistoryLimit=60;
 var lastPickedSaleItem=null;
 var salesMainStats=document.getElementById("salesMainStats");
 var salesMonthLabel=document.getElementById("salesMonthLabel");
@@ -776,7 +805,6 @@ function restoreSimpleProduct(i){
  p.inactive=false;logAction('إظهار منتج',p.name);save();render();
 }
 function openOfficer(name){currentOfficer=name;cart=[];resetSaleBrowser();show("sale");document.getElementById("saleTitle").textContent="استهلاك "+name;render()}
-function openCashSale(){currentOfficer="__CASH__";cart=[];resetSaleBrowser();show("sale");document.getElementById("saleTitle").textContent="بيع كاش";render()}
 function openHospitality(){currentOfficer="__HOSPITALITY__";cart=[];resetSaleBrowser();show("sale");document.getElementById("saleTitle").textContent="تسجيل ضيافة";render()}
 function currentPeriodKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`}
 
@@ -873,17 +901,19 @@ function changeCart(j,d){
 function productUnitCost(p){return p&&p.manualCost!==undefined&&p.manualCost!==null?Number(p.manualCost||0):Number(p?.buy||0);}
 function confirmCart(forceCash){
  if(!currentOfficer||!cart.length)return;
- if(forceCash===true&&currentOfficer!=='__CASH__')return alert('البيع الكاش من زر بيع كاش');
- if(currentOfficer==='__HOSPITALITY__')return alert('تم إلغاء قسم الضيافة؛ استخدم البيع الكاش بدلًا منه');
- const isCash=currentOfficer==='__CASH__',saleWho=isCash?'بيع كاش':currentOfficer;
- if(!isCash&&!S.people.includes(saleWho))return alert('الضابط غير موجود');
+ // Keep legacy cash sale rows for reporting/refunds; never create new ones.
+ if(forceCash===true||currentOfficer==='__CASH__'||currentOfficer==='__HOSPITALITY__')return alert('البيع متاح على حساب الضباط فقط');
+ const saleWho=currentOfficer;
+ if(!S.people.includes(saleWho))return alert('الضابط غير موجود');
  const items=cart.map(x=>({p:S.products[x.i],q:Number(x.q||0)}));
  if(items.some(x=>!x.p||x.p.inactive||!Number.isInteger(x.q)||x.q<=0||Number(x.p.sell||0)<=0))return alert('فيه منتج أو كمية غير صحيحة');
- if(!window.confirm(`تأكيد ${isCash?'البيع الكاش':'البيع على الحساب'} بإجمالي ${money(items.reduce((a,x)=>a+Number(x.p.sell)*x.q,0))}؟`))return;
+ if(!window.confirm(`تأكيد البيع على الحساب بإجمالي ${money(items.reduce((a,x)=>a+Number(x.p.sell)*x.q,0))}؟`))return;
+ // One receipt ID per confirmed cart; sales/ledger records remain item-based.
+ const invoiceId=makeTxnId('INV'),invoiceCreatedAt=new Date().toISOString();
  for(const {p,q} of items){
-  const sale={id:makeTxnId('S'),who:saleWho,total:Number(p.sell||0)*q,cost:productUnitCost(p)*q,costUnknown:!!p.costNotTracked,product:p.name,qty:q,date:new Date().toLocaleDateString('ar-EG'),createdAt:new Date().toISOString(),type:'بيع',cash:isCash};
+  const sale={id:makeTxnId('S'),who:saleWho,total:Number(p.sell||0)*q,cost:productUnitCost(p)*q,costUnknown:!!p.costNotTracked,product:p.name,qty:q,date:new Date().toLocaleDateString('ar-EG'),createdAt:invoiceCreatedAt,invoiceId,type:'بيع',cash:false};
   S.sales.push(sale);recordAccountSale(sale);
-  logAction(isCash?'بيع كاش':'بيع على الحساب',saleWho+' — '+p.name+' × '+q);
+  logAction('بيع على الحساب',saleWho+' — '+p.name+' × '+q);
  }
  cart=[];save();render();currentOfficer=null;show('officers');alert('تم تسجيل البيع بنجاح');
 }
@@ -1504,7 +1534,7 @@ if(document.getElementById("categoryStock")){
 if(document.getElementById("salesMovementsLinkCount"))document.getElementById("salesMovementsLinkCount").textContent=`${S.sales.length} حركة مسجلة — عرض الكل والتعديل والمرتجع`;
 if(document.getElementById("salesPage")?.classList.contains("active"))renderSalesHistory();
 if(document.getElementById("saleProducts")){
- const csb=document.getElementById("confirmSaleBtn"),ccb=document.getElementById("confirmCashBtn");if(csb){const hosp=currentOfficer==="__HOSPITALITY__";csb.textContent=hosp?"تسجيل ضيافة معلّقة":"تسجيل على الحساب";csb.style.display=currentOfficer==="__CASH__"?"none":"block";}if(ccb){ccb.textContent="تسجيل بيع كاش";ccb.style.display=currentOfficer==="__CASH__"?"block":"none";}
+ const csb=document.getElementById("confirmSaleBtn");if(csb){csb.textContent="تسجيل على الحساب";csb.style.display="block";}
  renderSaleProducts();
  if(salePickNotice){
    const picked=lastPickedSaleItem && cart.find(x=>x.type===lastPickedSaleItem.type&&x.i===lastPickedSaleItem.i);
@@ -1601,19 +1631,45 @@ function renderProductSalesAnalysis(){
  const sorted=Object.entries(by).sort((a,b)=>score(b[1])-score(a[1])||b[1].q-a[1].q||a[0].localeCompare(b[0],'ar'));
  el.innerHTML=sorted.length?`<table><thead><tr><th>المنتج</th><th>عدد الوحدات</th><th>قيمة المبيعات</th></tr></thead><tbody>${sorted.map(([name,v])=>`<tr><td>${esc(name)}</td><td>${Number(v.q.toFixed(2))}</td><td>${money(v.sales)}</td></tr>`).join('')}</tbody></table>`:'لا توجد مبيعات في الفترة المحددة.';
 }
-function resetSalesHistoryView(){salesHistoryLimit=100;renderSalesHistory();}
-function showMoreSalesHistory(){salesHistoryLimit+=100;renderSalesHistory();}
+// Sales remain independent line records for accounting and line-level refunds.
+// New sales share invoiceId. Legacy records have no reliable invoice ID;
+// only visually group officer sales by day, clearly flagged as day aggregation.
+function buildSalesInvoiceGroups(rows){
+ const groups=new Map();
+ (rows||[]).forEach((sale,index)=>{
+  const isInvoice=typeof sale.invoiceId==='string'&&sale.invoiceId.trim().length>0;
+  const isCash=!!sale.cash;
+  const day=normalizeDateKey(sale.date)||String(sale.date||'بدون تاريخ');
+  const who=String(sale.who||(isCash?'بيع كاش':'غير محدد'));
+  // Do not combine legacy cash purchases: buyer identity is unknown.
+  const key=isInvoice?'invoice:'+sale.invoiceId:
+    (isCash?'old-cash:'+index:'old-day:'+JSON.stringify([who,day]));
+  if(!groups.has(key))groups.set(key,{key,invoiceId:isInvoice?sale.invoiceId:null,legacy:!isInvoice,legacyDay:!isInvoice&&!isCash,who,date:sale.date||'',lines:[],lastIndex:index});
+  const g=groups.get(key);
+  g.lines.push({x:sale,i:index});
+  g.lastIndex=Math.max(g.lastIndex,index);
+ });
+ return [...groups.values()].sort((a,b)=>b.lastIndex-a.lastIndex);
+}
+function resetSalesHistoryView(){salesHistoryLimit=60;renderSalesHistory();}
+function showMoreSalesHistory(){salesHistoryLimit+=60;renderSalesHistory();}
 function renderSalesHistory(){
  if(!salesHistory||!salesHistoryCount)return;
- const query=(salesHistorySearch?.value||"").trim().toLocaleLowerCase();
- const matches=S.sales.map((x,i)=>({x,i})).reverse().filter(({x})=>{
-   if(!query)return true;
-   return [x.who,x.product,x.date,x.returnDate,x.total,x.returned?"مرتجع":""].some(v=>String(v??"").toLocaleLowerCase().includes(query));
- });
- const displayed=matches.slice(0,salesHistoryLimit);
- salesHistoryCount.textContent=`${displayed.length} من ${matches.length} حركة`;
- salesHistory.innerHTML=displayed.map(({x,i})=>`<div class="sales-history-row"><div class="sales-history-info"><b>${esc(x.who||"بيع كاش")} — ${esc(x.product||"غير محدد")} × ${Number(x.qty||1)}</b>${x.returned?` <span class="pill">مرتجع</span>`:""}<div class="muted">${esc(x.returned?(x.returnDate||x.date||""):(x.date||""))}</div></div><div class="sales-history-actions"><b>${money(x.total)}</b>${x.returned?"":`<button type="button" class="tab danger sale-return-btn" data-sale-index="${i}">مرتجع</button>`}</div></div>`).join("")||`<div class="hint">${query?"لا توجد حركات مطابقة للبحث.":"لا توجد مبيعات."}</div>`;
- if(salesHistoryMore){salesHistoryMore.style.display=matches.length>displayed.length?"block":"none";salesHistoryMore.textContent=`عرض المزيد (${matches.length-displayed.length} حركة متبقية)`;}
+ const query=(salesHistorySearch?.value||'').trim().toLocaleLowerCase();
+ const groups=buildSalesInvoiceGroups(S.sales);
+ const matches=groups.filter(g=>!query||[g.who,g.date,g.invoiceId,...g.lines.flatMap(({x})=>[x.product,x.date,x.returnDate,x.total,x.returned?'مرتجع':''])].some(v=>String(v??'').toLocaleLowerCase().includes(query)));
+ const shown=matches.slice(0,salesHistoryLimit);
+ salesHistoryCount.textContent=`${shown.length} من ${matches.length} فاتورة/مجموعة`;
+ salesHistory.innerHTML=shown.map(g=>{
+  const total=g.lines.filter(({x})=>!x.returned).reduce((a,{x})=>a+Number(x.total||0),0);
+  const returned=g.lines.filter(({x})=>x.returned).length;
+  const allReturned=returned===g.lines.length;
+  const receiptTitle=g.legacyDay?'تجميع حركات يومية قديمة':(g.legacy?'حركة بيع قديمة':'فاتورة بيع');
+  const itemsText=g.lines.map(({x})=>`${esc(x.product||'صنف')} × ${Number(x.qty||1)}`).join('، ');
+  const lines=g.lines.map(({x,i})=>`<tr class="receipt-item${x.returned?' receipt-item-returned':''}"><td><strong>${esc(x.product||'صنف')}</strong><div class="receipt-qty">الكمية: ${Number(x.qty||1)}</div></td><td class="receipt-price">${money(x.total)}</td><td class="receipt-action">${x.returned?'<span class="receipt-returned-label">تم الإرجاع</span>':`<button type="button" class="tab danger sale-return-btn" data-sale-index="${i}" aria-label="مرتجع ${esc(x.product||'صنف')}">مرتجع</button>`}</td></tr>`).join('');
+  return `<details class="returns-invoice" ${query?'open':''}><summary class="returns-invoice-summary"><div class="receipt-summary-main"><b>${esc(g.who)}</b><span class="receipt-type">${receiptTitle}</span><small>${esc(g.date||'بدون تاريخ')}</small><div class="receipt-preview">${itemsText}</div>${returned?`<small class="receipt-returned-state">${allReturned?'مرتجعة بالكامل':`تم إرجاع ${returned} من ${g.lines.length} صنف`}</small>`:''}</div><div class="receipt-summary-side"><b>${money(total)}</b><span class="receipt-chevron" aria-hidden="true">⌄</span></div></summary>${g.legacyDay?'<div class="receipt-legacy-note">حركات قديمة مجمعة حسب الضابط واليوم للعرض فقط؛ ممكن تكون أكتر من فاتورة. كل حركة محفوظة كما هي.</div>':''}<div class="receipt-detail"><table class="receipt-table"><thead><tr><th>الصنف</th><th>المبلغ</th><th>الإجراء</th></tr></thead><tbody>${lines}</tbody></table><div class="receipt-footer"><span>${allReturned?'جميع الأصناف مرتجعة':returned?'الإجمالي بعد المرتجعات':'إجمالي الفاتورة / المجموعة'}</span><b>${money(total)}</b></div></div></details>`;
+ }).join('')||`<div class="hint">${query?'لا توجد فواتير مطابقة للبحث.':'لا توجد مبيعات.'}</div>`;
+ if(salesHistoryMore){salesHistoryMore.style.display=matches.length>shown.length?'block':'none';salesHistoryMore.textContent=`عرض المزيد (${matches.length-shown.length} فاتورة/مجموعة متبقية)`;}
 }
 function officerOpening(name){return Number(S.openingDue?.[name]||0)}
 function officerTotal(name){return S.sales.filter(x=>x.who===name&&!x.returned&&!x.cash).reduce((a,x)=>a+Number(x.total||0),0)}
